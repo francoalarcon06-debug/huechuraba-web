@@ -120,9 +120,9 @@
     .card h3{ margin:0 0 4px 0; font-size:20px }
     .card p{ margin:0; color:var(--muted) }
 
-    /* Card seleccionada (azul más oscuro, notorio) */
+    /* Card seleccionada */
     .card.active{
-      background:#d6e9ff; /* azul más oscuro que antes */
+      background:#d6e9ff;
       border-color: rgba(10,124,255,.6);
       box-shadow: 0 26px 60px rgba(2,40,90,.35);
       transform: translateY(-3px);
@@ -169,7 +169,6 @@
     .btn:hover{ filter:brightness(1.04) }
     .btn:active{ transform:translateY(1px) }
 
-    /* Fila de registro (centrada y negra para ciudadanía) */
     .signup{
       text-align:center;
       margin-top:14px;
@@ -181,6 +180,10 @@
       font-weight:700;
     }
     .signup.hidden{ display:none; }
+
+    .msg { margin-top:10px; font-size:.95rem; text-align:center; }
+    .msg.ok { color:#059669; }
+    .msg.err{ color:#b91c1c; }
   </style>
 </head>
 <body>
@@ -221,13 +224,18 @@
       <!-- Formulario -->
       <section id="login" class="login" aria-live="polite">
         <p class="subtitle" id="roleLabel">Acceso</p>
-        <div class="field">
-          <input class="input" type="email" placeholder="Correo" required />
-        </div>
-        <div class="field">
-          <input class="input" type="password" placeholder="Contraseña" required />
-        </div>
-        <button class="btn">Entrar</button>
+
+        <form id="formLogin" onsubmit="login(event)">
+          <div class="field">
+            <input class="input" id="correo" type="email" placeholder="Correo" required />
+          </div>
+          <div class="field">
+            <input class="input" id="contrasenia" type="password" placeholder="Contraseña" required />
+          </div>
+          <button id="btnLogin" class="btn" type="submit">Entrar</button>
+          <div id="msg" class="msg" aria-live="polite"></div>
+        </form>
+
         <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a href="#">Regístrate</a></p>
       </section>
     </div>
@@ -257,6 +265,45 @@
 
       document.getElementById('login').scrollIntoView({behavior:'smooth', block:'center'});
     }
+
+    async function login(event){
+      event.preventDefault();
+
+      const btn = document.getElementById('btnLogin');
+      const msg = document.getElementById('msg');
+      const correo = document.getElementById('correo').value.trim();
+      const contrasenia = document.getElementById('contrasenia').value;
+
+      msg.textContent = '';
+      btn.disabled = true; btn.textContent = 'Entrando...';
+
+      try {
+        const res = await fetch('https://api.proyectosfranco.cl/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, contrasenia })
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          msg.className = 'msg ok';
+          msg.textContent = '¡Bienvenido ' + (data.user?.nombre || '') + '!';
+          // Redirección simple (ajústala cuando tengas dashboard)
+          setTimeout(() => { window.location.href = 'verify.html'; }, 600);
+        } else {
+          msg.className = 'msg err';
+          msg.textContent = data.error || 'Credenciales inválidas';
+        }
+      } catch (e) {
+        console.error(e);
+        msg.className = 'msg err';
+        msg.textContent = 'No se pudo conectar con el servidor.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    }
   </script>
 </body>
 </html>
+
