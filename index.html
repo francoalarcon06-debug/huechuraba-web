@@ -25,21 +25,20 @@
       margin:0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       color:var(--text);
-      /* El cuerpo queda azul hasta el final de la página */
       background: linear-gradient(135deg,#0a7cff,#00c6ff) fixed;
     }
 
     /* ---------- HERO (franja blanca con logo + propósito) ---------- */
     .hero{
       width:100%;
-      background:#fff;                 /* franja blanca arriba */
+      background:#fff;
       display:grid;
       place-items:center;
       padding:42px 16px 24px;
       text-align:center;
     }
     .hero .logo{
-      width:min(520px, 75vw);          /* logo grande y adaptable */
+      width:min(520px, 75vw);
       max-height:160px;
       display:block;
       margin:0 auto 12px auto;
@@ -52,7 +51,7 @@
       font-weight:600;
     }
 
-    /* ---------- SECCIÓN PRINCIPAL (continúa el azul) ---------- */
+    /* ---------- SECCIÓN PRINCIPAL (azul hasta el final) ---------- */
     .main{ padding:28px 16px 56px; }
 
     .wrap{
@@ -67,7 +66,6 @@
       color:#fff;
       text-shadow:0 2px 10px rgba(0,0,0,.15);
     }
-    /* Chip “Identifícate para continuar” en azul */
     .tag{
       display:inline-block;
       margin:0 0 8px 0;
@@ -107,7 +105,10 @@
       transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
       cursor:pointer;
     }
-    .card:hover{ transform: translateY(-2px); box-shadow:0 22px 48px rgba(2,40,90,.22) }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow:0 22px 48px rgba(2,40,90,.22);
+    }
 
     .badge{
       min-width:48px; min-height:48px; border-radius:12px;
@@ -119,15 +120,15 @@
     .card h3{ margin:0 0 4px 0; font-size:20px }
     .card p{ margin:0; color:var(--muted) }
 
-    /* Card seleccionada (azul más oscuro, distinto del fondo) */
+    /* Card seleccionada (azul más oscuro, notorio) */
     .card.active{
-      background:#eaf3ff;
-      border-color: rgba(10,124,255,.35);
-      box-shadow: 0 24px 56px rgba(2,40,90,.28);
+      background:#d6e9ff; /* azul más oscuro que antes */
+      border-color: rgba(10,124,255,.6);
+      box-shadow: 0 26px 60px rgba(2,40,90,.35);
       transform: translateY(-3px);
     }
     .card.active .badge{
-      background:linear-gradient(135deg, #0562d6, #0a7cff);
+      background:linear-gradient(135deg, #0349a5, #0562d6);
     }
 
     /* Formulario */
@@ -175,7 +176,7 @@
       font-size:.95rem;
     }
     .signup a{
-      color:#000;            /* negro como pediste */
+      color:#000;
       text-decoration:none;
       font-weight:700;
     }
@@ -190,7 +191,7 @@
     <p class="purpose">Plataforma para <b>levantar solicitudes de Retiro de Escombros</b>.</p>
   </section>
 
-  <!-- SECCIÓN AZUL (desde aquí todo el fondo se mantiene azul hasta el final) -->
+  <!-- SECCIÓN AZUL -->
   <section class="main">
     <div class="wrap">
       <header class="header">
@@ -227,7 +228,6 @@
           <input class="input" type="password" placeholder="Contraseña" required />
         </div>
         <button class="btn">Entrar</button>
-        <!-- Fila de registro: centrada, negra y controlada por JS -->
         <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a href="#">Regístrate</a></p>
       </section>
     </div>
@@ -235,7 +235,7 @@
 
   <script>
     function chooseRole(role){
-      // Marcar visualmente la tarjeta seleccionada
+      // resetear cards
       document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
       if (role === 'Personal Municipal') {
         document.querySelector('.card[onclick*="Personal Municipal"]').classList.add('active');
@@ -243,19 +243,18 @@
         document.querySelector('.card[onclick*="Ciudadanía"]').classList.add('active');
       }
 
-      // Cambiar título del formulario y mostrarlo
+      // actualizar formulario
       document.getElementById('roleLabel').textContent = 'Acceso – ' + role;
       document.getElementById('login').classList.add('active');
 
-      // Mostrar/ocultar “¿No tienes cuenta?” según el rol
+      // mostrar/ocultar registro
       const signup = document.getElementById('signupRow');
       if (role === 'Personal Municipal') {
-        signup.classList.add('hidden');     // no se muestra para personal municipal
+        signup.classList.add('hidden');
       } else {
-        signup.classList.remove('hidden');  // sí se muestra para ciudadanía
+        signup.classList.remove('hidden');
       }
 
-      // Llevar scroll al formulario
       document.getElementById('login').scrollIntoView({behavior:'smooth', block:'center'});
     }
   </script>
