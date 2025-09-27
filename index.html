@@ -25,8 +25,7 @@
       margin:0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       color:var(--text);
-
-      /* Ahora el cuerpo queda azul hasta el final de la página */
+      /* El cuerpo queda azul hasta el final de la página */
       background: linear-gradient(135deg,#0a7cff,#00c6ff) fixed;
     }
 
@@ -54,10 +53,7 @@
     }
 
     /* ---------- SECCIÓN PRINCIPAL (continúa el azul) ---------- */
-    .main{
-      /* transparente, se ve el azul del <body> */
-      padding:28px 16px 56px;
-    }
+    .main{ padding:28px 16px 56px; }
 
     .wrap{
       max-width:1000px;
@@ -108,7 +104,7 @@
       align-items:center;
       box-shadow:var(--shadow);
       border:1px solid rgba(255,255,255,.35);
-      transition:transform .18s ease, box-shadow .18s ease;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
       cursor:pointer;
     }
     .card:hover{ transform: translateY(-2px); box-shadow:0 22px 48px rgba(2,40,90,.22) }
@@ -122,6 +118,17 @@
     }
     .card h3{ margin:0 0 4px 0; font-size:20px }
     .card p{ margin:0; color:var(--muted) }
+
+    /* Card seleccionada (azul más oscuro, distinto del fondo) */
+    .card.active{
+      background:#eaf3ff;
+      border-color: rgba(10,124,255,.35);
+      box-shadow: 0 24px 56px rgba(2,40,90,.28);
+      transform: translateY(-3px);
+    }
+    .card.active .badge{
+      background:linear-gradient(135deg, #0562d6, #0a7cff);
+    }
 
     /* Formulario */
     .login{
@@ -161,8 +168,18 @@
     .btn:hover{ filter:brightness(1.04) }
     .btn:active{ transform:translateY(1px) }
 
-    .meta{ text-align:center; margin-top:10px; color:#e5e7eb; font-size:.95rem; }
-    .meta a{ color:#fff; text-decoration:underline; font-weight:600 }
+    /* Fila de registro (centrada y negra para ciudadanía) */
+    .signup{
+      text-align:center;
+      margin-top:14px;
+      font-size:.95rem;
+    }
+    .signup a{
+      color:#000;            /* negro como pediste */
+      text-decoration:none;
+      font-weight:700;
+    }
+    .signup.hidden{ display:none; }
   </style>
 </head>
 <body>
@@ -210,15 +227,35 @@
           <input class="input" type="password" placeholder="Contraseña" required />
         </div>
         <button class="btn">Entrar</button>
-        <p class="meta">¿No tienes cuenta? <a href="#">Regístrate</a></p>
+        <!-- Fila de registro: centrada, negra y controlada por JS -->
+        <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a href="#">Regístrate</a></p>
       </section>
     </div>
   </section>
 
   <script>
     function chooseRole(role){
+      // Marcar visualmente la tarjeta seleccionada
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      if (role === 'Personal Municipal') {
+        document.querySelector('.card[onclick*="Personal Municipal"]').classList.add('active');
+      } else {
+        document.querySelector('.card[onclick*="Ciudadanía"]').classList.add('active');
+      }
+
+      // Cambiar título del formulario y mostrarlo
       document.getElementById('roleLabel').textContent = 'Acceso – ' + role;
       document.getElementById('login').classList.add('active');
+
+      // Mostrar/ocultar “¿No tienes cuenta?” según el rol
+      const signup = document.getElementById('signupRow');
+      if (role === 'Personal Municipal') {
+        signup.classList.add('hidden');     // no se muestra para personal municipal
+      } else {
+        signup.classList.remove('hidden');  // sí se muestra para ciudadanía
+      }
+
+      // Llevar scroll al formulario
       document.getElementById('login').scrollIntoView({behavior:'smooth', block:'center'});
     }
   </script>
