@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Identifícate</title>
 
-  <!-- Favicon (pestaña del navegador) -->
   <link rel="icon" type="image/png" href="favicon.png.png" />
 
   <style>
@@ -28,7 +27,7 @@
       background: linear-gradient(135deg,#0a7cff,#00c6ff) fixed;
     }
 
-    /* ---------- HERO (franja blanca con logo + propósito) ---------- */
+    /* Franja blanca */
     .hero{
       width:100%;
       background:#fff;
@@ -51,7 +50,7 @@
       font-weight:600;
     }
 
-    /* ---------- SECCIÓN PRINCIPAL (azul hasta el final) ---------- */
+    /* Sección azul */
     .main{ padding:28px 16px 56px; }
 
     .wrap{
@@ -120,7 +119,6 @@
     .card h3{ margin:0 0 4px 0; font-size:20px }
     .card p{ margin:0; color:var(--muted) }
 
-    /* Card seleccionada */
     .card.active{
       background:#d6e9ff;
       border-color: rgba(10,124,255,.6);
@@ -179,16 +177,18 @@
       text-decoration:none;
       font-weight:700;
     }
-    .signup.hidden{ display:none; }
-
-    .msg { margin-top:10px; font-size:.95rem; text-align:center; }
-    .msg.ok { color:#059669; }
-    .msg.err{ color:#b91c1c; }
+    .hidden{ display:none }
+    .error{
+      margin:10px 0 0;
+      color:#c0392b;
+      font-weight:700;
+      text-align:center;
+    }
   </style>
 </head>
 <body>
 
-  <!-- FRANJA BLANCA: Logo + propósito -->
+  <!-- FRANJA BLANCA -->
   <section class="hero">
     <img class="logo" src="logo-huechuraba.svg.svg" alt="Municipalidad de Huechuraba" />
     <p class="purpose">Plataforma para <b>levantar solicitudes de Retiro de Escombros</b>.</p>
@@ -202,9 +202,9 @@
         <h1>Municipalidad de Huechuraba</h1>
       </header>
 
-      <!-- Bloques de elección -->
+      <!-- Bloques -->
       <section class="choices">
-        <article class="card" onclick="chooseRole('Personal Municipal')">
+        <article class="card" id="cardPM" onclick="chooseRole('Personal Municipal')">
           <div class="badge">PM</div>
           <div>
             <h3>Personal de la Municipalidad</h3>
@@ -212,7 +212,7 @@
           </div>
         </article>
 
-        <article class="card" onclick="chooseRole('Ciudadanía')">
+        <article class="card" id="cardCZ" onclick="chooseRole('Ciudadanía')">
           <div class="badge">CZ</div>
           <div>
             <h3>Ciudadanía</h3>
@@ -225,16 +225,15 @@
       <section id="login" class="login" aria-live="polite">
         <p class="subtitle" id="roleLabel">Acceso</p>
 
-        <form id="formLogin" onsubmit="login(event)">
-          <div class="field">
-            <input class="input" id="correo" type="email" placeholder="Correo" required />
-          </div>
-          <div class="field">
-            <input class="input" id="contrasenia" type="password" placeholder="Contraseña" required />
-          </div>
-          <button id="btnLogin" class="btn" type="submit">Entrar</button>
-          <div id="msg" class="msg" aria-live="polite"></div>
-        </form>
+        <div class="field">
+          <input id="loginEmail" class="input" type="email" placeholder="Correo" required />
+        </div>
+        <div class="field">
+          <input id="loginPass" class="input" type="password" placeholder="Contraseña" required />
+        </div>
+
+        <button id="loginBtn" class="btn">Entrar</button>
+        <p id="loginError" class="error hidden">Credenciales inválidas</p>
 
         <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a href="#">Regístrate</a></p>
       </section>
@@ -242,40 +241,59 @@
   </section>
 
   <script>
+    // Estado actual del rol (por defecto null)
+    let currentRole = null;
+
+    const loginBox   = document.getElementById('login');
+    const roleLabel  = document.getElementById('roleLabel');
+    const emailInput = document.getElementById('loginEmail');
+    const passInput  = document.getElementById('loginPass');
+    const errorBox   = document.getElementById('loginError');
+    const signupRow  = document.getElementById('signupRow');
+    const btn        = document.getElementById('loginBtn');
+
+    // Oculta error al empezar a escribir
+    [emailInput, passInput].forEach(el => {
+      el.addEventListener('input', () => errorBox.classList.add('hidden'));
+    });
+
     function chooseRole(role){
-      // resetear cards
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      // 1) Activar la tarjeta correcta
+      document.getElementById('cardPM').classList.toggle('active', role === 'Personal Municipal');
+      document.getElementById('cardCZ').classList.toggle('active', role === 'Ciudadanía');
+
+      // 2) Mostrar el formulario con el título del rol
+      loginBox.classList.add('active');
+      roleLabel.textContent = 'Acceso – ' + role;
+      currentRole = role;
+
+      // 3) LIMPIAR CAMPOS y OCULTAR ERROR
+      emailInput.value = '';
+      passInput.value  = '';
+      errorBox.classList.add('hidden');
+
+      // 4) Mostrar/ocultar fila de registro
       if (role === 'Personal Municipal') {
-        document.querySelector('.card[onclick*="Personal Municipal"]').classList.add('active');
+        signupRow.classList.add('hidden');
       } else {
-        document.querySelector('.card[onclick*="Ciudadanía"]').classList.add('active');
+        signupRow.classList.remove('hidden');
       }
 
-      // actualizar formulario
-      document.getElementById('roleLabel').textContent = 'Acceso – ' + role;
-      document.getElementById('login').classList.add('active');
-
-      // mostrar/ocultar registro
-      const signup = document.getElementById('signupRow');
-      if (role === 'Personal Municipal') {
-        signup.classList.add('hidden');
-      } else {
-        signup.classList.remove('hidden');
-      }
-
-      document.getElementById('login').scrollIntoView({behavior:'smooth', block:'center'});
+      // 5) Focus al email
+      emailInput.focus();
     }
 
-    async function login(event){
-      event.preventDefault();
+    btn.addEventListener('click', async () => {
+      errorBox.classList.add('hidden');
 
-      const btn = document.getElementById('btnLogin');
-      const msg = document.getElementById('msg');
-      const correo = document.getElementById('correo').value.trim();
-      const contrasenia = document.getElementById('contrasenia').value;
+      const correo = emailInput.value.trim();
+      const contrasenia = passInput.value;
 
-      msg.textContent = '';
-      btn.disabled = true; btn.textContent = 'Entrando...';
+      if (!correo || !contrasenia) {
+        errorBox.textContent = 'Completa tu correo y contraseña';
+        errorBox.classList.remove('hidden');
+        return;
+      }
 
       try {
         const res = await fetch('https://api.proyectosfranco.cl/auth/login', {
@@ -286,24 +304,21 @@
 
         const data = await res.json();
 
-        if (data.ok) {
-          msg.className = 'msg ok';
-          msg.textContent = '¡Bienvenido ' + (data.user?.nombre || '') + '!';
-          // Redirección simple (ajústala cuando tengas dashboard)
-          setTimeout(() => { window.location.href = 'verify.html'; }, 600);
+        if (res.ok && data.ok) {
+          // Éxito: aquí puedes redirigir a tu panel si quieres
+          // Por ahora solo recargamos para dejar todo limpio
+          location.href = 'verify.html';
         } else {
-          msg.className = 'msg err';
-          msg.textContent = data.error || 'Credenciales inválidas';
+          errorBox.textContent = 'Credenciales inválidas';
+          errorBox.classList.remove('hidden');
         }
       } catch (e) {
-        console.error(e);
-        msg.className = 'msg err';
-        msg.textContent = 'No se pudo conectar con el servidor.';
-      } finally {
-        btn.disabled = false; btn.textContent = 'Entrar';
+        errorBox.textContent = 'Error de conexión. Intenta de nuevo.';
+        errorBox.classList.remove('hidden');
       }
-    }
+    });
   </script>
 </body>
 </html>
+
 
