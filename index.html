@@ -129,7 +129,7 @@
       background:linear-gradient(135deg, #0349a5, #0562d6);
     }
 
-    /* Formulario base (login/registro comparten panel) */
+    /* Panel (login/registro) */
     .panel{
       margin-top:8px;
       background:#fff;
@@ -191,7 +191,6 @@
       font-weight:700;
       text-align:center;
     }
-    .muted{ color:#6b7280; font-size:.95rem; }
   </style>
 </head>
 <body>
@@ -271,13 +270,13 @@
   </section>
 
   <script>
-    // API base
+    // Base de la API
     const API = 'https://api.proyectosfranco.cl';
 
-    // Estado actual del rol (null hasta que elija)
+    // Estado de rol actual
     let currentRole = null;
 
-    // Elementos comunes
+    // Elementos (login)
     const loginBox   = document.getElementById('login');
     const roleLabel  = document.getElementById('roleLabel');
     const emailInput = document.getElementById('loginEmail');
@@ -286,7 +285,7 @@
     const signupRow  = document.getElementById('signupRow');
     const btnLogin   = document.getElementById('loginBtn');
 
-    // Registro
+    // Elementos (registro)
     const panelRegister = document.getElementById('register');
     const openRegister  = document.getElementById('openRegister');
     const backToLogin   = document.getElementById('backToLogin');
@@ -297,7 +296,7 @@
     const btnRegister   = document.getElementById('registerBtn');
     const registerMsg   = document.getElementById('registerMsg');
 
-    // Oculta error al empezar a escribir
+    // Oculta el error si el usuario escribe
     [emailInput, passInput].forEach(el => {
       el.addEventListener('input', () => errorBox.classList.add('hidden'));
     });
@@ -380,8 +379,8 @@
         const data = await res.json().catch(()=> ({}));
 
         if (res.ok && data.ok) {
-          // Aquí luego redirigimos a la app/panel. Por ahora muestro verify.html a modo demo.
-          location.href = 'verify.html';
+          // Aquí más adelante redirigiremos al panel de la app
+          location.href = 'verify.html'; // demo
         } else {
           errorBox.textContent = data && data.error ? data.error : 'Credenciales inválidas';
           errorBox.classList.remove('hidden');
@@ -411,7 +410,7 @@
       emailInput.focus();
     });
 
-    // REGISTRO ciudadanía
+    // REGISTRO ciudadanía (simple, sin verificación por correo)
     btnRegister.addEventListener('click', async ()=>{
       registerMsg.className = 'ok hidden';
       registerMsg.textContent = '';
@@ -421,7 +420,7 @@
       const telefono = rTelefono.value.trim();
       const contrasenia = rPass.value;
 
-      // Valida teléfono 569XXXXXXXX
+      // Valida teléfono 569XXXXXXXX (opcional)
       if (telefono && !/^569\d{8}$/.test(telefono)) {
         registerMsg.className = 'error';
         registerMsg.textContent = 'El teléfono debe ser 569XXXXXXXX (11 dígitos).';
@@ -446,6 +445,14 @@
         });
         const data = await res.json().catch(()=> ({}));
 
+        // Si el backend devuelve 409 (duplicado) o un error que contenga "registrad"
+        if (res.status === 409 || (data.error && /registrad/i.test(data.error))) {
+          registerMsg.className = 'error';
+          registerMsg.textContent = 'Este correo ya está registrado.';
+          registerMsg.classList.remove('hidden');
+          return;
+        }
+
         if (!res.ok || !data.ok){
           registerMsg.className = 'error';
           registerMsg.textContent = (data && data.error) ? data.error : 'No se pudo registrar.';
@@ -453,14 +460,21 @@
           return;
         }
 
-        const link = data.verifyLink || '';
+        // Éxito: mensaje simple y botón para iniciar sesión
         registerMsg.className = 'ok';
         registerMsg.innerHTML = `
-          Registro creado. Te enviamos un correo para verificar.<br/>
-          <span class="muted">Para pruebas:</span> ${link ? `<a href="${link}">Verificar ahora</a>` : '(sin enlace de prueba)'}
+          Registro completado.<br/>
+          <button id="goLogin" class="btn" style="margin-top:12px;">Iniciar sesión</button>
         `;
         registerMsg.classList.remove('hidden');
+
+        // Limpio campos y engancho el botón de volver
         clearRegister();
+        document.getElementById('goLogin')?.addEventListener('click', ()=>{
+          panelRegister.classList.remove('active');
+          loginBox.classList.add('active');
+          emailInput.focus();
+        });
       } catch(e){
         registerMsg.className = 'error';
         registerMsg.textContent = 'Error de red. Intenta de nuevo.';
