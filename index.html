@@ -1,82 +1,207 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muni Huechuraba</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huechuraba – Identifícate</title>
+
+  <!-- Favicon (pestaña del navegador) -->
+  <link rel="icon" type="image/png" href="assets/huechuraba-logo.png" />
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #0a7cff, #00c6ff);
+    :root{
+      --brand:#0a7cff;
+      --brand-strong:#0562d6;
+      --text:#1a1a1a;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --radius:14px;
+      --shadow:0 18px 40px rgba(2,40,90,.18);
     }
 
-    .container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--text);
+      /* Fondo con degradé + marca de agua del logo */
+      background: linear-gradient(135deg,#0a7cff,#00c6ff);
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* Marca de agua (logo grande y tenue) */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(ellipse at center, rgba(255,255,255,.25), rgba(255,255,255,0) 60%) center/120% 120% no-repeat,
+        url("assets/huechuraba-logo.png") center/380px no-repeat;
+      opacity:.08;
+      pointer-events:none;
+      filter: saturate(0) contrast(110%);
     }
 
-    h2 {
-      margin-bottom: 1rem;
-      color: #333;
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:48px 16px;
     }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+    .panel{
+      width:100%;
+      max-width:980px;
+      display:grid;
+      gap:28px;
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0a7cff;
-      border: none;
-      color: #fff;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
+    .header{
+      text-align:center;
+      color:#fff;
+      text-shadow:0 2px 10px rgba(0,0,0,.15);
+    }
+    .header h1{
+      margin:.2rem 0 0;
+      font-size:clamp(22px,3.3vw,34px);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .header p{
+      margin:.2rem 0 0;
+      opacity:.95;
     }
 
-    button:hover {
-      background: #005bb5;
+    /* Bloques de elección */
+    .choices{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:18px;
+    }
+    @media (max-width:720px){
+      .choices{grid-template-columns:1fr}
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:26px;
+      display:flex;
+      gap:16px;
+      align-items:center;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.35);
+      transition:transform .18s ease, box-shadow .18s ease;
+      cursor:pointer;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow:0 22px 48px rgba(2,40,90,.22) }
+
+    .badge{
+      min-width:48px; min-height:48px; border-radius:12px;
+      display:grid; place-items:center; color:#fff; font-weight:700;
+      background:linear-gradient(135deg, var(--brand), #22a6ff);
+      box-shadow:0 8px 22px rgba(10,124,255,.25);
+      font-size:18px;
+    }
+    .card h3{ margin:0 0 4px 0; font-size:20px }
+    .card p{ margin:0; color:var(--muted) }
+
+    /* Formulario */
+    .login{
+      margin-top:8px;
+      background:#fff;
+      border:1px solid rgba(255,255,255,.35);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:26px;
+      max-width:520px;
+      justify-self:center;
+      width:100%;
+      display:none;
+    }
+    .login.active{ display:block }
+
+    .login .subtitle{
+      margin:0 0 14px 0;
+      font-weight:700;
+      color:var(--brand-strong);
     }
 
-    .links {
-      margin-top: 1rem;
-      font-size: 0.9rem;
+    .field{
+      width:100%; margin:10px 0;
     }
+    .input{
+      width:100%; padding:12px 14px; font-size:16px;
+      border-radius:10px; border:1px solid #e5e7eb;
+      outline:0; transition:border .15s ease, box-shadow .15s ease;
+    }
+    .input:focus{ border-color:var(--brand); box-shadow:0 0 0 4px rgba(10,124,255,.12) }
 
-    .links a {
-      color: #0a7cff;
-      text-decoration: none;
+    .btn{
+      width:100%; padding:12px 16px; border:0; border-radius:10px;
+      background:linear-gradient(135deg, var(--brand), #1e90ff);
+      color:#fff; font-weight:700; letter-spacing:.2px; cursor:pointer;
+      transition:filter .15s ease, transform .05s ease;
     }
+    .btn:hover{ filter:brightness(1.04) }
+    .btn:active{ transform:translateY(1px) }
+
+    .meta{
+      text-align:center; margin-top:10px; color:#6b7280; font-size:.95rem;
+    }
+    .meta a{ color:var(--brand); text-decoration:none; font-weight:600 }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Iniciar Sesión</h2>
-    <form>
-      <input type="email" placeholder="Correo" required>
-      <input type="password" placeholder="Contraseña" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <div class="links">
-      <p>¿No tienes cuenta? <a href="#">Regístrate</a></p>
+  <div class="wrap">
+    <div class="panel">
+      <header class="header">
+        <p style="margin:0;opacity:.9;">Identifícate para continuar</p>
+        <h1>Municipalidad de Huechuraba</h1>
+      </header>
+
+      <!-- Bloques de elección -->
+      <section class="choices">
+        <article class="card" onclick="chooseRole('Personal Municipal')">
+          <div class="badge">PM</div>
+          <div>
+            <h3>Personal de la Municipalidad</h3>
+            <p>Acceso para funcionarias y funcionarios.</p>
+          </div>
+        </article>
+
+        <article class="card" onclick="chooseRole('Ciudadanía')">
+          <div class="badge">CZ</div>
+          <div>
+            <h3>Ciudadanía</h3>
+            <p>Vecinas y vecinos para realizar solicitudes.</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- Formulario -->
+      <section id="login" class="login" aria-live="polite">
+        <p class="subtitle" id="roleLabel">Acceso</p>
+        <div class="field">
+          <input class="input" type="email" placeholder="Correo" required />
+        </div>
+        <div class="field">
+          <input class="input" type="password" placeholder="Contraseña" required />
+        </div>
+        <button class="btn">Entrar</button>
+        <p class="meta">¿No tienes cuenta? <a href="#">Regístrate</a></p>
+      </section>
     </div>
   </div>
+
+  <script>
+    function chooseRole(role){
+      document.getElementById('roleLabel').textContent = 'Acceso – ' + role;
+      document.getElementById('login').classList.add('active');
+      // opcional: desplazarse al form
+      document.getElementById('login').scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  </script>
 </body>
 </html>
+
