@@ -129,8 +129,8 @@
       background:linear-gradient(135deg, #0349a5, #0562d6);
     }
 
-    /* Formulario */
-    .login{
+    /* Formulario base (login/registro comparten panel) */
+    .panel{
       margin-top:8px;
       background:#fff;
       border:1px solid rgba(255,255,255,.35);
@@ -142,9 +142,9 @@
       width:100%;
       display:none;
     }
-    .login.active{ display:block }
+    .panel.active{ display:block }
 
-    .login .subtitle{
+    .subtitle{
       margin:0 0 14px 0;
       font-weight:700;
       color:var(--brand-strong);
@@ -176,6 +176,7 @@
       color:#000;
       text-decoration:none;
       font-weight:700;
+      cursor:pointer;
     }
     .hidden{ display:none }
     .error{
@@ -184,6 +185,13 @@
       font-weight:700;
       text-align:center;
     }
+    .ok{
+      margin:10px 0 0;
+      color:#065f46;
+      font-weight:700;
+      text-align:center;
+    }
+    .muted{ color:#6b7280; font-size:.95rem; }
   </style>
 </head>
 <body>
@@ -221,8 +229,8 @@
         </article>
       </section>
 
-      <!-- Formulario -->
-      <section id="login" class="login" aria-live="polite">
+      <!-- Login -->
+      <section id="login" class="panel" aria-live="polite">
         <p class="subtitle" id="roleLabel">Acceso</p>
 
         <div class="field">
@@ -235,55 +243,109 @@
         <button id="loginBtn" class="btn">Entrar</button>
         <p id="loginError" class="error hidden">Credenciales inválidas</p>
 
-        <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a href="#">Regístrate</a></p>
+        <p class="signup hidden" id="signupRow">¿No tienes cuenta? <a id="openRegister">Regístrate</a></p>
+      </section>
+
+      <!-- Registro ciudadanía -->
+      <section id="register" class="panel" aria-live="polite">
+        <p class="subtitle">Registro – Ciudadanía</p>
+
+        <div class="field">
+          <input id="rNombre" class="input" type="text" placeholder="Nombre completo" required />
+        </div>
+        <div class="field">
+          <input id="rCorreo" class="input" type="email" placeholder="Correo" required />
+        </div>
+        <div class="field">
+          <input id="rTelefono" class="input" type="text" placeholder="Teléfono (formato 569XXXXXXXX)" maxlength="11" />
+        </div>
+        <div class="field">
+          <input id="rPass" class="input" type="password" placeholder="Contraseña" required />
+        </div>
+
+        <button id="registerBtn" class="btn">Crear cuenta</button>
+        <p id="registerMsg" class="ok hidden"></p>
+        <p class="signup"><a id="backToLogin">Volver al inicio de sesión</a></p>
       </section>
     </div>
   </section>
 
   <script>
-    // Estado actual del rol (por defecto null)
+    // API base
+    const API = 'https://api.proyectosfranco.cl';
+
+    // Estado actual del rol (null hasta que elija)
     let currentRole = null;
 
+    // Elementos comunes
     const loginBox   = document.getElementById('login');
     const roleLabel  = document.getElementById('roleLabel');
     const emailInput = document.getElementById('loginEmail');
     const passInput  = document.getElementById('loginPass');
     const errorBox   = document.getElementById('loginError');
     const signupRow  = document.getElementById('signupRow');
-    const btn        = document.getElementById('loginBtn');
+    const btnLogin   = document.getElementById('loginBtn');
+
+    // Registro
+    const panelRegister = document.getElementById('register');
+    const openRegister  = document.getElementById('openRegister');
+    const backToLogin   = document.getElementById('backToLogin');
+    const rNombre       = document.getElementById('rNombre');
+    const rCorreo       = document.getElementById('rCorreo');
+    const rTelefono     = document.getElementById('rTelefono');
+    const rPass         = document.getElementById('rPass');
+    const btnRegister   = document.getElementById('registerBtn');
+    const registerMsg   = document.getElementById('registerMsg');
 
     // Oculta error al empezar a escribir
     [emailInput, passInput].forEach(el => {
       el.addEventListener('input', () => errorBox.classList.add('hidden'));
     });
 
+    function clearLogin(){
+      emailInput.value = '';
+      passInput.value = '';
+      errorBox.classList.add('hidden');
+      errorBox.textContent = 'Credenciales inválidas';
+    }
+    function clearRegister(){
+      rNombre.value = '';
+      rCorreo.value = '';
+      rTelefono.value = '';
+      rPass.value = '';
+      registerMsg.className = 'ok hidden';
+      registerMsg.textContent = '';
+    }
+
     function chooseRole(role){
-      // 1) Activar la tarjeta correcta
+      // Activar tarjeta
       document.getElementById('cardPM').classList.toggle('active', role === 'Personal Municipal');
       document.getElementById('cardCZ').classList.toggle('active', role === 'Ciudadanía');
 
-      // 2) Mostrar el formulario con el título del rol
+      // Mostrar panel de login
       loginBox.classList.add('active');
+      panelRegister.classList.remove('active');
+
+      // Título y estado
       roleLabel.textContent = 'Acceso – ' + role;
       currentRole = role;
 
-      // 3) LIMPIAR CAMPOS y OCULTAR ERROR
-      emailInput.value = '';
-      passInput.value  = '';
-      errorBox.classList.add('hidden');
+      // Limpiar campos y mensajes
+      clearLogin();
 
-      // 4) Mostrar/ocultar fila de registro
+      // Mostrar/ocultar registro
       if (role === 'Personal Municipal') {
         signupRow.classList.add('hidden');
       } else {
         signupRow.classList.remove('hidden');
       }
 
-      // 5) Focus al email
+      // Focus
       emailInput.focus();
     }
 
-    btn.addEventListener('click', async () => {
+    // LOGIN
+    btnLogin.addEventListener('click', async () => {
       errorBox.classList.add('hidden');
 
       const correo = emailInput.value.trim();
@@ -294,31 +356,120 @@
         errorBox.classList.remove('hidden');
         return;
       }
+      if (!currentRole){
+        errorBox.textContent = 'Elige un tipo de acceso.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      // Endpoint según rol
+      const endpoint = (currentRole === 'Ciudadanía')
+        ? `${API}/citizens/login`
+        : `${API}/auth/login`;
 
       try {
-        const res = await fetch('https://api.proyectosfranco.cl/auth/login', {
+        btnLogin.disabled = true;
+        btnLogin.textContent = 'Verificando...';
+
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ correo, contrasenia })
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(()=> ({}));
 
         if (res.ok && data.ok) {
-          // Éxito: aquí puedes redirigir a tu panel si quieres
-          // Por ahora solo recargamos para dejar todo limpio
+          // Aquí luego redirigimos a la app/panel. Por ahora muestro verify.html a modo demo.
           location.href = 'verify.html';
         } else {
-          errorBox.textContent = 'Credenciales inválidas';
+          errorBox.textContent = data && data.error ? data.error : 'Credenciales inválidas';
           errorBox.classList.remove('hidden');
         }
       } catch (e) {
         errorBox.textContent = 'Error de conexión. Intenta de nuevo.';
         errorBox.classList.remove('hidden');
+      } finally {
+        btnLogin.disabled = false;
+        btnLogin.textContent = 'Entrar';
+      }
+    });
+
+    // Abrir/cerrar registro
+    openRegister?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      clearRegister();
+      loginBox.classList.remove('active');
+      panelRegister.classList.add('active');
+      rNombre.focus();
+    });
+    backToLogin?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      clearLogin();
+      panelRegister.classList.remove('active');
+      loginBox.classList.add('active');
+      emailInput.focus();
+    });
+
+    // REGISTRO ciudadanía
+    btnRegister.addEventListener('click', async ()=>{
+      registerMsg.className = 'ok hidden';
+      registerMsg.textContent = '';
+
+      const nombre = rNombre.value.trim();
+      const correo = rCorreo.value.trim();
+      const telefono = rTelefono.value.trim();
+      const contrasenia = rPass.value;
+
+      // Valida teléfono 569XXXXXXXX
+      if (telefono && !/^569\d{8}$/.test(telefono)) {
+        registerMsg.className = 'error';
+        registerMsg.textContent = 'El teléfono debe ser 569XXXXXXXX (11 dígitos).';
+        registerMsg.classList.remove('hidden');
+        return;
+      }
+      if (!nombre || !correo || !contrasenia){
+        registerMsg.className = 'error';
+        registerMsg.textContent = 'Completa nombre, correo y contraseña.';
+        registerMsg.classList.remove('hidden');
+        return;
+      }
+
+      try{
+        btnRegister.disabled = true;
+        btnRegister.textContent = 'Creando...';
+
+        const res = await fetch(`${API}/citizens/register`, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ nombre, correo, telefono, contrasenia })
+        });
+        const data = await res.json().catch(()=> ({}));
+
+        if (!res.ok || !data.ok){
+          registerMsg.className = 'error';
+          registerMsg.textContent = (data && data.error) ? data.error : 'No se pudo registrar.';
+          registerMsg.classList.remove('hidden');
+          return;
+        }
+
+        const link = data.verifyLink || '';
+        registerMsg.className = 'ok';
+        registerMsg.innerHTML = `
+          Registro creado. Te enviamos un correo para verificar.<br/>
+          <span class="muted">Para pruebas:</span> ${link ? `<a href="${link}">Verificar ahora</a>` : '(sin enlace de prueba)'}
+        `;
+        registerMsg.classList.remove('hidden');
+        clearRegister();
+      } catch(e){
+        registerMsg.className = 'error';
+        registerMsg.textContent = 'Error de red. Intenta de nuevo.';
+        registerMsg.classList.remove('hidden');
+      } finally {
+        btnRegister.disabled = false;
+        btnRegister.textContent = 'Crear cuenta';
       }
     });
   </script>
 </body>
 </html>
-
-
