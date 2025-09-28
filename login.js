@@ -16,6 +16,10 @@ async function login(event) {
 
     if (data.ok) {
       alert("✅ Bienvenido " + data.user.nombre);
+
+      // Guarda el correo en localStorage para usarlo en verify.html
+      localStorage.setItem("email", correo);
+
       // Redirige a otra página (ej: verify.html o dashboard)
       window.location.href = "verify.html";
     } else {
@@ -26,3 +30,4 @@ async function login(event) {
     alert("❌ No se pudo conectar con el servidor");
   }
 }
+
