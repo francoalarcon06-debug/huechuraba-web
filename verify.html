@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Ciudadanía</title>
-
-  <!-- FAVICON -->
   <link rel="icon" type="image/png" href="favicon.png.png" />
-
   <style>
     :root{
       --white:#ffffff;
@@ -29,44 +26,27 @@
       display:flex; flex-direction:column;
       background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
     }
-
-    /* HEADER */
-    header{
-      background:var(--white);
-      border-bottom:1px solid #e6eefc;
-    }
+    header{ background:var(--white); border-bottom:1px solid #e6eefc; }
     .wrap{
-      max-width:1120px; margin:0 auto;
-      padding:18px 20px;
+      max-width:1120px; margin:0 auto; padding:18px 20px;
       display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
     }
-    .brand{
-      display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px;
-    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
     .brand img{ height:78px; width:auto; object-fit:contain; }
-    .brand .subtitle{
-      grid-column: 1 / -1;
-      margin:6px 0 0 0;
-      color:var(--muted); font-size:15px; font-weight:600;
-    }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:var(--muted); font-size:15px; font-weight:600; }
 
-    /* Sesión */
     .userbox{ position:relative; }
     .userbtn{
-      display:flex; align-items:center; gap:10px;
-      background:var(--white);
-      border:2px solid var(--outline);
-      padding:10px 14px; border-radius:12px;
-      cursor:pointer; font-weight:700; color:var(--outline);
-      box-shadow: var(--shadow);
+      display:flex; align-items:center; gap:10px; background:var(--white);
+      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-weight:700; color:var(--outline); box-shadow: var(--shadow);
     }
     .userbtn img{ width:22px; height:22px; object-fit:contain; }
     .chev{ font-size:13px; }
-
     .dropdown{
-      position:absolute; right:0; top:calc(100% + 8px);
-      background:#fff; border:1px solid #dbe4ff; border-radius:12px;
-      box-shadow: var(--shadow); overflow:hidden; min-width:260px; display:none;
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:260px; display:none;
     }
     .dropdown.open{ display:block; }
     .dropdown .head{
@@ -79,39 +59,18 @@
     }
     .dropdown button:hover{ background:#fee2e2; }
 
-    /* CUERPO AZUL */
-    main{
-      flex:1;
-      background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-      padding:88px 20px 84px;
-    }
-    .grid{
-      max-width:980px; margin:0 auto;
-      display:grid; grid-template-columns:1fr 1fr; gap:42px;
-    }
+    main{ flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:88px 20px 84px; }
+    .grid{ max-width:980px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:42px; }
     .tile{
-      border:4px solid #ffffff; border-radius:10px;
-      padding:38px 24px;
+      border:4px solid #ffffff; border-radius:10px; padding:38px 24px;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:#ffffff;
-      box-shadow: 0 10px 26px rgba(0,0,0,.08);
+      background:#ffffff; box-shadow: 0 10px 26px rgba(0,0,0,.08);
       transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
       cursor:pointer;
     }
-    .tile:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 16px 40px rgba(0,0,0,.12);
-      background: var(--hover-blue);
-    }
-    .tile img{
-      width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1);
-      margin-bottom:18px;
-    }
-    .tile .label{
-      color:#000000;
-      letter-spacing:.6px; font-weight:800; font-size:13px;
-      text-transform:uppercase; text-align:center;
-    }
+    .tile:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.12); background: var(--hover-blue); }
+    .tile img{ width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1); margin-bottom:18px; }
+    .tile .label{ color:#000; letter-spacing:.6px; font-weight:800; font-size:13px; text-transform:uppercase; text-align:center; }
 
     @media (max-width: 780px){
       .grid{ grid-template-columns:1fr; gap:26px; }
@@ -121,7 +80,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <div class="wrap">
       <div class="brand">
@@ -145,14 +103,12 @@
     </div>
   </header>
 
-  <!-- SECCIÓN AZUL -->
   <main>
     <div class="grid">
       <div class="tile" onclick="irARealizar()">
         <img src="Realizar%20solicitud.png" alt="Realizar solicitud" />
         <div class="label">Realizar solicitud</div>
       </div>
-
       <div class="tile" onclick="irAMisSolicitudes()">
         <img src="Ver%20estado%20solicitud.png" alt="Ver estado de mis solicitudes" />
         <div class="label">Ver estado de mis solicitudes</div>
@@ -161,39 +117,28 @@
   </main>
 
   <script>
-    // Obtiene el correo desde varias fuentes (por si alguna falla)
-    function getEmailFromClient() {
-      // 1) localStorage
+    function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
-
-      // 2) sessionStorage
       const ss = (sessionStorage.getItem('email') || '').trim();
       if (ss) return ss;
-
-      // 3) ?email= en la URL (útil si rediriges así)
       const qs = new URLSearchParams(location.search).get('email');
       if (qs && qs.trim()) return decodeURIComponent(qs.trim());
-
-      // 4) Si guardaste un objeto user en localStorage
       try {
         const userRaw = localStorage.getItem('user');
         if (userRaw) {
           const u = JSON.parse(userRaw);
           if (u && u.correo) return String(u.correo).trim();
         }
-      } catch(e) {}
-
+      } catch(e){}
       return '';
     }
 
-    // Pinta el correo al abrir la página
     (function(){
       const email = getEmailFromClient();
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
-    // Toggle menú de sesión
     const btn = document.getElementById('userBtn');
     const menu = document.getElementById('userMenu');
     btn.addEventListener('click', (e)=>{
@@ -204,11 +149,9 @@
     document.addEventListener('click', ()=> menu.classList.remove('open'));
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
 
-    // Navegación (placeholder)
     function irARealizar(){ alert('Aquí conectamos “Realizar solicitud”.'); }
     function irAMisSolicitudes(){ alert('Aquí conectamos “Ver estado de mis solicitudes”.'); }
 
-    // Cerrar sesión → vuelve al index (sin preselección) y limpia correo
     function logout(){
       localStorage.removeItem('email');
       sessionStorage.removeItem('email');
