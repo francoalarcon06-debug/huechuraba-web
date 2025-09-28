@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Realizar solicitud</title>
   <link rel="icon" type="image/png" href="favicon.png.png" />
-
   <style>
     :root{
       --white:#ffffff;
@@ -29,7 +28,7 @@
       background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
     }
 
-    /* HEADER (igual que verify) */
+    /* HEADER */
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
     .wrap{
       max-width:1120px; margin:0 auto; padding:18px 20px;
@@ -58,7 +57,7 @@
     }
     .dropdown button{
       all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
-      font-weight:700; color:var(--danger);
+      font-weight:700; color:#b91c1c;
     }
     .dropdown button:hover{ background:#fee2e2; }
 
@@ -67,18 +66,9 @@
       flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
       padding:26px 16px 70px;
     }
-    .container{
-      max-width:1080px; margin:0 auto; background:#1d4ed8; /* solo para top gap visual */
-    }
-    .card{
-      max-width:1080px; margin:0 auto; background:#0b61da00;
-    }
 
     /* Formulario */
-    form{
-      max-width:1024px; margin:0 auto; background:#0b61da00;
-      padding:0 8px;
-    }
+    form{ max-width:1024px; margin:0 auto; padding:0 8px; }
     .form-grid{
       background:#0b6ef3;
       padding:26px 20px 28px;
@@ -117,7 +107,7 @@
 </head>
 <body>
 
-  <!-- HEADER (idéntico al verify) -->
+  <!-- HEADER -->
   <header>
     <div class="wrap">
       <div class="brand">
@@ -143,96 +133,92 @@
 
   <!-- FORMULARIO -->
   <main>
-    <div class="card">
-      <form id="frmSolicitud" novalidate>
-        <div class="form-grid">
+    <form id="frmSolicitud" novalidate>
+      <div class="form-grid">
 
-          <!-- NOMBRE -->
-          <div class="row">
-            <label for="nombre">Nombre completo</label>
-            <input id="nombre" class="input" type="text" placeholder="Nombre completo" required />
-          </div>
-
-          <!-- RUT -->
-          <div class="row">
-            <label for="rut">RUT</label>
-            <input id="rut" class="input" type="text" placeholder="Ej: 12.345.678-9" inputmode="text" autocomplete="off" required />
-            <div class="hint">Se formatea automáticamente a <b>X.XXX.XXX-X</b> o <b>XX.XXX.XXX-X</b>.</div>
-          </div>
-
-          <!-- DIRECCIÓN -->
-          <div class="row">
-            <label for="direccion">Dirección</label>
-            <input id="direccion" class="input" type="text" placeholder="Calle y número, comuna – Región Metropolitana" required />
-            <div class="hint">Para autocompletado real necesitamos un servicio (Google Places, Mapbox o HERE). Te dejo preparado el campo para conectarlo.</div>
-          </div>
-
-          <!-- TELÉFONO + RSH -->
-          <div class="row cols">
-            <div>
-              <label for="telefono">Teléfono móvil</label>
-              <input id="telefono" class="input" type="text" placeholder="569XXXXXXXX" required />
-              <div class="hint">Formato obligatorio: 569XXXXXXXX</div>
-            </div>
-            <div>
-              <label for="rsh">% Registro social de hogares</label>
-              <select id="rsh" class="select" required>
-                <option value="" selected disabled>Selecciona…</option>
-                <option>40%</option><option>50%</option><option>60%</option>
-                <option>70%</option><option>80%</option><option>90%</option><option>100%</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- TIPO(S) DE SOLICITUD -->
-          <div class="row">
-            <label>Indique su solicitud</label>
-            <div class="checks">
-              <label><input type="checkbox" name="tipos" value="Poda" /> Poda</label>
-              <label><input type="checkbox" name="tipos" value="Cachureos" /> Cachureos</label>
-              <label><input type="checkbox" name="tipos" value="Escombros" /> Escombros</label>
-              <label><input type="checkbox" id="chkOtros" name="tipos" value="Otros" /> Otros</label>
-              <input id="otrosDetalle" class="input" type="text" placeholder="Especifica otros…" style="display:none; min-width:280px;" />
-            </div>
-          </div>
-
-          <!-- DETALLE -->
-          <div class="row">
-            <label for="detalle">Detalle de solicitud</label>
-            <textarea id="detalle" class="textarea" rows="4" maxlength="600" placeholder="Describe la situación (máx. 600 caracteres)…"></textarea>
-            <div class="counter"><span id="cnt">0</span>/600</div>
-          </div>
-
-          <!-- ARCHIVOS -->
-          <div class="row cols">
-            <div>
-              <label for="fotoLugar">Adjuntar fotografía del lugar</label>
-              <input id="fotoLugar" class="input" type="file" accept="image/png" multiple />
-              <span class="file-note">Solo PNG (puedes adjuntar varias imágenes).</span>
-            </div>
-            <div>
-              <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
-              <input id="cartolaRSH" class="input" type="file" accept="application/pdf" />
-              <span class="file-note">Solo PDF (máximo 5 MB).</span>
-            </div>
-          </div>
-
-          <!-- ERRORES -->
-          <div id="msgError" class="error"></div>
-
-          <!-- BOTONES -->
-          <div class="actions">
-            <button type="button" class="btn btn-cancel" id="btnCancel">Cancelar</button>
-            <button type="submit" class="btn btn-ok" id="btnOk">Confirmar solicitud</button>
-          </div>
-
+        <!-- NOMBRE -->
+        <div class="row">
+          <label for="nombre">Nombre completo</label>
+          <input id="nombre" class="input" type="text" placeholder="Nombre completo" required />
         </div>
-      </form>
-    </div>
+
+        <!-- RUT -->
+        <div class="row">
+          <label for="rut">RUT</label>
+          <input id="rut" class="input" type="text" placeholder="Ej: 12.345.678-9" inputmode="text" autocomplete="off" required />
+        </div>
+
+        <!-- DIRECCIÓN -->
+        <div class="row">
+          <label for="direccion">Dirección</label>
+          <input id="direccion" class="input" type="text" placeholder="Calle y número, comuna – Región Metropolitana" required />
+        </div>
+
+        <!-- TELÉFONO + RSH -->
+        <div class="row cols">
+          <div>
+            <label for="telefono">Teléfono móvil</label>
+            <input id="telefono" class="input" type="text" inputmode="numeric" placeholder="569XXXXXXXX" required />
+            <div class="hint">Formato obligatorio: 569XXXXXXXX</div>
+          </div>
+          <div>
+            <label for="rsh">% Registro social de hogares</label>
+            <select id="rsh" class="select" required>
+              <option value="" selected disabled>Selecciona…</option>
+              <option>40%</option><option>50%</option><option>60%</option>
+              <option>70%</option><option>80%</option><option>90%</option><option>100%</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TIPO(S) DE SOLICITUD -->
+        <div class="row">
+          <label>Indique su solicitud</label>
+          <div class="checks">
+            <label><input type="checkbox" name="tipos" value="Poda" /> Poda</label>
+            <label><input type="checkbox" name="tipos" value="Cachureos" /> Cachureos</label>
+            <label><input type="checkbox" name="tipos" value="Escombros" /> Escombros</label>
+            <label><input type="checkbox" id="chkOtros" name="tipos" value="Otros" /> Otros</label>
+            <input id="otrosDetalle" class="input" type="text" placeholder="Especifica otros…" style="display:none; min-width:280px;" />
+          </div>
+        </div>
+
+        <!-- DETALLE -->
+        <div class="row">
+          <label for="detalle">Detalle de solicitud</label>
+          <textarea id="detalle" class="textarea" rows="4" maxlength="600" placeholder="Describe la situación (máx. 600 caracteres)…"></textarea>
+          <div class="counter"><span id="cnt">0</span>/600</div>
+        </div>
+
+        <!-- ARCHIVOS -->
+        <div class="row cols">
+          <div>
+            <label for="fotoLugar">Adjuntar fotografía del lugar</label>
+            <input id="fotoLugar" class="input" type="file" accept="image/png" />
+            <span class="file-note">Solo PNG (hasta 5MB).</span>
+          </div>
+          <div>
+            <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
+            <input id="cartolaRSH" class="input" type="file" accept="application/pdf" />
+            <span class="file-note">Solo PDF (máximo 5 MB).</span>
+          </div>
+        </div>
+
+        <!-- ERRORES -->
+        <div id="msgError" class="error"></div>
+
+        <!-- BOTONES -->
+        <div class="actions">
+          <button type="button" class="btn btn-cancel" id="btnCancel">Cancelar</button>
+          <button type="submit" class="btn btn-ok" id="btnOk">Confirmar solicitud</button>
+        </div>
+
+      </div>
+    </form>
   </main>
 
   <script>
-    /* ======== Header: email y menú (igual que verify) ======== */
+    /* ======== Header: email/menú ======== */
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -262,53 +248,38 @@
       location.href = 'index.html';
     }
 
-    /* ======== Formato RUT en vivo (X.XXX.XXX-X / XX.XXX.XXX-X) ======== */
+    /* ======== RUT formato X.XXX.XXX-X o XX.XXX.XXX-X ======== */
     const rutInput = document.getElementById('rut');
     rutInput.addEventListener('input', () => {
       let v = rutInput.value.replace(/[^0-9kK]/g, '').toUpperCase(); // números + K
       if (!v) { rutInput.value = ''; return; }
-      // separa DV
       const dv = v.slice(-1);
       let cuerpo = v.slice(0, -1);
-      // agrega puntos de miles
-      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // miles
       rutInput.value = `${cuerpo}-${dv}`;
     });
 
-    /* ======== Dirección: punto de enganche a autocompletado ======== */
-    // Si luego usas Google Places:
-    // 1) Habilita Places API y consigue tu API key.
-    // 2) Agrega antes del </body> este script:
-    // <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=places"></script>
-    // 3) Descomenta y ajusta:
-    // const direccion = document.getElementById('direccion');
-    // const autocomplete = new google.maps.places.Autocomplete(direccion, {
-    //   componentRestrictions: { country: 'cl' },
-    //   fields: ['formatted_address','geometry'],
-    //   types: ['address']
-    // });
-    // // (opcional) limitar con bounds aproximados a Región Metropolitana.
-
-    /* ======== Teléfono y archivos: validaciones ======== */
+    /* ======== Teléfono: 569 + 8 dígitos exactos ======== */
     const tel = document.getElementById('telefono');
+    // iniciar con 569 si está vacío
+    if (!tel.value) tel.value = '569';
+    function sanitizePhone(){
+      // conservar solo dígitos y asegurar prefijo 569
+      let raw = tel.value.replace(/\D/g,'');
+      if (!raw.startsWith('569')) raw = '569' + raw.replace(/^569/,''); // fuerza prefijo
+      // limitar a 11 caracteres totales (569 + 8)
+      raw = raw.slice(0, 11);
+      tel.value = raw;
+    }
+    tel.addEventListener('input', sanitizePhone);
+    tel.addEventListener('focus', () => { if (!tel.value) tel.value = '569'; });
     tel.addEventListener('blur', () => {
-      const ok = /^569\d{8}$/.test(tel.value.trim());
+      sanitizePhone();
+      const ok = /^569\d{8}$/.test(tel.value);
       if (!ok) showError('El teléfono debe tener el formato 569XXXXXXXX');
     });
 
-    const pdf = document.getElementById('cartolaRSH');
-    pdf.addEventListener('change', () => {
-      const f = pdf.files[0];
-      if (!f) return;
-      if (f.type !== 'application/pdf') {
-        pdf.value = '';
-        showError('La cartola debe ser PDF');
-      } else if (f.size > 5 * 1024 * 1024) {
-        pdf.value = '';
-        showError('El PDF no puede superar 5 MB');
-      }
-    });
-
+    /* ======== Otros / contador detalle ======== */
     const otrosChk = document.getElementById('chkOtros');
     const otrosInput = document.getElementById('otrosDetalle');
     otrosChk.addEventListener('change', () => {
@@ -318,51 +289,47 @@
 
     const detalle = document.getElementById('detalle');
     const cnt = document.getElementById('cnt');
-    detalle.addEventListener('input', () => { cnt.textContent = String(detalle.value.length); });
+    function updateCounter(){ cnt.textContent = String(detalle.value.length); }
+    detalle.addEventListener('input', updateCounter);
+    detalle.addEventListener('keyup', updateCounter);
+    updateCounter();
 
+    /* ======== Archivos: PNG único (<=5MB) y PDF (<=5MB) ======== */
+    const foto = document.getElementById('fotoLugar');
+    foto.addEventListener('change', () => {
+      const f = foto.files[0];
+      if (!f) return;
+      if (f.type !== 'image/png') { foto.value = ''; return showError('La fotografía debe ser PNG'); }
+      if (f.size > 5 * 1024 * 1024) { foto.value = ''; return showError('La fotografía no puede superar 5 MB'); }
+    });
+    const pdf = document.getElementById('cartolaRSH');
+    pdf.addEventListener('change', () => {
+      const f = pdf.files[0];
+      if (!f) return;
+      if (f.type !== 'application/pdf') { pdf.value = ''; return showError('La cartola debe ser PDF'); }
+      if (f.size > 5 * 1024 * 1024) { pdf.value = ''; return showError('El PDF no puede superar 5 MB'); }
+    });
+
+    /* ======== Errores ======== */
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
     /* ======== Envío ======== */
     document.getElementById('frmSolicitud').addEventListener('submit', (e) => {
       e.preventDefault();
-
-      // Validaciones mínimas de front
       if (!document.getElementById('nombre').value.trim()) return showError('Ingresa tu nombre completo');
       if (!rutInput.value.trim().includes('-')) return showError('Ingresa un RUT válido (con dígito verificador)');
       if (!document.getElementById('direccion').value.trim()) return showError('Ingresa tu dirección');
       if (!/^569\d{8}$/.test(tel.value.trim())) return showError('El teléfono debe tener el formato 569XXXXXXXX');
       if (!document.getElementById('rsh').value) return showError('Selecciona tu porcentaje RSH');
-
-      // Tipos seleccionados
-      const tipos = Array.from(document.querySelectorAll('input[name="tipos"]:checked')).map(x=>x.value);
-      const otros = otrosInput.value.trim();
-      // Archivos (PNG múltiples + 1 PDF)
-      const fotos = document.getElementById('fotoLugar').files;
-
-      // Construir payload para enviar cuando tengas endpoint
-      // (por ahora solo mostramos un OK)
       alert('✅ Solicitud lista para enviar.\nCuando tengamos endpoint, subimos los archivos y guardamos en la DB.');
-
-      // Aquí iría algo como:
-      // const fd = new FormData();
-      // fd.append('nombre', nombre.value.trim());
-      // fd.append('rut', rutInput.value.trim());
-      // fd.append('direccion', direccion.value.trim());
-      // fd.append('telefono', tel.value.trim());
-      // fd.append('rsh', document.getElementById('rsh').value);
-      // fd.append('tipos', JSON.stringify(tipos));
-      // fd.append('otros', otros);
-      // fd.append('detalle', detalle.value.trim());
-      // for (const f of fotos) fd.append('fotos[]', f);
-      // if (pdf.files[0]) fd.append('cartola', pdf.files[0]);
-      // fetch('https://api.proyectosfranco.cl/solicitudes', { method:'POST', body: fd });
-
     });
 
-    /* ======== Botón cancelar ======== */
+    /* ======== Cancelar: vuelve a verify.html, preservando email si existe ======== */
     document.getElementById('btnCancel').addEventListener('click', () => {
-      location.href = 'verify.html';
+      const email = getEmailFromClient();
+      const dest = email ? ('verify.html?email=' + encodeURIComponent(email)) : 'verify.html';
+      location.href = dest;
     });
   </script>
 </body>
