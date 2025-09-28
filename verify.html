@@ -149,7 +149,7 @@
     document.addEventListener('click', ()=> menu.classList.remove('open'));
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
 
-    function irARealizar(){ alert('Aquí conectamos “Realizar solicitud”.'); }
+    function irARealizar(){ window.location.href = 'solicitud.html'; }
     function irAMisSolicitudes(){ alert('Aquí conectamos “Ver estado de mis solicitudes”.'); }
 
     function logout(){
