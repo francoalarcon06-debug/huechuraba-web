@@ -138,7 +138,7 @@
         </button>
 
         <div class="dropdown" id="userMenu" role="menu">
-          <div class="head" id="emailFull">usuario@correo.cl</div>
+          <div class="head" id="emailFull">—</div>
           <button type="button" onclick="logout()">Cerrar sesión</button>
         </div>
       </div>
@@ -161,9 +161,35 @@
   </main>
 
   <script>
-    // Mostrar correo desde localStorage
+    // Obtiene el correo desde varias fuentes (por si alguna falla)
+    function getEmailFromClient() {
+      // 1) localStorage
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+
+      // 2) sessionStorage
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+
+      // 3) ?email= en la URL (útil si rediriges así)
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+
+      // 4) Si guardaste un objeto user en localStorage
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e) {}
+
+      return '';
+    }
+
+    // Pinta el correo al abrir la página
     (function(){
-      const email = localStorage.getItem('email') || '';
+      const email = getEmailFromClient();
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
@@ -182,9 +208,11 @@
     function irARealizar(){ alert('Aquí conectamos “Realizar solicitud”.'); }
     function irAMisSolicitudes(){ alert('Aquí conectamos “Ver estado de mis solicitudes”.'); }
 
-    // Cerrar sesión → vuelve al index (sin preselección)
+    // Cerrar sesión → vuelve al index (sin preselección) y limpia correo
     function logout(){
       localStorage.removeItem('email');
+      sessionStorage.removeItem('email');
+      localStorage.removeItem('user');
       window.location.href = 'index.html';
     }
   </script>
