@@ -17,12 +17,15 @@ async function login(event) {
     if (data && data.ok) {
       // Usa el correo del backend si viene; si no, usa el del input
       const emailToStore = (data.user && data.user.correo ? String(data.user.correo) : correo).trim();
+
+      // Guardar en ambos storages por si acaso
       localStorage.setItem("email", emailToStore);
+      sessionStorage.setItem("email", emailToStore);
 
       alert("✅ Bienvenido " + (data.user?.nombre || ""));
 
-      // Redirige a la página del ciudadano
-      window.location.href = "verify.html";
+      // Redirige pasando también el correo por querystring (belt & suspenders)
+      window.location.href = "verify.html?email=" + encodeURIComponent(emailToStore);
     } else {
       alert("❌ Error: " + (data?.error || "Credenciales inválidas"));
     }
