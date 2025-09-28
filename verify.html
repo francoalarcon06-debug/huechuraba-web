@@ -18,7 +18,7 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --radius:16px;
-      --hover-blue:#eaf2ff;  /* azul clarito para hover */
+      --hover-blue:#eaf2ff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -50,7 +50,7 @@
       color:var(--muted); font-size:15px; font-weight:600;
     }
 
-    /* Sesión (solo botón, sin recuadro lateral) */
+    /* Sesión */
     .userbox{ position:relative; }
     .userbtn{
       display:flex; align-items:center; gap:10px;
@@ -83,7 +83,7 @@
     main{
       flex:1;
       background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-      padding:88px 20px 84px; /* más espacio arriba para bajar las tarjetas */
+      padding:88px 20px 84px;
     }
     .grid{
       max-width:980px; margin:0 auto;
@@ -93,7 +93,7 @@
       border:4px solid #ffffff; border-radius:10px;
       padding:38px 24px;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:#ffffff;  /* fondo blanco */
+      background:#ffffff;
       box-shadow: 0 10px 26px rgba(0,0,0,.08);
       transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
       cursor:pointer;
@@ -101,14 +101,14 @@
     .tile:hover{
       transform: translateY(-2px);
       box-shadow: 0 16px 40px rgba(0,0,0,.12);
-      background: var(--hover-blue);  /* azul clarito en hover */
+      background: var(--hover-blue);
     }
     .tile img{
       width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1);
       margin-bottom:18px;
     }
     .tile .label{
-      color:#000000;                /* TEXTO NEGRO */
+      color:#000000;
       letter-spacing:.6px; font-weight:800; font-size:13px;
       text-transform:uppercase; text-align:center;
     }
@@ -124,14 +124,12 @@
   <!-- HEADER -->
   <header>
     <div class="wrap">
-      <!-- Izquierda: logo + texto -->
       <div class="brand">
         <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
         <div></div>
         <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
       </div>
 
-      <!-- Derecha: botón Mi sesión (sin recuadro lateral) -->
       <div class="userbox">
         <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
           <img src="cuenta.png" alt="Cuenta" />
@@ -140,7 +138,6 @@
         </button>
 
         <div class="dropdown" id="userMenu" role="menu">
-          <!-- Aquí va el correo COMPLETO desde almacenamiento / backend -->
           <div class="head" id="emailFull">usuario@correo.cl</div>
           <button type="button" onclick="logout()">Cerrar sesión</button>
         </div>
@@ -164,21 +161,10 @@
   </main>
 
   <script>
-    /*
-     * Mostrar correo en el menú:
-     * — Si ya lo guardaste al iniciar sesión: localStorage.setItem('email', correo)
-     * — Fallback: ?email= en la URL (útil mientras definimos el endpoint al Postgres)
-     * Para leerlo DIRECTO desde Postgres necesitamos un backend (n8n/Node/Express) que exponga el correo.
-     */
+    // Mostrar correo desde localStorage
     (function(){
-      function getParam(name){
-        const p = new URLSearchParams(window.location.search).get(name);
-        return p ? decodeURIComponent(p) : null;
-      }
-      const stored = localStorage.getItem('email');
-      const fromQuery = getParam('email');
-      const email = (stored && stored.trim()) ? stored.trim() : (fromQuery || 'usuario@correo.cl');
-      document.getElementById('emailFull').textContent = email;
+      const email = localStorage.getItem('email') || '';
+      document.getElementById('emailFull').textContent = email || '—';
     })();
 
     // Toggle menú de sesión
@@ -198,9 +184,7 @@
 
     // Cerrar sesión → vuelve al index (sin preselección)
     function logout(){
-      // Si luego usas token/sesión, límpialos acá.
-      // localStorage.removeItem('token');
-      // localStorage.removeItem('email');
+      localStorage.removeItem('email');
       window.location.href = 'index.html';
     }
   </script>
