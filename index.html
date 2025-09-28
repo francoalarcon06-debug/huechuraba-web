@@ -104,7 +104,6 @@
     .success{ margin:10px 0 0; color:#0a7c2e; font-weight:700; text-align:center; }
     .link { color:#000; font-weight:700; text-decoration:none; }
 
-    /* Pantalla de éxito (overlay tipo verify.html) */
     .screen{
       position:fixed; inset:0; display:none; place-items:center;
       background: linear-gradient(135deg,#0a7cff,#00c6ff);
@@ -248,11 +247,9 @@
     const regMsg    = document.getElementById('regMsg');
     const toLoginLink = document.getElementById('toLoginLink');
 
-    // Éxito a pantalla completa
     const registerSuccess = document.getElementById('registerSuccess');
     const successToLogin  = document.getElementById('successToLogin');
 
-    // Limpia errores al tipear
     [loginEmail, loginPass].forEach(el => el.addEventListener('input', () => hide(loginError)));
     [regNombre, regCorreo, regTel, regPass].forEach(el => el.addEventListener('input', () => hide(regMsg)));
 
@@ -278,7 +275,6 @@
       cardPM.classList.toggle('active', role === 'PM');
       cardCZ.classList.toggle('active', role === 'CZ');
 
-      // Mostrar login, ocultar registro
       show(loginPanel); hide(registerPanel);
 
       if (role === 'PM'){
@@ -292,7 +288,6 @@
       loginEmail.focus();
     }
 
-    // Navegación registro / login
     toRegisterLink.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentRole !== 'CZ') chooseRole('CZ');
@@ -304,13 +299,12 @@
       hide(registerPanel); show(loginPanel); loginEmail.focus();
     });
 
-    // Ir al inicio (desde la pantalla de éxito)
     successToLogin.addEventListener('click', () => {
       registerSuccess.classList.remove('show');
-      resetUI(); // vuelve al estado inicial (sin opción seleccionada)
+      resetUI();
     });
 
-    // Login
+    // ====== LOGIN (AQUÍ ESTÁ EL CAMBIO) ======
     loginBtn.addEventListener('click', async () => {
       hide(loginError);
 
@@ -337,8 +331,15 @@
         const data = await res.json();
 
         if (res.ok && data.ok) {
-          // Por ahora, igual que el flujo que ya te gusta
-          location.href = 'verify.html';
+          // Guardar correo para verify.html (prioriza el que venga del backend)
+          const emailToStore = (data.user && data.user.correo ? String(data.user.correo) : correo).trim();
+          try {
+            localStorage.setItem('email', emailToStore);
+            sessionStorage.setItem('email', emailToStore);
+          } catch (_) {}
+
+          // Redirigir pasando también el correo por querystring
+          location.href = 'verify.html?email=' + encodeURIComponent(emailToStore);
         } else {
           if (data && data.error === "no_verificado") {
             loginError.textContent = "Cuenta no verificada";
@@ -353,7 +354,7 @@
       }
     });
 
-    // Registro ciudadanía (simple)
+    // Registro ciudadanía
     regBtn.addEventListener('click', async () => {
       hide(regMsg);
 
@@ -384,7 +385,6 @@
         const data = await res.json();
 
         if (res.ok && data.ok) {
-          // Mostrar pantalla de éxito a pantalla completa
           registerSuccess.classList.add('show');
         } else {
           if (data && data.error === "correo_ya_registrado") {
@@ -402,9 +402,10 @@
       }
     });
 
-    // Estado inicial: NADA preseleccionado (así lo pediste)
+    // Estado inicial: NADA preseleccionado
     resetUI();
   </script>
 </body>
 </html>
+
 
