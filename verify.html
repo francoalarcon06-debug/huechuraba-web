@@ -1,149 +1,189 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Plataforma Ciudadanía – Huechuraba</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f3f4f6;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+    :root{
+      --blue-100:#dbeafe;
+      --blue-200:#bfdbfe;
+      --blue-300:#93c5fd;
+      --blue-600:#2563eb;
+      --blue-700:#1d4ed8;
+      --slate-600:#475569;
+      --slate-700:#334155;
+      --white:#ffffff;
+      --shadow: 0 10px 30px rgba(2,6,23,.08), 0 6px 12px rgba(2,6,23,.06);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+      color:#0f172a;
+      background: linear-gradient(180deg, var(--blue-100) 0%, var(--blue-100) 45%, var(--blue-200) 46%, var(--blue-300) 100%);
+      display:flex; flex-direction:column;
     }
 
-    /* Encabezado */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff;
-      padding: 15px 30px;
-      border-bottom: 2px solid #e5e7eb;
+    /* Header */
+    header{
+      background: var(--white);
+      border-bottom: 1px solid #eef2ff;
+    }
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+    }
+    .brand{display:flex; align-items:center; gap:14px; min-width:0;}
+    .brand img{height:48px; width:auto; object-fit:contain;}
+    .title{
+      font-size: clamp(18px, 2vw, 20px);
+      color:#1e3a8a; font-weight:700; margin:0;
+      white-space:nowrap;
     }
 
-    .logo-text {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logo-text img {
-      width: 60px;
-      height: 60px;
-    }
-
-    .logo-text h1 {
-      font-size: 20px;
-      color: #1e3a8a;
-      margin: 0;
-    }
-
-    /* Usuario */
-    .user-menu {
-      position: relative;
-    }
-
-    .user-btn {
-      background: #f9fafb;
-      border: 1px solid #d1d5db;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .dropdown {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 45px;
-      background: #fff;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .dropdown a {
-      display: block;
-      padding: 10px 15px;
-      text-decoration: none;
-      color: #b91c1c;
-      font-weight: bold;
-    }
-
-    .dropdown a:hover {
-      background: #fee2e2;
-    }
-
-    /* Sección azul con tarjetas */
-    main {
-      flex: 1;
-      background: linear-gradient(135deg, #0073e6, #00c6ff);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 40px;
-      padding: 40px;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.9);
+    /* User session box */
+    .userbox{position:relative;}
+    .userbtn{
+      display:flex; align-items:center; gap:10px;
+      background:#fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
       border-radius: 12px;
-      padding: 40px 30px;
-      text-align: center;
-      width: 260px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-      box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+      cursor:pointer;
+      font-weight:600;
+      box-shadow: var(--shadow);
+    }
+    .userbtn img{
+      width:22px; height:22px; object-fit:contain;
+    }
+    .userbtn .email{
+      max-width: 44vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .dropdown{
+      display:none;
+      position:absolute; right:0; top:calc(100% + 8px);
+      background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+      box-shadow: var(--shadow); min-width: 180px; overflow:hidden;
+    }
+    .dropdown.open{display:block;}
+    .dropdown .head{
+      padding:10px 12px; font-size:12px; color:var(--slate-600);
+      border-bottom:1px solid #e2e8f0; background:#f8fafc;
+    }
+    .dropdown button{
+      all:unset; display:block; width:100%;
+      padding:12px; cursor:pointer; font-weight:700; color:#b91c1c;
+    }
+    .dropdown button:hover{background:#fee2e2;}
+
+    /* Main cards */
+    main{flex:1; padding: 48px 18px 64px;}
+    .grid{
+      max-width:980px; margin:0 auto;
+      display:grid; grid-template-columns: 1fr 1fr; gap:28px;
+    }
+    .card{
+      background:#f1f5f9;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 2px solid rgba(255,255,255,.8);
+      padding: 28px 20px;
+      text-align:center; color:#0f172a;
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(2, 6, 23, .14);
+      border-color: #fff; background:#ffffff;
+    }
+    .card img{
+      width:80px; height:80px; object-fit:contain; display:block; margin:0 auto 14px;
+    }
+    .card h2{
+      margin:0; font-size:18px; color:#0b3a88; font-weight:800;
     }
 
-    .card:hover {
-      transform: translateY(-5px);
-    }
-
-    .card h2 {
-      font-size: 18px;
-      color: #1e3a8a;
-      margin: 0;
+    @media (max-width: 720px){
+      .grid{grid-template-columns:1fr; gap:18px;}
+      .title{white-space:normal}
     }
   </style>
 </head>
 <body>
 
-  <!-- Encabezado -->
+  <!-- Header -->
   <header>
-    <div class="logo-text">
-      <img src="logo-huechuraba.png" alt="Logo Huechuraba">
-      <h1>Plataforma para levantar solicitudes de Retiro de Escombros</h1>
-    </div>
+    <div class="wrap">
+      <div class="brand">
+        <!-- Logo local con doble extensión tal como lo subiste -->
+        <img src="logo-huechuraba.svg.svg" alt="Logo Municipalidad de Huechuraba" />
+        <h1 class="title">Plataforma para levantar solicitudes de Retiro de Escombros</h1>
+      </div>
 
-    <div class="user-menu">
-      <div class="user-btn" onclick="toggleMenu()">Mi sesión ⌄</div>
-      <div class="dropdown" id="dropdownMenu">
-        <a href="index.html">Cerrar sesión</a>
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span class="email" id="userEmail">Mi sesión</span>
+          <span aria-hidden="true">▾</span>
+        </button>
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head">Sesión</div>
+          <button type="button" onclick="logout()">Cerrar sesión</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Sección azul con tarjetas -->
+  <!-- Azul con las dos tarjetas -->
   <main>
-    <div class="card" onclick="alert('Aquí va la lógica para realizar solicitud')">
-      <h2>Realizar una solicitud</h2>
-    </div>
-    <div class="card" onclick="alert('Aquí va la lógica para revisar solicitudes')">
-      <h2>Revisar mis solicitudes</h2>
+    <div class="grid">
+      <div class="card" onclick="irARealizar()">
+        <img src="Realizar%20solicitud.png" alt="Realizar solicitud" />
+        <h2>Realizar una solicitud</h2>
+      </div>
+
+      <div class="card" onclick="irAMisSolicitudes()">
+        <img src="Ver%20estado%20solicitud.png" alt="Revisar mis solicitudes" />
+        <h2>Revisar mis solicitudes</h2>
+      </div>
     </div>
   </main>
 
   <script>
-    function toggleMenu() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    // Mostrar email si lo guardaste antes: localStorage.setItem('email', 'usuario@correo.cl')
+    (function(){
+      const email = localStorage.getItem('email');
+      if(email){ document.getElementById('userEmail').textContent = email; }
+    })();
+
+    // Toggle del menú
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // Cerrar si se hace click fuera o con ESC
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
+
+    // Navegaciones (placeholder)
+    function irARealizar(){ /* aquí luego enlazamos */ alert('Aquí conectamos “Realizar una solicitud”.'); }
+    function irAMisSolicitudes(){ /* aquí luego enlazamos */ alert('Aquí conectamos “Revisar mis solicitudes”.'); }
+
+    // Cerrar sesión: vuelve al index (allí ya no dejas preseleccionado ningún tipo)
+    function logout(){
+      // Si más adelante guardas token/estado, acá puedes limpiar:
+      // localStorage.removeItem('token'); sessionStorage.clear(); etc.
+      window.location.href = 'index.html';
     }
   </script>
 </body>
 </html>
-
