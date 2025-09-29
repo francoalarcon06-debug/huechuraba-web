@@ -303,20 +303,16 @@
         eye.addEventListener('click', () => openDrawer(it));
         tdEye.appendChild(eye);
 
-        // id
         const tdId = document.createElement('td');
         tdId.textContent = it.id ?? '—';
 
-        // dirección (hasta 2 líneas)
         const tdDir = document.createElement('td');
         tdDir.className = 'cell-two-lines';
         tdDir.textContent = it.direccion || '—';
 
-        // teléfono
         const tdTel = document.createElement('td');
         tdTel.textContent = it.telefono || '—';
 
-        // tipos (chips)
         const tdTipos = document.createElement('td');
         const tipos = parseTipos(it.tipos);
         if (tipos.length === 0) tdTipos.textContent = '—';
@@ -329,12 +325,10 @@
           });
         }
 
-        // detalle (hasta 2 líneas)
         const tdDet = document.createElement('td');
         tdDet.className = 'cell-two-lines';
         tdDet.textContent = it.detalle || '—';
 
-        // foto lugar (descarga)
         const tdFoto = document.createElement('td');
         const btnFoto = document.createElement('button');
         btnFoto.className = 'dl-btn';
@@ -342,7 +336,6 @@
         btnFoto.addEventListener('click', () => downloadFotoLugar(it.id));
         tdFoto.appendChild(btnFoto);
 
-        // cartola (descarga)
         const tdCart = document.createElement('td');
         const btnCart = document.createElement('button');
         btnCart.className = 'dl-btn';
@@ -350,11 +343,9 @@
         btnCart.addEventListener('click', () => downloadCartola(it.id));
         tdCart.appendChild(btnCart);
 
-        // updated_at
         const tdUpd = document.createElement('td');
         tdUpd.textContent = fmtDate(it.updated_at);
 
-        // estado
         const tdEst = document.createElement('td');
         const s = (it.estado_solicitud || 'pendiente').toUpperCase();
         const span = document.createElement('span');
@@ -475,17 +466,18 @@
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
     }
 
-    /* ======== Carga inicial (webhook POST) ======== */
+    /* ======== Carga inicial (POST urlencoded: evita preflight) ======== */
     async function loadData(){
       const email = getEmailFromClient();
       if (!email) { showError('No se encontró el correo de la sesión.'); return; }
 
       try{
         const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-list`;
+        const body = new URLSearchParams({ email }).toString();
         const res = await fetch(url, {
           method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ email })
+          headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+          body
         });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
