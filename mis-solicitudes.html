@@ -250,12 +250,27 @@
     function fmtDate(dStr){
       if(!dStr) return '—';
       const d = new Date(dStr);
-      // Hora de Santiago CL (America/Santiago)
       try {
         return new Intl.DateTimeFormat('es-CL', { dateStyle:'medium', timeStyle:'short', timeZone:'America/Santiago' }).format(d);
       } catch {
         return d.toLocaleString();
       }
+    }
+
+    // Asegura que "tipos" venga como array aunque llegue como "{Poda,Escombros}"
+    function parseTipos(val){
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')) {
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
+        }
+        // string simple (un solo tipo)
+        if (s) return [s];
+      }
+      return [];
     }
 
     /* ======== Data & render ======== */
@@ -304,7 +319,7 @@
 
         // tipos (chips)
         const tdTipos = document.createElement('td');
-        const tipos = Array.isArray(it.tipos) ? it.tipos : [];
+        const tipos = parseTipos(it.tipos);
         if (tipos.length === 0) tdTipos.textContent = '—';
         else {
           tipos.forEach(t => {
@@ -408,7 +423,7 @@
           const div = document.createElement('div'); div.className = 'field';
           const b = document.createElement('b'); b.textContent = 'Tipo(s)';
           const cont = document.createElement('div');
-          const tipos = Array.isArray(it.tipos) ? it.tipos : [];
+          const tipos = parseTipos(it.tipos);
           if (tipos.length === 0) cont.textContent = '—';
           else tipos.forEach(t => { const s = document.createElement('span'); s.className='chip'; s.textContent=t; cont.appendChild(s); });
           div.append(b, cont); return div;
@@ -421,7 +436,7 @@
       drawer.classList.add('open');
     }
 
-    /* ======== Descargas (requiere endpoints en n8n) ======== */
+    /* ======== Descargas (webhook GET) ======== */
     async function downloadFromEndpoint(url, filenameFallback){
       try {
         const res = await fetch(url, { method:'GET' });
@@ -454,27 +469,29 @@
     }
 
     function downloadFotoLugar(id){
-      // TODO: cambia esta URL por tu webhook real
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar`;
       return downloadFromEndpoint(url, `foto_lugar_${id}`);
     }
     function downloadCartola(id){
-      // TODO: cambia esta URL por tu webhook real
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh`;
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
     }
 
-    /* ======== Carga inicial ======== */
+    /* ======== Carga inicial (webhook POST) ======== */
     async function loadData(){
       const email = getEmailFromClient();
       if (!email) { showError('No se encontró el correo de la sesión.'); return; }
 
       try{
-        // TODO: cambia esta URL por tu webhook/listado en n8n
-        const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-list?email=${encodeURIComponent(email)}`;
-        const res = await fetch(url, { method:'GET' });
+        const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-list`;
+        const res = await fetch(url, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ email })
+        });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
+        // admite: [ ... ] o { items: [...] }
         allItems = Array.isArray(data) ? data : (data.items || []);
         page = 1;
         render();
