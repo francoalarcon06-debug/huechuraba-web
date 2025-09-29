@@ -248,26 +248,23 @@
       location.href = 'index.html';
     }
 
-    /* ======== RUT formato X.XXX.XXX-X o XX.XXX.XXX-X ======== */
+    /* ======== RUT formato ======== */
     const rutInput = document.getElementById('rut');
     rutInput.addEventListener('input', () => {
-      let v = rutInput.value.replace(/[^0-9kK]/g, '').toUpperCase(); // números + K
+      let v = rutInput.value.replace(/[^0-9kK]/g, '').toUpperCase();
       if (!v) { rutInput.value = ''; return; }
       const dv = v.slice(-1);
       let cuerpo = v.slice(0, -1);
-      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // miles
+      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       rutInput.value = `${cuerpo}-${dv}`;
     });
 
-    /* ======== Teléfono: 569 + 8 dígitos exactos ======== */
+    /* ======== Teléfono: 569 + 8 dígitos ======== */
     const tel = document.getElementById('telefono');
-    // iniciar con 569 si está vacío
     if (!tel.value) tel.value = '569';
     function sanitizePhone(){
-      // conservar solo dígitos y asegurar prefijo 569
       let raw = tel.value.replace(/\D/g,'');
-      if (!raw.startsWith('569')) raw = '569' + raw.replace(/^569/,''); // fuerza prefijo
-      // limitar a 11 caracteres totales (569 + 8)
+      if (!raw.startsWith('569')) raw = '569' + raw.replace(/^569/,'');
       raw = raw.slice(0, 11);
       tel.value = raw;
     }
@@ -294,7 +291,7 @@
     detalle.addEventListener('keyup', updateCounter);
     updateCounter();
 
-    /* ======== Archivos: PNG único (<=5MB) y PDF (<=5MB) ======== */
+    /* ======== Archivos: validación ======== */
     const foto = document.getElementById('fotoLugar');
     foto.addEventListener('change', () => {
       const f = foto.files[0];
@@ -314,7 +311,7 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    /* ======== Envío ======== */
+    /* ======== Envío con validaciones ======== */
     document.getElementById('frmSolicitud').addEventListener('submit', (e) => {
       e.preventDefault();
       if (!document.getElementById('nombre').value.trim()) return showError('Ingresa tu nombre completo');
@@ -322,10 +319,15 @@
       if (!document.getElementById('direccion').value.trim()) return showError('Ingresa tu dirección');
       if (!/^569\d{8}$/.test(tel.value.trim())) return showError('El teléfono debe tener el formato 569XXXXXXXX');
       if (!document.getElementById('rsh').value) return showError('Selecciona tu porcentaje RSH');
+      if (detalle.value.trim().length < 30) return showError('El detalle debe tener al menos 30 caracteres');
+      const tipos = document.querySelectorAll('input[name="tipos"]:checked');
+      if (tipos.length === 0) return showError('Debes seleccionar al menos un tipo de solicitud');
+      if (!foto.files[0]) return showError('Debes adjuntar una fotografía del lugar');
+      if (!pdf.files[0]) return showError('Debes adjuntar la cartola RSH');
       alert('✅ Solicitud lista para enviar.\nCuando tengamos endpoint, subimos los archivos y guardamos en la DB.');
     });
 
-    /* ======== Cancelar: vuelve a verify.html, preservando email si existe ======== */
+    /* ======== Cancelar ======== */
     document.getElementById('btnCancel').addEventListener('click', () => {
       const email = getEmailFromClient();
       const dest = email ? ('verify.html?email=' + encodeURIComponent(email)) : 'verify.html';
@@ -334,3 +336,4 @@
   </script>
 </body>
 </html>
+
