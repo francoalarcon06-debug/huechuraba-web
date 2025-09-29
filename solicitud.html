@@ -41,7 +41,7 @@
     .userbtn{
       display:flex; align-items:center; gap:10px; background:#fff;
       border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
-      cursor:pointer; font-weight:700; color:var(--outline); box-shadow: var(--shadow);
+      cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow);
     }
     .userbtn img{ width:22px; height:22px; object-fit:contain; }
     .chev{ font-size:13px; }
@@ -193,12 +193,12 @@
         <div class="row cols">
           <div>
             <label for="fotoLugar">Adjuntar fotografía del lugar</label>
-            <input id="fotoLugar" class="input" type="file" accept="image/png" />
+            <input id="fotoLugar" class="input" type="file" accept="image/png" required />
             <span class="file-note">Solo PNG (hasta 5MB).</span>
           </div>
           <div>
             <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
-            <input id="cartolaRSH" class="input" type="file" accept="application/pdf" />
+            <input id="cartolaRSH" class="input" type="file" accept="application/pdf" required />
             <span class="file-note">Solo PDF (máximo 5 MB).</span>
           </div>
         </div>
@@ -250,24 +250,19 @@
     /* ======== RUT: máximo 9 (cuerpo+DV), formato X.XXX.XXX-X o XX.XXX.XXX-X ======== */
     const rutInput = document.getElementById('rut');
     function formatRut(val){
-      // Solo dígitos y K, mayúscula, limitar a 9 (cuerpo+DV)
       let v = (val || '').replace(/[^0-9kK]/g,'').toUpperCase().slice(0,9);
       if (!v) return '';
-      if (v.length === 1) return v;                // aún sin DV
+      if (v.length === 1) return v;
       const dv = v.slice(-1);
       let cuerpo = v.slice(0,-1);
-      // Separadores de miles desde la derecha
       cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
       return `${cuerpo}-${dv}`;
     }
     rutInput.addEventListener('input', () => {
-      const pos = rutInput.selectionStart;
       rutInput.value = formatRut(rutInput.value);
-      // no complicamos caret por simplicidad en prototipo
     });
     rutInput.addEventListener('blur', () => {
       const full = rutInput.value.trim();
-      // patrón final permitido: 1-2 dígitos + . + 3 + . + 3 + - + dv
       const ok = /^(\d{1,2}\.\d{3}\.\d{3})-[\dK]$/.test(full);
       if (full && !ok) showError('RUT inválido. Formato esperado: X.XXX.XXX-X o XX.XXX.XXX-X');
     });
@@ -321,7 +316,7 @@
     document.getElementById('frmSolicitud').addEventListener('submit', (e) => {
       e.preventDefault();
 
-      // Validaciones de obligatoriedad
+      // Requeridos
       if (!document.getElementById('nombre').value.trim()) return showError('Ingresa tu nombre completo');
 
       const rutVal = rutInput.value.trim();
@@ -338,17 +333,18 @@
       // Detalle mínimo 30 caracteres
       if (detalle.value.trim().length < 30) return showError('El detalle debe tener al menos 30 caracteres');
 
-      // Archivos correctos (si se suben)
-      if (foto.files[0]) {
-        const f = foto.files[0];
-        if (f.type !== 'image/png') return showError('La fotografía debe ser PNG');
-        if (f.size > 5 * 1024 * 1024) return showError('La fotografía no puede superar 5 MB');
-      }
-      if (pdf.files[0]) {
-        const f = pdf.files[0];
-        if (f.type !== 'application/pdf') return showError('La cartola debe ser PDF');
-        if (f.size > 5 * 1024 * 1024) return showError('El PDF no puede superar 5 MB');
-      }
+      // Archivos OBLIGATORIOS
+      if (!foto.files.length) return showError('Debes adjuntar una fotografía PNG (hasta 5 MB)');
+      if (!pdf.files.length)  return showError('Debes adjuntar la cartola RSH en PDF (hasta 5 MB)');
+
+      // Validar de nuevo tipo/tamaño (por si cambió)
+      const fImg = foto.files[0];
+      if (fImg.type !== 'image/png') return showError('La fotografía debe ser PNG');
+      if (fImg.size > 5 * 1024 * 1024) return showError('La fotografía no puede superar 5 MB');
+
+      const fPdf = pdf.files[0];
+      if (fPdf.type !== 'application/pdf') return showError('La cartola debe ser PDF');
+      if (fPdf.size > 5 * 1024 * 1024) return showError('El PDF no puede superar 5 MB');
 
       alert('✅ Solicitud lista para enviar.\nCuando tengamos endpoint, subimos los archivos y guardamos en la DB.');
     });
