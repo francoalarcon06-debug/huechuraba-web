@@ -150,7 +150,11 @@
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
 
     function irARealizar(){ window.location.href = 'solicitud.html'; }
-    function irAMisSolicitudes(){ alert('Aquí conectamos “Ver estado de mis solicitudes”.'); }
+    function irAMisSolicitudes(){
+      const email = getEmailFromClient();
+      const url = email ? ('mis-solicitudes.html?email=' + encodeURIComponent(email)) : 'mis-solicitudes.html';
+      window.location.href = url;
+    }
 
     function logout(){
       localStorage.removeItem('email');
@@ -161,3 +165,4 @@
   </script>
 </body>
 </html>
+
