@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huechuraba – Solicitud creada</title>
+  <link rel="icon" type="image/png" href="favicon.png.png" />
+  <style>
+    :root{
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
+      --text:#0b1220;
+      --muted:#475569;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
+      --card:#f6f9ff;
+      --ok:#065f46;
+      --ok-bg:#dcfce7;
+      --ok-border:#86efac;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+      color:var(--text);
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
+    }
+
+    /* HEADER */
+    header{ background:#fff; border-bottom:1px solid #e6eefc; }
+    .wrap{
+      max-width:1120px; margin:0 auto; padding:18px 20px;
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
+    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:var(--muted); font-size:15px; font-weight:600; }
+    .userbox{ position:relative; }
+    .userbtn{
+      display:flex; align-items:center; gap:10px; background:#fff;
+      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow);
+    }
+    .userbtn img{ width:22px; height:22px; object-fit:contain; }
+    .chev{ font-size:13px; }
+    .dropdown{
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:260px; display:none;
+    }
+    .dropdown.open{ display:block; }
+    .dropdown .head{
+      padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff;
+      border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all;
+    }
+    .dropdown button{
+      all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
+      font-weight:700; color:#b91c1c;
+    }
+    .dropdown button:hover{ background:#fee2e2; }
+
+    /* MAIN */
+    main{
+      flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+      padding:46px 16px 80px; display:grid; place-items:center;
+    }
+    .card{
+      width:min(720px, 92vw);
+      background:#fff; border-radius:18px; box-shadow:0 16px 40px rgba(0,0,0,.12);
+      padding:38px 28px; text-align:center;
+    }
+    .check{
+      display:inline-grid; place-items:center;
+      width:76px; height:76px; margin:0 auto 18px;
+      background:var(--ok-bg); border:2px solid var(--ok-border); color:var(--ok);
+      border-radius:999px; font-size:42px; font-weight:900; line-height:1;
+    }
+    h1{ margin:8px 0 6px; font-size:28px; }
+    p{ margin:0 0 18px; color:#334155 }
+    .btn{
+      display:inline-block; padding:12px 18px; border-radius:10px; border:0;
+      font-weight:800; cursor:pointer; background:#1e90ff; color:#fff;
+      box-shadow:0 8px 22px rgba(0,0,0,.12);
+    }
+    .note{ margin-top:12px; color:#475569; font-size:14px }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+      </div>
+
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span>Mi sesión</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" onclick="logout()">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO -->
+  <main>
+    <div class="card" role="status" aria-live="polite">
+      <div class="check" aria-hidden="true">✓</div>
+      <h1>¡Solicitud creada correctamente!</h1>
+      <p>Tu solicitud fue registrada con éxito. Te notificaremos por correo sobre cualquier actualización.</p>
+      <button class="btn" id="btnVolver">Volver a mi perfil</button>
+      <div class="note">Código: <span id="folio">—</span></div>
+    </div>
+  </main>
+
+  <script>
+    /* ======== Utilidades de sesión (mismo patrón que usas) ======== */
+    function getEmailFromClient(){
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e){}
+      return '';
+    }
+    (function initHeader(){
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+    })();
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
+    function logout(){
+      localStorage.removeItem('email'); sessionStorage.removeItem('email'); localStorage.removeItem('user');
+      location.href = 'index.html';
+    }
+
+    /* ======== Folio opcional desde querystring ======== */
+    (function setFolio(){
+      const f = new URLSearchParams(location.search).get('folio');
+      if (f) document.getElementById('folio').textContent = f;
+    })();
+
+    /* ======== Botón volver al perfil (verify.html), preservando email ======== */
+    document.getElementById('btnVolver').addEventListener('click', () => {
+      const email = getEmailFromClient();
+      const dest = email ? ('verify.html?email=' + encodeURIComponent(email)) : 'verify.html';
+      location.href = dest;
+    });
+  </script>
+</body>
+</html>
