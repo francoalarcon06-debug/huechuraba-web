@@ -134,36 +134,39 @@
   <!-- FORMULARIO -->
   <main>
     <form id="frmSolicitud" novalidate>
+      <!-- correo oculto para enviar al webhook -->
+      <input type="hidden" id="correo" name="correo" value="">
+
       <div class="form-grid">
 
         <!-- NOMBRE -->
         <div class="row">
           <label for="nombre">Nombre completo</label>
-          <input id="nombre" class="input" type="text" placeholder="Nombre completo" required />
+          <input id="nombre" name="nombre" class="input" type="text" placeholder="Nombre completo" required />
         </div>
 
         <!-- RUT -->
         <div class="row">
           <label for="rut">RUT</label>
-          <input id="rut" class="input" type="text" placeholder="Ej: 12.345.678-9" inputmode="text" autocomplete="off" required />
+          <input id="rut" name="rut" class="input" type="text" placeholder="Ej: 12.345.678-9" inputmode="text" autocomplete="off" required />
         </div>
 
         <!-- DIRECCIÓN -->
         <div class="row">
           <label for="direccion">Dirección</label>
-          <input id="direccion" class="input" type="text" placeholder="Calle y número, comuna – Región Metropolitana" required />
+          <input id="direccion" name="direccion" class="input" type="text" placeholder="Calle y número, comuna – Región Metropolitana" required />
         </div>
 
         <!-- TELÉFONO + RSH -->
         <div class="row cols">
           <div>
             <label for="telefono">Teléfono móvil</label>
-            <input id="telefono" class="input" type="text" inputmode="numeric" placeholder="569XXXXXXXX" required />
+            <input id="telefono" name="telefono" class="input" type="text" inputmode="numeric" placeholder="569XXXXXXXX" required />
             <div class="hint">Formato obligatorio: 569XXXXXXXX</div>
           </div>
           <div>
             <label for="rsh">% Registro social de hogares</label>
-            <select id="rsh" class="select" required>
+            <select id="rsh" name="rsh" class="select" required>
               <option value="" selected disabled>Selecciona…</option>
               <option>40%</option><option>50%</option><option>60%</option>
               <option>70%</option><option>80%</option><option>90%</option><option>100%</option>
@@ -185,7 +188,7 @@
         <!-- DETALLE -->
         <div class="row">
           <label for="detalle">Detalle de solicitud</label>
-          <textarea id="detalle" class="textarea" rows="4" maxlength="600" placeholder="Describe la situación (máx. 600 caracteres)…"></textarea>
+          <textarea id="detalle" name="detalle" class="textarea" rows="4" maxlength="600" placeholder="Describe la situación (máx. 600 caracteres)…"></textarea>
           <div class="counter"><span id="cnt">0</span>/600</div>
         </div>
 
@@ -193,12 +196,12 @@
         <div class="row cols">
           <div>
             <label for="fotoLugar">Adjuntar fotografía del lugar</label>
-            <input id="fotoLugar" class="input" type="file" accept="image/png" required />
+            <input id="fotoLugar" name="fotoLugar" class="input" type="file" accept="image/png" required />
             <span class="file-note">Solo PNG (hasta 5MB).</span>
           </div>
           <div>
             <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
-            <input id="cartolaRSH" class="input" type="file" accept="application/pdf" required />
+            <input id="cartolaRSH" name="cartolaRSH" class="input" type="file" accept="application/pdf" required />
             <span class="file-note">Solo PDF (máximo 5 MB).</span>
           </div>
         </div>
@@ -235,7 +238,10 @@
       return '';
     }
     (function(){
-      document.getElementById('emailFull').textContent = getEmailFromClient() || '—';
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+      // setear en el hidden para enviarlo al webhook
+      document.getElementById('correo').value = email || '';
     })();
     const btn = document.getElementById('userBtn');
     const menu = document.getElementById('userMenu');
@@ -313,7 +319,7 @@
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
     /* ======== Envío ======== */
-    document.getElementById('frmSolicitud').addEventListener('submit', (e) => {
+    document.getElementById('frmSolicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       // Requeridos
@@ -334,19 +340,30 @@
       if (detalle.value.trim().length < 30) return showError('El detalle debe tener al menos 30 caracteres');
 
       // Archivos OBLIGATORIOS
-      if (!foto.files.length) return showError('Debes adjuntar una fotografía PNG (hasta 5 MB)');
-      if (!pdf.files.length)  return showError('Debes adjuntar la cartola RSH en PDF (hasta 5 MB)');
-
-      // Validar de nuevo tipo/tamaño (por si cambió)
       const fImg = foto.files[0];
+      const fPdf = pdf.files[0];
+      if (!fImg) return showError('Debes adjuntar una fotografía PNG (hasta 5 MB)');
+      if (!fPdf) return showError('Debes adjuntar la cartola RSH en PDF (hasta 5 MB)');
       if (fImg.type !== 'image/png') return showError('La fotografía debe ser PNG');
       if (fImg.size > 5 * 1024 * 1024) return showError('La fotografía no puede superar 5 MB');
-
-      const fPdf = pdf.files[0];
       if (fPdf.type !== 'application/pdf') return showError('La cartola debe ser PDF');
       if (fPdf.size > 5 * 1024 * 1024) return showError('El PDF no puede superar 5 MB');
 
-      alert('✅ Solicitud lista para enviar.\nCuando tengamos endpoint, subimos los archivos y guardamos en la DB.');
+      // Enviar a n8n (Production URL)
+      const url = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-create';
+      const fd = new FormData(document.getElementById('frmSolicitud'));
+      try {
+        const resp = await fetch(url, { method: 'POST', body: fd });
+        const data = await resp.json();
+        if (data && data.ok) {
+          window.location.href = data.redirect || 'solicitud-creada.html';
+        } else {
+          showError('Ocurrió un problema al registrar la solicitud.');
+        }
+      } catch (err) {
+        console.error(err);
+        showError('No fue posible enviar la solicitud. Intenta nuevamente.');
+      }
     });
 
     /* ======== Cancelar: vuelve a verify.html, preservando email si existe ======== */
@@ -358,3 +375,4 @@
   </script>
 </body>
 </html>
+
