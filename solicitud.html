@@ -351,11 +351,12 @@
 
       // Enviar a n8n (Production URL)
       const url = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-create';
-      const fd = new FormData(document.getElementById('frmSolicitud'));
+      const fd = new FormData(document.getElementById('frmSolicitud')); // incluye texto y archivos
+
       try {
         const resp = await fetch(url, { method: 'POST', body: fd });
-        const data = await resp.json();
-        if (data && data.ok) {
+        const data = await resp.json().catch(()=>({}));
+        if (resp.ok && data && data.ok) {
           window.location.href = data.redirect || 'solicitud-creada.html';
         } else {
           showError('Ocurrió un problema al registrar la solicitud.');
@@ -375,4 +376,5 @@
   </script>
 </body>
 </html>
+
 
