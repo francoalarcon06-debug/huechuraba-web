@@ -178,8 +178,7 @@
             <label><input type="checkbox" name="tipos" value="Poda" /> Poda</label>
             <label><input type="checkbox" name="tipos" value="Cachureos" /> Cachureos</label>
             <label><input type="checkbox" name="tipos" value="Escombros" /> Escombros</label>
-            <label><input type="checkbox" id="chkOtros" name="tipos" value="Otros" /> Otros</label>
-            <input id="otrosDetalle" class="input" type="text" placeholder="Especifica otros…" style="display:none; min-width:280px;" />
+            <label><input type="checkbox" name="tipos" value="Otros" /> Otros</label>
           </div>
         </div>
 
@@ -248,24 +247,38 @@
       location.href = 'index.html';
     }
 
-    /* ======== RUT formato ======== */
+    /* ======== RUT: máximo 9 (cuerpo+DV), formato X.XXX.XXX-X o XX.XXX.XXX-X ======== */
     const rutInput = document.getElementById('rut');
-    rutInput.addEventListener('input', () => {
-      let v = rutInput.value.replace(/[^0-9kK]/g, '').toUpperCase();
-      if (!v) { rutInput.value = ''; return; }
+    function formatRut(val){
+      // Solo dígitos y K, mayúscula, limitar a 9 (cuerpo+DV)
+      let v = (val || '').replace(/[^0-9kK]/g,'').toUpperCase().slice(0,9);
+      if (!v) return '';
+      if (v.length === 1) return v;                // aún sin DV
       const dv = v.slice(-1);
-      let cuerpo = v.slice(0, -1);
-      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      rutInput.value = `${cuerpo}-${dv}`;
+      let cuerpo = v.slice(0,-1);
+      // Separadores de miles desde la derecha
+      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+      return `${cuerpo}-${dv}`;
+    }
+    rutInput.addEventListener('input', () => {
+      const pos = rutInput.selectionStart;
+      rutInput.value = formatRut(rutInput.value);
+      // no complicamos caret por simplicidad en prototipo
+    });
+    rutInput.addEventListener('blur', () => {
+      const full = rutInput.value.trim();
+      // patrón final permitido: 1-2 dígitos + . + 3 + . + 3 + - + dv
+      const ok = /^(\d{1,2}\.\d{3}\.\d{3})-[\dK]$/.test(full);
+      if (full && !ok) showError('RUT inválido. Formato esperado: X.XXX.XXX-X o XX.XXX.XXX-X');
     });
 
-    /* ======== Teléfono: 569 + 8 dígitos ======== */
+    /* ======== Teléfono: 569 + 8 dígitos exactos ======== */
     const tel = document.getElementById('telefono');
     if (!tel.value) tel.value = '569';
     function sanitizePhone(){
       let raw = tel.value.replace(/\D/g,'');
       if (!raw.startsWith('569')) raw = '569' + raw.replace(/^569/,'');
-      raw = raw.slice(0, 11);
+      raw = raw.slice(0,11);
       tel.value = raw;
     }
     tel.addEventListener('input', sanitizePhone);
@@ -276,14 +289,7 @@
       if (!ok) showError('El teléfono debe tener el formato 569XXXXXXXX');
     });
 
-    /* ======== Otros / contador detalle ======== */
-    const otrosChk = document.getElementById('chkOtros');
-    const otrosInput = document.getElementById('otrosDetalle');
-    otrosChk.addEventListener('change', () => {
-      otrosInput.style.display = otrosChk.checked ? 'block' : 'none';
-      if (!otrosChk.checked) otrosInput.value = '';
-    });
-
+    /* ======== Contador detalle ======== */
     const detalle = document.getElementById('detalle');
     const cnt = document.getElementById('cnt');
     function updateCounter(){ cnt.textContent = String(detalle.value.length); }
@@ -291,7 +297,7 @@
     detalle.addEventListener('keyup', updateCounter);
     updateCounter();
 
-    /* ======== Archivos: validación ======== */
+    /* ======== Archivos: PNG único (<=5MB) y PDF (<=5MB) ======== */
     const foto = document.getElementById('fotoLugar');
     foto.addEventListener('change', () => {
       const f = foto.files[0];
@@ -311,23 +317,43 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    /* ======== Envío con validaciones ======== */
+    /* ======== Envío ======== */
     document.getElementById('frmSolicitud').addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Validaciones de obligatoriedad
       if (!document.getElementById('nombre').value.trim()) return showError('Ingresa tu nombre completo');
-      if (!rutInput.value.trim().includes('-')) return showError('Ingresa un RUT válido (con dígito verificador)');
+
+      const rutVal = rutInput.value.trim();
+      if (!/^(\d{1,2}\.\d{3}\.\d{3})-[\dK]$/.test(rutVal)) return showError('Ingresa un RUT válido. Ej: 12.345.678-9');
+
       if (!document.getElementById('direccion').value.trim()) return showError('Ingresa tu dirección');
       if (!/^569\d{8}$/.test(tel.value.trim())) return showError('El teléfono debe tener el formato 569XXXXXXXX');
       if (!document.getElementById('rsh').value) return showError('Selecciona tu porcentaje RSH');
+
+      // Al menos 1 tipo
+      const tiposSel = Array.from(document.querySelectorAll('input[name="tipos"]:checked'));
+      if (tiposSel.length === 0) return showError('Selecciona al menos un tipo de solicitud');
+
+      // Detalle mínimo 30 caracteres
       if (detalle.value.trim().length < 30) return showError('El detalle debe tener al menos 30 caracteres');
-      const tipos = document.querySelectorAll('input[name="tipos"]:checked');
-      if (tipos.length === 0) return showError('Debes seleccionar al menos un tipo de solicitud');
-      if (!foto.files[0]) return showError('Debes adjuntar una fotografía del lugar');
-      if (!pdf.files[0]) return showError('Debes adjuntar la cartola RSH');
+
+      // Archivos correctos (si se suben)
+      if (foto.files[0]) {
+        const f = foto.files[0];
+        if (f.type !== 'image/png') return showError('La fotografía debe ser PNG');
+        if (f.size > 5 * 1024 * 1024) return showError('La fotografía no puede superar 5 MB');
+      }
+      if (pdf.files[0]) {
+        const f = pdf.files[0];
+        if (f.type !== 'application/pdf') return showError('La cartola debe ser PDF');
+        if (f.size > 5 * 1024 * 1024) return showError('El PDF no puede superar 5 MB');
+      }
+
       alert('✅ Solicitud lista para enviar.\nCuando tengamos endpoint, subimos los archivos y guardamos en la DB.');
     });
 
-    /* ======== Cancelar ======== */
+    /* ======== Cancelar: vuelve a verify.html, preservando email si existe ======== */
     document.getElementById('btnCancel').addEventListener('click', () => {
       const email = getEmailFromClient();
       const dest = email ? ('verify.html?email=' + encodeURIComponent(email)) : 'verify.html';
@@ -336,4 +362,3 @@
   </script>
 </body>
 </html>
-
