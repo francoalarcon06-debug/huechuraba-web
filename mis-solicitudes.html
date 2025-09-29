@@ -267,7 +267,6 @@
           if (!inner) return [];
           return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
         }
-        // string simple (un solo tipo)
         if (s) return [s];
       }
       return [];
@@ -442,7 +441,6 @@
         const res = await fetch(url, { method:'GET' });
         if (!res.ok) throw new Error('HTTP '+res.status);
         const json = await res.json();
-        // Se espera { base64: "...", mime: "image/png", filename?: "..." }
         const base64 = json.base64;
         const mime = json.mime || 'application/octet-stream';
         const fname = json.filename || filenameFallback;
@@ -491,7 +489,6 @@
         });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-        // admite: [ ... ] o { items: [...] }
         allItems = Array.isArray(data) ? data : (data.items || []);
         page = 1;
         render();
