@@ -14,7 +14,6 @@
       --muted:#475569;
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
-      --card:#f6f9ff;
       --ok:#065f46;
       --ok-bg:#dcfce7;
       --ok-border:#86efac;
@@ -78,14 +77,12 @@
       background:var(--ok-bg); border:2px solid var(--ok-border); color:var(--ok);
       border-radius:999px; font-size:42px; font-weight:900; line-height:1;
     }
-    h1{ margin:8px 0 6px; font-size:28px; }
-    p{ margin:0 0 18px; color:#334155 }
+    h1{ margin:8px 0 18px; font-size:28px; }
     .btn{
       display:inline-block; padding:12px 18px; border-radius:10px; border:0;
       font-weight:800; cursor:pointer; background:#1e90ff; color:#fff;
       box-shadow:0 8px 22px rgba(0,0,0,.12);
     }
-    .note{ margin-top:12px; color:#475569; font-size:14px }
   </style>
 </head>
 <body>
@@ -119,9 +116,7 @@
     <div class="card" role="status" aria-live="polite">
       <div class="check" aria-hidden="true">✓</div>
       <h1>¡Solicitud creada correctamente!</h1>
-      <p>Tu solicitud fue registrada con éxito. Te notificaremos por correo sobre cualquier actualización.</p>
       <button class="btn" id="btnVolver">Volver a mi perfil</button>
-      <div class="note">Código: <span id="folio">—</span></div>
     </div>
   </main>
 
@@ -157,13 +152,7 @@
       location.href = 'index.html';
     }
 
-    /* ======== Folio opcional desde querystring ======== */
-    (function setFolio(){
-      const f = new URLSearchParams(location.search).get('folio');
-      if (f) document.getElementById('folio').textContent = f;
-    })();
-
-    /* ======== Botón volver al perfil (verify.html), preservando email ======== */
+    /* ======== Botón volver al perfil ======== */
     document.getElementById('btnVolver').addEventListener('click', () => {
       const email = getEmailFromClient();
       const dest = email ? ('verify.html?email=' + encodeURIComponent(email)) : 'verify.html';
