@@ -287,13 +287,18 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    function fmtDate(dStr){
-      if(!dStr) return '—';
-      const d = new Date(dStr);
+    // ÚNICO CAMBIO: mostrar exactamente como en pgAdmin (UTC)
+    function fmtDate(v){
+      if (v === null || v === undefined || v === '') return '—';
+      const d = new Date(Number(v)); // epoch ms
       try {
-        return new Intl.DateTimeFormat('es-CL', { dateStyle:'medium', timeStyle:'short', timeZone:'America/Santiago' }).format(d);
+        return new Intl.DateTimeFormat('es-CL', {
+          dateStyle:'medium',
+          timeStyle:'short',
+          timeZone:'UTC'          // <-- igual que en la BD que ves en pgAdmin
+        }).format(d);
       } catch {
-        return d.toLocaleString();
+        return d.toUTCString();
       }
     }
 
@@ -433,6 +438,7 @@
         span.textContent = estadoUpper;
         tdEst.appendChild(span);
 
+        // Mostrar botón Pagar solo si es "pendiente de pago"
         if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
           tdEst.appendChild(createPayButton(it.id));
           span.classList.add('PENDIENTE_DE_PAGO');
@@ -624,4 +630,5 @@
   </script>
 </body>
 </html>
+
 
