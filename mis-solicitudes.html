@@ -438,7 +438,6 @@
         span.textContent = estadoUpper;
         tdEst.appendChild(span);
 
-        // Mostrar botón Pagar solo si es "pendiente de pago"
         if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
           tdEst.appendChild(createPayButton(it.id));
           span.classList.add('PENDIENTE_DE_PAGO');
@@ -517,7 +516,6 @@
     document.getElementById('drawerClose').addEventListener('click', closeDrawer);
     backdrop.addEventListener('click', closeDrawer);
 
-    // Cerrar con ESC (además de cerrar el menú)
     document.addEventListener('keydown', (e)=>{
       if(e.key==='Escape'){
         menu.classList.remove('open');
@@ -567,11 +565,34 @@
       try {
         const res = await fetch(url, { method:'GET' });
         if (!res.ok) throw new Error('HTTP '+res.status);
-        const json = await res.json();
-        const base64 = json.base64;
-        const mime = json.mime || 'application/octet-stream';
-        const fname = json.filename || filenameFallback;
-        const blob = b64toBlob(base64, mime);
+
+        const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+
+        // Caso 1: el webhook responde JSON { base64, mime, filename }
+        if (ct.includes('application/json')) {
+          const json = await res.json();
+          const base64 = json.base64 || json.data || json.file || '';
+          const mime = json.mime || json.mimeType || 'application/octet-stream';
+          const fname = json.filename || filenameFallback || 'archivo';
+          if (!base64) throw new Error('Respuesta JSON sin base64');
+          const blob = b64toBlob(base64, mime);
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+          return;
+        }
+
+        // Caso 2: el webhook responde archivo binario (attachment)
+        const blob = await res.blob();
+        const cd = res.headers.get('Content-Disposition') || '';
+        let fname = filenameFallback || 'archivo';
+        const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
+        if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
+
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = fname;
@@ -579,14 +600,19 @@
         a.click();
         a.remove();
         setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+
       } catch(e){
         console.error(e);
         showError('No fue posible descargar el archivo.');
       }
     }
 
+    // tolerante a base64 sin padding / url-safe
     function b64toBlob(b64, mime){
-      const byteChars = atob(b64);
+      let s = String(b64).replace(/[\r\n\s]/g,'').replace(/-/g,'+').replace(/_/g,'/');
+      const pad = s.length % 4;
+      if (pad) s += '='.repeat(4 - pad);
+      const byteChars = atob(s);
       const byteNumbers = new Array(byteChars.length);
       for (let i=0; i<byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
       const byteArray = new Uint8Array(byteNumbers);
@@ -630,7 +656,3 @@
   </script>
 </body>
 </html>
-
-
-
-
