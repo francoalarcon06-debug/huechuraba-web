@@ -78,7 +78,7 @@
     table{
       width:100%;
       border-collapse:separate; border-spacing:0;
-      table-layout: fixed; /* para que respeten los anchos y funcione el ellipsis */
+      table-layout: fixed;
     }
     thead th{
       color:#e6f0ff; font-weight:800; text-align:left; padding:12px; font-size:14px;
@@ -93,26 +93,19 @@
     tbody tr td:last-child{ border-top-right-radius:10px; border-bottom-right-radius:10px; }
 
     /* Ellipsis de 1 línea */
-    .cell-ellipsis{
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    /* Dos líneas con ellipsis (si la quisieras usar en algún campo) */
-    .cell-two-lines{
-      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
-      white-space:normal; word-break:break-word; line-height:1.35;
-    }
+    .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Dos líneas con ellipsis (si la quisieras usar en algún campo)
+    .cell-two-lines{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; white-space:normal; word-break:break-word; line-height:1.35; } */
 
-    /* Anchos de columnas (ajusta si lo necesitas) */
+    /* Anchos de columnas y pequeños ajustes */
     .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-    .w-dir{ width:180px; }
-    .w-tel{ width:120px; }
-    .w-tipo{ width:200px; }      /* suficiente para varios tipos en una línea */
-    .w-det{ width:220px; }
+    .w-dir{ width:200px; padding-left:24px; }   /* un poco más a la derecha */
+    .w-tel{ width:140px; }
+    .w-tipo{ width:220px; }
+    .w-det{ width:240px; }
     .w-file{ width:120px; }
-    .w-date{ width:210px; }      /* mostrar completa en una línea */
+    .w-date{ width:210px; }
     .w-estado{ width:120px; }
 
     .actions-cell{ text-align:center; }
@@ -131,11 +124,15 @@
     .state.RECHAZADA{ color:#b91c1c; }
 
     /* Pagination */
-    .pager{ display:flex; gap:10px; justify-content:flex-end; padding:12px 4px 0; }
+    .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
     .pager button{
       all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
     }
-    .pager .num{ background:#0b3a88; color:#fff; }
+    .pager .num{
+      background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;
+    }
+    .pager .num.current{ background:#0b3a88; color:#fff; }
+    .pager .sep{ color:#e6f0ff; font-weight:900; user-select:none; }
 
     /* Drawer */
     .drawer{
@@ -276,7 +273,7 @@
 
     // Normaliza "tipos" a array (acepta formato '{Poda,Escombros}' o string simple)
     function parseTipos(val){
-      if (Array.isArray(val)) return val;
+      if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
         const s = val.trim();
         if (s.startsWith('{') && s.endsWith('}')) {
@@ -287,6 +284,33 @@
         if (s) return [s];
       }
       return [];
+    }
+
+    // Para mostrar máximo 2 tipos y luego ", ..."
+    function displayTipos(arr){
+      if (!arr || !arr.length) return '—';
+      const clean = arr.map(t => String(t).replace(/^"(.*)"$/,'$1').replace(/^'(.*)'$/,'$1'));
+      if (clean.length <= 2) return clean.join(', ');
+      return clean.slice(0,2).join(', ') + ', ...';
+    }
+
+    // Formato teléfono: +56 9 XXXX XXXX cuando aplique
+    function formatPhone(v){
+      if (!v) return '—';
+      const digits = String(v).replace(/\D/g,'');
+      // Casos: 56 9 ######## (11), 09######## (9+?), 9######## (9)
+      if (digits.length === 11 && digits.startsWith('569')) {
+        const a = digits.slice(3,7);
+        const b = digits.slice(7,11);
+        return `+56 9 ${a} ${b}`;
+      }
+      if (digits.length === 9 && digits.startsWith('9')) {
+        const a = digits.slice(1,5);
+        const b = digits.slice(5,9);
+        return `+56 9 ${a} ${b}`;
+      }
+      // fallback: mostrar como venía
+      return v;
     }
 
     /* ======== Data & render ======== */
@@ -325,23 +349,23 @@
         tdId.className = 'w-id cell-ellipsis';
         tdId.textContent = it.id ?? '—';
 
-        // Dirección
+        // Dirección (más a la derecha via padding-left en CSS)
         const tdDir = document.createElement('td');
         tdDir.className = 'w-dir cell-ellipsis';
         tdDir.textContent = it.direccion || '—';
 
-        // Teléfono
+        // Teléfono (formateado)
         const tdTel = document.createElement('td');
         tdTel.className = 'w-tel cell-ellipsis';
-        tdTel.textContent = it.telefono || '—';
+        tdTel.textContent = formatPhone(it.telefono);
 
-        // Tipos (una sola línea, sin corchetes ni comillas)
+        // Tipos (máx. 2 + , ...)
         const tdTipos = document.createElement('td');
         tdTipos.className = 'w-tipo cell-ellipsis';
         const tiposArr = parseTipos(it.tipos);
-        tdTipos.textContent = tiposArr.length ? tiposArr.join(', ') : '—';
+        tdTipos.textContent = displayTipos(tiposArr);
 
-        // Detalle (una sola línea con ellipsis)
+        // Detalle (una línea con ellipsis)
         const tdDet = document.createElement('td');
         tdDet.className = 'w-det cell-ellipsis';
         tdDet.textContent = it.detalle || '—';
@@ -388,26 +412,61 @@
     function renderPager(){
       const total = allItems.length;
       const pages = Math.max(1, Math.ceil(total / pageSize));
-      if (page > pages) page = pages;
-
       const pager = document.getElementById('pager');
       pager.innerHTML = '';
 
-      const prev = document.createElement('button');
-      prev.textContent = '‹ Anterior';
-      prev.disabled = page === 1;
-      prev.addEventListener('click', () => { page = Math.max(1, page-1); render(); });
+      // Ocultar pager si solo hay una página
+      if (pages <= 1) {
+        pager.style.display = 'none';
+        return;
+      }
+      pager.style.display = 'flex';
 
-      const info = document.createElement('button');
-      info.className = 'num';
-      info.textContent = `${page} / ${pages}`;
+      // helper: botón
+      const btn = (label, handler, cls='')=>{
+        const b = document.createElement('button');
+        b.textContent = label;
+        if (cls) b.className = cls;
+        b.addEventListener('click', handler);
+        return b;
+      };
+      // helper: número
+      const num = (n)=>{
+        const b = document.createElement('span');
+        b.textContent = n;
+        b.className = 'num' + (n===page ? ' current' : '');
+        if (n !== page) b.addEventListener('click', ()=>{ page=n; render(); });
+        return b;
+      };
+      // helper: separador
+      const sep = ()=>{ const s=document.createElement('span'); s.textContent='-'; s.className='sep'; return s; };
 
-      const next = document.createElement('button');
-      next.textContent = 'Siguiente ›';
-      next.disabled = page === pages;
-      next.addEventListener('click', () => { page = Math.min(pages, page+1); render(); });
+      // Anterior (solo si page>1)
+      if (page > 1) pager.appendChild(btn('‹ Anterior', ()=>{ page=Math.max(1,page-1); render(); }));
 
-      pager.append(prev, info, next);
+      // Números:
+      if (pages <= 4) {
+        for (let i=1;i<=pages;i++){
+          if (i>1) pager.appendChild(sep());
+          pager.appendChild(num(i));
+        }
+      } else {
+        // 1 - 2 - 3 - 4 - ... - N
+        pager.appendChild(num(1));
+        pager.appendChild(sep());
+        pager.appendChild(num(2));
+        pager.appendChild(sep());
+        pager.appendChild(num(3));
+        pager.appendChild(sep());
+        pager.appendChild(num(4));
+        pager.appendChild(sep());
+        const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
+        pager.appendChild(sep());
+        pager.appendChild(num(pages));
+      }
+
+      // Siguiente (solo si page<pages)
+      if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
     }
 
     /* ======== Drawer ======== */
@@ -432,7 +491,7 @@
         field('Nombre', it.nombre || '—'),
         field('RUT', it.rut || '—'),
         field('Dirección', it.direccion || '—'),
-        field('Teléfono', it.telefono || '—'),
+        field('Teléfono', formatPhone(it.telefono)),
         field('RSH', it.rsh || '—'),
         (function(){
           const div = document.createElement('div'); div.className = 'field';
