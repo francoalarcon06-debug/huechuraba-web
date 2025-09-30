@@ -562,13 +562,13 @@
 
     /* ======== Descargas (webhook GET) ======== */
     async function downloadFromEndpoint(url, filenameFallback){
+      // 1) Intento JSON (para respuestas { base64, mime, filename })
       try {
         const res = await fetch(url, { method:'GET' });
         if (!res.ok) throw new Error('HTTP '+res.status);
 
         const ct = (res.headers.get('Content-Type') || '').toLowerCase();
 
-        // Caso 1: el webhook responde JSON { base64, mime, filename }
         if (ct.includes('application/json')) {
           const json = await res.json();
           const base64 = json.base64 || json.data || json.file || '';
@@ -585,22 +585,19 @@
           setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
           return;
         }
+        // Si no es JSON, seguimos a fallback sin lanzar error.
+      } catch(e){
+        // Ignoramos: usaremos el fallback que no depende de CORS
+      }
 
-        // Caso 2: el webhook responde archivo binario (attachment)
-        const blob = await res.blob();
-        const cd = res.headers.get('Content-Disposition') || '';
-        let fname = filenameFallback || 'archivo';
-        const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
-        if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
-
+      // 2) Fallback robusto: descarga directa por iframe (evita CORS)
+      try {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url; // El servidor debe mandar Content-Disposition
+        document.body.appendChild(iframe);
+        // Limpieza después de un rato
+        setTimeout(()=> iframe.remove(), 60000);
       } catch(e){
         console.error(e);
         showError('No fue posible descargar el archivo.');
@@ -656,3 +653,4 @@
   </script>
 </body>
 </html>
+
