@@ -66,16 +66,15 @@
       padding:26px 16px 70px;
     }
     .container{ max-width:1120px; margin:0 auto; }
-
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
     /* Table */
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      margin:0 auto;               /* centrado */
-      max-width:1120px;            /* que no se corte y mantenga ancho */
-      overflow:auto;               /* scroll horizontal si es necesario */
+      margin:0 auto;
+      max-width:1120px;
+      overflow:auto;  /* scroll horizontal si hiciera falta */
     }
     table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
     thead th{
@@ -89,28 +88,10 @@
     tbody tr td:first-child{ border-top-left-radius:10px; border-bottom-left-radius:10px; }
     tbody tr td:last-child{ border-top-right-radius:10px; border-bottom-right-radius:10px; }
 
-    /* Una línea con puntos suspensivos */
-    .one-line{
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    /* Dos líneas con clamp */
-    .cell-two-lines{
-      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
-      white-space:normal; word-break:break-word; line-height:1.35;
-    }
-    .chip{
-      display:inline-flex; align-items:center; padding:3px 8px; border-radius:999px; background:#eaf2ff; color:#0a54c9; font-weight:800; font-size:12px; margin:2px 6px 2px 0;
-    }
-    .actions-cell{ width:56px; text-align:center; }
-    .icon-btn{
-      all:unset; display:inline-grid; place-items:center; width:36px; height:36px; border-radius:10px;
-      cursor:pointer; background:#fff; color:#0a54c9; font-weight:900; box-shadow: var(--shadow);
-    }
-    .icon-btn:hover{ transform: translateY(-1px); }
-    .dl-btn{
-      all:unset; color:#0b3a88; background:#fff; border:2px solid #0b3a88; padding:6px 10px; border-radius:8px;
-      cursor:pointer; font-weight:800; box-shadow: var(--shadow);
-    }
+    /* Utilidades de texto */
+    .one-line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .no-ellipsis{ white-space:nowrap; overflow:visible; text-overflow:clip; }
+
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.ACEPTADA{ color:#065f46; }
@@ -121,33 +102,10 @@
     .pager button{
       all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
     }
-    .pager .num{ background:#0b3a88; color:#fff; }
     .pager .page{
       all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:4px 8px; border-radius:8px; cursor:pointer; font-weight:800;
     }
     .pager .page.active{ background:#0b3a88; color:#fff; }
-
-    /* Drawer */
-    .drawer{
-      position:fixed; top:0; right:0; height:100%; width:min(540px, 92vw); background:#fff;
-      box-shadow:-18px 0 44px rgba(0,0,0,.25); transform:translateX(100%); transition:transform .25s ease;
-      display:flex; flex-direction:column; z-index:40;
-    }
-    .drawer.open{ transform:translateX(0); }
-    .drawer-head{
-      display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #e6eefc;
-    }
-    .drawer-title{ font-weight:900; color:#0b3a88; }
-    .drawer-close{ all:unset; font-weight:900; color:#b91c1c; cursor:pointer; }
-    .drawer-body{ padding:16px; overflow:auto; }
-    .field{
-      margin-bottom:12px; background:#f6f9ff; border:1px solid #dbe4ff; border-radius:12px; padding:10px 12px;
-    }
-    .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
-    .muted{ color:#6b7280; }
-
-    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
-    .error.show{ display:block; }
   </style>
 </head>
 <body>
@@ -196,9 +154,7 @@
               <th>Estado</th>
             </tr>
           </thead>
-          <tbody id="tbody">
-            <!-- filas dinámicas -->
-          </tbody>
+          <tbody id="tbody"></tbody>
         </table>
 
         <div class="pager" id="pager"></div>
@@ -207,15 +163,7 @@
   </main>
 
   <!-- Drawer detalle -->
-  <aside class="drawer" id="drawer">
-    <div class="drawer-head">
-      <div class="drawer-title">Detalle de solicitud</div>
-      <button class="drawer-close" id="drawerClose">✕</button>
-    </div>
-    <div class="drawer-body" id="drawerBody">
-      <!-- campos dinámicos -->
-    </div>
-  </aside>
+  <aside class="drawer" id="drawer" style="display:none"></aside>
 
   <script>
     /* ======== Header (correo / sesión) ======== */
@@ -237,22 +185,21 @@
     }
     (function(){
       const email = getEmailFromClient();
-      document.getElementById('emailFull').textContent = email || '—';
+      const emailFull = document.getElementById('emailFull');
+      if (emailFull) emailFull.textContent = email || '—';
+      const btn = document.getElementById('userBtn');
+      const menu = document.getElementById('userMenu');
+      btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+      document.addEventListener('click', ()=> menu.classList.remove('open'));
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('email'); sessionStorage.removeItem('email'); localStorage.removeItem('user');
+        location.href = 'index.html';
+      });
     })();
-
-    const btn = document.getElementById('userBtn');
-    const menu = document.getElementById('userMenu');
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
-    document.addEventListener('click', ()=> menu.classList.remove('open'));
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('email'); sessionStorage.removeItem('email'); localStorage.removeItem('user');
-      location.href = 'index.html';
-    });
 
     /* ======== Utils ======== */
     const msgError = document.getElementById('msgError');
-    function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
+    function showError(t){ if(!msgError) return; msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
     function fmtDate(dStr){
       if(!dStr) return '—';
@@ -263,11 +210,9 @@
         return d.toLocaleString();
       }
     }
-
-    // Formatea teléfono: +56 9 XXXX XXXX
+    // Teléfono completo, una línea
     function fmtPhone(v){
       const s = String(v||'').replace(/\D/g,'');
-      // intentamos detectar +56 9 ########
       let num = s;
       if (s.startsWith('56')) num = s.slice(2);
       if (num.length === 9 && num[0]==='9'){
@@ -278,14 +223,17 @@
       }
       return v || '—';
     }
-
-    // Asegura que "tipos" venga como array aunque llegue como "{Poda,Escombros}"
+    // Cortar a N caracteres con …
+    function clampText(str, max){
+      const s = String(str||'');
+      return s.length > max ? s.slice(0, max) + '…' : s;
+    }
+    // Tipos: normalizar a arreglo
     function parseTipos(val){
       if (Array.isArray(val)) return val;
       if (typeof val === 'string') {
         const s = val.trim();
         if (s.startsWith('[') && s.endsWith(']')) {
-          // JSON de array como '["Poda","Cachureos"]'
           try { return JSON.parse(s); } catch {}
         }
         if (s.startsWith('{') && s.endsWith('}')) {
@@ -319,55 +267,44 @@
       for(const it of items){
         const tr = document.createElement('tr');
 
-        // actions (eye)
+        // actions
         const tdEye = document.createElement('td');
-        tdEye.className = 'actions-cell';
+        tdEye.style.textAlign = 'center';
         const eye = document.createElement('button');
-        eye.className = 'icon-btn';
-        eye.title = 'Ver detalle';
         eye.textContent = '👁';
-        eye.addEventListener('click', () => openDrawer(it));
+        eye.style.cssText = 'all:unset;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;cursor:pointer;background:#fff;color:#0a54c9;font-weight:900;box-shadow:0 8px 28px rgba(2,6,23,.10);';
+        eye.title = 'Ver detalle';
+        eye.addEventListener('click', () => alert('Detalle ID: '+ (it.id ?? '—')));
         tdEye.appendChild(eye);
 
-        const tdId = document.createElement('td');
-        tdId.textContent = it.id ?? '—';
+        const tdId = document.createElement('td'); tdId.textContent = it.id ?? '—';
 
         const tdDir = document.createElement('td');
-        tdDir.className = 'one-line';   /* una línea con ... */
+        tdDir.className = 'one-line';
         tdDir.textContent = it.direccion || '—';
 
         const tdTel = document.createElement('td');
-        tdTel.className = 'one-line';
+        tdTel.className = 'no-ellipsis';
         tdTel.textContent = fmtPhone(it.telefono);
 
         const tdTipos = document.createElement('td');
-        tdTipos.className = 'one-line';
+        tdTipos.className = 'no-ellipsis';
         const tiposArr = parseTipos(it.tipos);
-        // mostramos máx 2 tipos, sin corchetes ni comillas
         let tiposLabel = tiposArr.slice(0,2).join(', ');
         if (tiposArr.length > 2) tiposLabel += ', …';
         tdTipos.textContent = tiposLabel || '—';
 
         const tdDet = document.createElement('td');
-        tdDet.className = 'cell-two-lines';
-        tdDet.textContent = it.detalle || '—';
+        tdDet.className = 'one-line';
+        tdDet.textContent = clampText(it.detalle || '—', 20);
 
-        const tdFoto = document.createElement('td');
-        const btnFoto = document.createElement('button');
-        btnFoto.className = 'dl-btn';
-        btnFoto.textContent = 'Descargar';
-        btnFoto.addEventListener('click', () => downloadFotoLugar(it.id));
-        tdFoto.appendChild(btnFoto);
+        const mkBtn = (fn)=>{ const b=document.createElement('button'); b.className='dl-btn'; b.textContent='Descargar'; b.addEventListener('click', fn); return b; };
 
-        const tdCart = document.createElement('td');
-        const btnCart = document.createElement('button');
-        btnCart.className = 'dl-btn';
-        btnCart.textContent = 'Descargar';
-        btnCart.addEventListener('click', () => downloadCartola(it.id));
-        tdCart.appendChild(btnCart);
+        const tdFoto = document.createElement('td'); tdFoto.appendChild(mkBtn(()=>downloadFotoLugar(it.id)));
+        const tdCart = document.createElement('td'); tdCart.appendChild(mkBtn(()=>downloadCartola(it.id)));
 
         const tdUpd = document.createElement('td');
-        tdUpd.className = 'one-line';
+        tdUpd.className = 'no-ellipsis';
         tdUpd.textContent = fmtDate(it.updated_at);
 
         const tdEst = document.createElement('td');
@@ -392,9 +329,8 @@
       const pager = document.getElementById('pager');
       pager.innerHTML = '';
 
-      if (pages <= 1) return; // no mostrar nada si hay solo una página
+      if (pages <= 1) return;
 
-      // botón anterior (no en página 1)
       if (page > 1){
         const prev = document.createElement('button');
         prev.textContent = '‹ Anterior';
@@ -402,7 +338,6 @@
         pager.appendChild(prev);
       }
 
-      // números: 1 - 2 - 3 - 4 - ... - N (si N > 5)
       const addPageBtn = (n)=>{
         const b = document.createElement('button');
         b.className = 'page' + (n===page ? ' active':'');
@@ -426,54 +361,12 @@
         addPageBtn(5);
       }
 
-      // botón siguiente (no en última)
       if (page < pages){
         const next = document.createElement('button');
         next.textContent = 'Siguiente ›';
         next.addEventListener('click', () => { page = Math.min(pages, page+1); render(); });
         pager.appendChild(next);
       }
-    }
-
-    /* ======== Drawer ======== */
-    const drawer = document.getElementById('drawer');
-    const drawerBody = document.getElementById('drawerBody');
-    document.getElementById('drawerClose').addEventListener('click', () => drawer.classList.remove('open'));
-
-    function field(label, value){
-      const div = document.createElement('div');
-      div.className = 'field';
-      const b = document.createElement('b'); b.textContent = label;
-      const p = document.createElement('div'); p.textContent = (value ?? '—');
-      div.append(b, p);
-      return div;
-    }
-
-    function openDrawer(it){
-      drawerBody.innerHTML = '';
-      drawerBody.append(
-        field('ID', it.id),
-        field('Correo', it.correo || '—'),
-        field('Nombre', it.nombre || '—'),
-        field('RUT', it.rut || '—'),
-        field('Dirección', it.direccion || '—'),
-        field('Teléfono', fmtPhone(it.telefono)),
-        field('RSH', it.rsh || '—'),
-        (function(){
-          const div = document.createElement('div'); div.className = 'field';
-          const b = document.createElement('b'); b.textContent = 'Tipo(s)';
-          const cont = document.createElement('div');
-          const tipos = parseTipos(it.tipos);
-          if (tipos.length === 0) cont.textContent = '—';
-          else cont.textContent = tipos.join(', ');
-          div.append(b, cont); return div;
-        })(),
-        field('Detalle', it.detalle || '—'),
-        field('Estado solicitud', (it.estado_solicitud||'—').toUpperCase()),
-        field('Última actualización', fmtDate(it.updated_at)),
-        field('Creada', fmtDate(it.created_at))
-      );
-      drawer.classList.add('open');
     }
 
     /* ======== Descargas (webhook GET) ======== */
@@ -498,7 +391,6 @@
         showError('No fue posible descargar el archivo.');
       }
     }
-
     function b64toBlob(b64, mime){
       const byteChars = atob(b64);
       const byteNumbers = new Array(byteChars.length);
@@ -506,7 +398,6 @@
       const byteArray = new Uint8Array(byteNumbers);
       return new Blob([byteArray], {type:mime});
     }
-
     function downloadFotoLugar(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar`;
       return downloadFromEndpoint(url, `foto_lugar_${id}`);
@@ -516,7 +407,7 @@
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
     }
 
-    /* ======== Carga inicial (POST urlencoded: evita preflight) ======== */
+    /* ======== Carga inicial ======== */
     async function loadData(){
       const email = getEmailFromClient();
       if (!email) { showError('No se encontró el correo de la sesión.'); return; }
