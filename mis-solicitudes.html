@@ -66,12 +66,9 @@
       padding:26px 16px 70px;
     }
 
-    /* ancho general elegido previamente */
     .container{ max-width:1600px; margin:0 auto; }
-
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
-    /* Table */
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
@@ -96,29 +93,20 @@
 
     .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Anchos de columnas */
     .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-
-    /* EXTRA: "un poco más a la derecha" (alineo cabecera y celdas) */
     .w-dir{ width:200px; }
-    th.w-dir, td.w-dir { padding-left: 40px; } /* antes 24px en td; ahora + derecha y alineado con th */
-
+    th.w-dir, td.w-dir { padding-left: 40px; }
     .w-tel{ width:140px; }
     th.w-tel, td.w-tel { padding-left: 14px; }
-
     .w-tipo{ width:220px; }
     th.w-tipo, td.w-tipo { padding-left: 14px; }
-
     .w-det{ width:240px; }
     th.w-det, td.w-det { padding-left: 14px; }
-
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
-
     .w-date{ width:240px; }
     th.w-date, td.w-date { padding-left: 14px; }
-
     .w-estado{ width:200px; }
     th.w-estado, td.w-estado { padding-left: 14px; }
 
@@ -133,7 +121,6 @@
       cursor:pointer; font-weight:800; box-shadow: var(--shadow);
     }
 
-    /* Botón pagar (solo cuando estado = pendiente de pago) */
     .pay-btn{
       all:unset; background:#fff; border:2px solid #065f46; color:#065f46; padding:6px 10px; border-radius:8px;
       cursor:pointer; font-weight:800; box-shadow: var(--shadow); margin-left:8px;
@@ -143,9 +130,8 @@
     .state.PENDIENTE{ color:#111827; }
     .state.ACEPTADA{ color:#065f46; }
     .state.RECHAZADA{ color:#b91c1c; }
-    .state.PENDIENTE_DE_PAGO{ color:#92400e; } /* tono distinto para “pendiente de pago” */
+    .state.PENDIENTE_DE_PAGO{ color:#92400e; }
 
-    /* Pagination (sin cambios) */
     .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
     .pager button{
       all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
@@ -156,7 +142,6 @@
     .pager .num.current{ background:#0b3a88; color:#fff; }
     .pager .sep{ color:#e6f0ff; font-weight:900; user-select:none; }
 
-    /* Drawer */
     .drawer{
       position:fixed; top:0; right:0; height:100%; width:min(540px, 92vw); background:#fff;
       box-shadow:-18px 0 44px rgba(0,0,0,.25); transform:translateX(100%); transition:transform .25s ease;
@@ -175,7 +160,6 @@
     .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
     .muted{ color:#6b7280; }
 
-    /* Backdrop para cerrar al hacer clic fuera del drawer */
     .backdrop{
       position:fixed; inset:0; background:rgba(2,6,23,.45);
       opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:30;
@@ -252,7 +236,6 @@
       <!-- campos dinámicos -->
     </div>
   </aside>
-  <!-- Backdrop para cerrar al hacer clic fuera -->
   <div class="backdrop" id="drawerBackdrop" aria-hidden="true"></div>
 
   <script>
@@ -287,22 +270,20 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    // ÚNICO CAMBIO: mostrar exactamente como en pgAdmin (UTC)
     function fmtDate(v){
       if (v === null || v === undefined || v === '') return '—';
-      const d = new Date(Number(v)); // epoch ms
+      const d = new Date(Number(v));
       try {
         return new Intl.DateTimeFormat('es-CL', {
           dateStyle:'medium',
           timeStyle:'short',
-          timeZone:'UTC'          // <-- igual que en la BD que ves en pgAdmin
+          timeZone:'UTC'
         }).format(d);
       } catch {
         return d.toUTCString();
       }
     }
 
-    // Normaliza "tipos" a array (acepta formato '{Poda,Escombros}' o string simple)
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -317,7 +298,6 @@
       return [];
     }
 
-    // Para mostrar máximo 2 tipos y luego ", ..."
     function displayTipos(arr){
       if (!arr || !arr.length) return '—';
       const clean = arr.map(t => String(t).replace(/^"(.*)"$/,'$1').replace(/^'(.*)'$/,'$1'));
@@ -325,7 +305,6 @@
       return clean.slice(0,2).join(', ') + ', ...';
     }
 
-    // Formato teléfono: +56 9 XXXX XXXX cuando aplique
     function formatPhone(v){
       if (!v) return '—';
       const digits = String(v).replace(/\D/g,'');
@@ -342,7 +321,6 @@
       return v;
     }
 
-    /* ======== Data & render ======== */
     const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
 
     let allItems = [];
@@ -366,7 +344,7 @@
 
     function normalizeEstado(str){
       const s = String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
-      return s; // ej: 'pendiente de pago'
+      return s;
     }
 
     function render(){
@@ -502,7 +480,6 @@
       if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
     }
 
-    /* ======== Drawer (con cierre por clic fuera) ======== */
     const drawer = document.getElementById('drawer');
     const drawerBody = document.getElementById('drawerBody');
     const backdrop = document.getElementById('drawerBackdrop');
@@ -562,19 +539,19 @@
 
     /* ======== Descargas (webhook GET) ======== */
     async function downloadFromEndpoint(url, filenameFallback){
-      // 1) Intento JSON (para respuestas { base64, mime, filename })
+      // 1) Intento JSON (webhook que retorna { base64, mime, filename })
       try {
         const res = await fetch(url, { method:'GET' });
         if (!res.ok) throw new Error('HTTP '+res.status);
 
         const ct = (res.headers.get('Content-Type') || '').toLowerCase();
-
         if (ct.includes('application/json')) {
           const json = await res.json();
           const base64 = json.base64 || json.data || json.file || '';
           const mime = json.mime || json.mimeType || 'application/octet-stream';
           const fname = json.filename || filenameFallback || 'archivo';
-          if (!base64) throw new Error('Respuesta JSON sin base64');
+          if (!base64) throw new Error('JSON sin base64');
+
           const blob = b64toBlob(base64, mime);
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
@@ -585,19 +562,21 @@
           setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
           return;
         }
-        // Si no es JSON, seguimos a fallback sin lanzar error.
-      } catch(e){
-        // Ignoramos: usaremos el fallback que no depende de CORS
+        // Si no es JSON, seguimos al fallback sin lanzar error
+      } catch(_e){
+        // Ignorar y seguir al fallback
       }
 
-      // 2) Fallback robusto: descarga directa por iframe (evita CORS)
+      // 2) Fallback universal: descargar por navegación directa (no usa fetch -> no hay CORS)
       try {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url; // El servidor debe mandar Content-Disposition
-        document.body.appendChild(iframe);
-        // Limpieza después de un rato
-        setTimeout(()=> iframe.remove(), 60000);
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';           // por si el navegador decide abrir en pestaña
+        a.rel = 'noopener';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
       } catch(e){
         console.error(e);
         showError('No fue posible descargar el archivo.');
@@ -653,4 +632,5 @@
   </script>
 </body>
 </html>
+
 
