@@ -175,6 +175,13 @@
     .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
     .muted{ color:#6b7280; }
 
+    /* Backdrop para cerrar al hacer clic fuera del drawer */
+    .backdrop{
+      position:fixed; inset:0; background:rgba(2,6,23,.45);
+      opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:30;
+    }
+    .backdrop.show{ opacity:1; pointer-events:auto; }
+
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
   </style>
@@ -245,6 +252,8 @@
       <!-- campos dinámicos -->
     </div>
   </aside>
+  <!-- Backdrop para cerrar al hacer clic fuera -->
+  <div class="backdrop" id="drawerBackdrop" aria-hidden="true"></div>
 
   <script>
     /* ======== Header (correo / sesión) ======== */
@@ -273,11 +282,6 @@
     const menu = document.getElementById('userMenu');
     btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     document.addEventListener('click', ()=> menu.classList.remove('open'));
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('email'); sessionStorage.removeItem('email'); localStorage.removeItem('user');
-      location.href = 'index.html';
-    });
 
     /* ======== Utils ======== */
     const msgError = document.getElementById('msgError');
@@ -350,7 +354,6 @@
       b.className = 'pay-btn';
       b.textContent = 'Pagar';
       b.addEventListener('click', () => {
-        // Ajusta esta ruta si tu flujo de pago es distinto
         location.href = `pago.html?id=${encodeURIComponent(id)}`;
       });
       return b;
@@ -430,7 +433,6 @@
         span.textContent = estadoUpper;
         tdEst.appendChild(span);
 
-        // Mostrar botón Pagar solo si es "pendiente de pago"
         if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
           tdEst.appendChild(createPayButton(it.id));
           span.classList.add('PENDIENTE_DE_PAGO');
@@ -495,10 +497,27 @@
       if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
     }
 
-    /* ======== Drawer ======== */
+    /* ======== Drawer (con cierre por clic fuera) ======== */
     const drawer = document.getElementById('drawer');
     const drawerBody = document.getElementById('drawerBody');
-    document.getElementById('drawerClose').addEventListener('click', () => drawer.classList.remove('open'));
+    const backdrop = document.getElementById('drawerBackdrop');
+
+    function closeDrawer(){
+      drawer.classList.remove('open');
+      backdrop.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    backdrop.addEventListener('click', closeDrawer);
+
+    // Cerrar con ESC (además de cerrar el menú)
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape'){
+        menu.classList.remove('open');
+        closeDrawer();
+      }
+    });
 
     function field(label, value){
       const div = document.createElement('div');
@@ -533,6 +552,8 @@
         field('Creada', fmtDate(it.created_at))
       );
       drawer.classList.add('open');
+      backdrop.classList.add('show');
+      document.body.style.overflow = 'hidden';
     }
 
     /* ======== Descargas (webhook GET) ======== */
@@ -603,3 +624,4 @@
   </script>
 </body>
 </html>
+
