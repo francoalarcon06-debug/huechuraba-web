@@ -35,7 +35,7 @@
     }
     .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
     .brand img{ height:78px; width:auto; object-fit:contain; }
-    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:var(--muted); font-size:15px; font-weight:600; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
 
     .userbox{ position:relative; }
     .userbtn{
@@ -65,7 +65,9 @@
       flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
       padding:26px 16px 70px;
     }
-    .container{ max-width:1120px; margin:0 auto; }
+
+    /* ⬇️ ÚNICO CAMBIO: ampliar ancho del contenedor para que la tabla sea más larga */
+    .container{ max-width:1360px; margin:0 auto; }
 
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
@@ -92,15 +94,12 @@
     tbody tr td:first-child{ border-top-left-radius:10px; border-bottom-left-radius:10px; }
     tbody tr td:last-child{ border-top-right-radius:10px; border-bottom-right-radius:10px; }
 
-    /* Ellipsis de 1 línea */
     .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    /* Dos líneas con ellipsis (si la quisieras usar en algún campo)
-    .cell-two-lines{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; white-space:normal; word-break:break-word; line-height:1.35; } */
 
-    /* Anchos de columnas y pequeños ajustes */
+    /* Anchos de columnas */
     .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-    .w-dir{ width:200px; padding-left:24px; }   /* un poco más a la derecha */
+    .w-dir{ width:200px; padding-left:24px; }
     .w-tel{ width:140px; }
     .w-tipo{ width:220px; }
     .w-det{ width:240px; }
@@ -298,7 +297,6 @@
     function formatPhone(v){
       if (!v) return '—';
       const digits = String(v).replace(/\D/g,'');
-      // Casos: 56 9 ######## (11), 09######## (9+?), 9######## (9)
       if (digits.length === 11 && digits.startsWith('569')) {
         const a = digits.slice(3,7);
         const b = digits.slice(7,11);
@@ -309,7 +307,6 @@
         const b = digits.slice(5,9);
         return `+56 9 ${a} ${b}`;
       }
-      // fallback: mostrar como venía
       return v;
     }
 
@@ -334,7 +331,6 @@
       for(const it of items){
         const tr = document.createElement('tr');
 
-        // Ojo (detalle)
         const tdEye = document.createElement('td');
         tdEye.className = 'actions-cell w-actions';
         const eye = document.createElement('button');
@@ -344,33 +340,27 @@
         eye.addEventListener('click', () => openDrawer(it));
         tdEye.appendChild(eye);
 
-        // ID
         const tdId = document.createElement('td');
         tdId.className = 'w-id cell-ellipsis';
         tdId.textContent = it.id ?? '—';
 
-        // Dirección (más a la derecha via padding-left en CSS)
         const tdDir = document.createElement('td');
         tdDir.className = 'w-dir cell-ellipsis';
         tdDir.textContent = it.direccion || '—';
 
-        // Teléfono (formateado)
         const tdTel = document.createElement('td');
         tdTel.className = 'w-tel cell-ellipsis';
         tdTel.textContent = formatPhone(it.telefono);
 
-        // Tipos (máx. 2 + , ...)
         const tdTipos = document.createElement('td');
         tdTipos.className = 'w-tipo cell-ellipsis';
         const tiposArr = parseTipos(it.tipos);
         tdTipos.textContent = displayTipos(tiposArr);
 
-        // Detalle (una línea con ellipsis)
         const tdDet = document.createElement('td');
         tdDet.className = 'w-det cell-ellipsis';
         tdDet.textContent = it.detalle || '—';
 
-        // Foto / Cartola (descargas)
         const tdFoto = document.createElement('td');
         tdFoto.className = 'w-file';
         const btnFoto = document.createElement('button');
@@ -387,13 +377,11 @@
         btnCart.addEventListener('click', () => downloadCartola(it.id));
         tdCart.appendChild(btnCart);
 
-        // Última actualización (completa en una línea)
         const tdUpd = document.createElement('td');
         tdUpd.className = 'w-date';
         tdUpd.style.whiteSpace = 'nowrap';
         tdUpd.textContent = fmtDate(it.updated_at);
 
-        // Estado
         const tdEst = document.createElement('td');
         tdEst.className = 'w-estado';
         const s = (it.estado_solicitud || 'pendiente').toUpperCase();
@@ -415,14 +403,12 @@
       const pager = document.getElementById('pager');
       pager.innerHTML = '';
 
-      // Ocultar pager si solo hay una página
       if (pages <= 1) {
         pager.style.display = 'none';
         return;
       }
       pager.style.display = 'flex';
 
-      // helper: botón
       const btn = (label, handler, cls='')=>{
         const b = document.createElement('button');
         b.textContent = label;
@@ -430,7 +416,6 @@
         b.addEventListener('click', handler);
         return b;
       };
-      // helper: número
       const num = (n)=>{
         const b = document.createElement('span');
         b.textContent = n;
@@ -438,20 +423,16 @@
         if (n !== page) b.addEventListener('click', ()=>{ page=n; render(); });
         return b;
       };
-      // helper: separador
       const sep = ()=>{ const s=document.createElement('span'); s.textContent='-'; s.className='sep'; return s; };
 
-      // Anterior (solo si page>1)
       if (page > 1) pager.appendChild(btn('‹ Anterior', ()=>{ page=Math.max(1,page-1); render(); }));
 
-      // Números:
       if (pages <= 4) {
         for (let i=1;i<=pages;i++){
           if (i>1) pager.appendChild(sep());
           pager.appendChild(num(i));
         }
       } else {
-        // 1 - 2 - 3 - 4 - ... - N
         pager.appendChild(num(1));
         pager.appendChild(sep());
         pager.appendChild(num(2));
@@ -465,7 +446,6 @@
         pager.appendChild(num(pages));
       }
 
-      // Siguiente (solo si page<pages)
       if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
     }
 
@@ -577,4 +557,5 @@
   </script>
 </body>
 </html>
+
 
