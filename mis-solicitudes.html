@@ -66,7 +66,7 @@
       padding:26px 16px 70px;
     }
 
-    /* Más espacio para la tabla */
+    /* ancho general elegido previamente */
     .container{ max-width:1600px; margin:0 auto; }
 
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
@@ -99,13 +99,28 @@
     /* Anchos de columnas */
     .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-    .w-dir{ width:200px; padding-left:24px; }
+
+    /* EXTRA: "un poco más a la derecha" (alineo cabecera y celdas) */
+    .w-dir{ width:200px; }
+    th.w-dir, td.w-dir { padding-left: 40px; } /* antes 24px en td; ahora + derecha y alineado con th */
+
     .w-tel{ width:140px; }
+    th.w-tel, td.w-tel { padding-left: 14px; }
+
     .w-tipo{ width:220px; }
+    th.w-tipo, td.w-tipo { padding-left: 14px; }
+
     .w-det{ width:240px; }
+    th.w-det, td.w-det { padding-left: 14px; }
+
     .w-file{ width:120px; }
-    .w-date{ width:240px; }  /* un poco más ancho */
-    .w-estado{ width:200px; } /* estado visible + espacio al lado */
+    th.w-file, td.w-file { padding-left: 14px; }
+
+    .w-date{ width:240px; }
+    th.w-date, td.w-date { padding-left: 14px; }
+
+    .w-estado{ width:200px; }
+    th.w-estado, td.w-estado { padding-left: 14px; }
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -117,12 +132,20 @@
       all:unset; color:#0b3a88; background:#fff; border:2px solid #0b3a88; padding:6px 10px; border-radius:8px;
       cursor:pointer; font-weight:800; box-shadow: var(--shadow);
     }
+
+    /* Botón pagar (solo cuando estado = pendiente de pago) */
+    .pay-btn{
+      all:unset; background:#fff; border:2px solid #065f46; color:#065f46; padding:6px 10px; border-radius:8px;
+      cursor:pointer; font-weight:800; box-shadow: var(--shadow); margin-left:8px;
+    }
+
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.ACEPTADA{ color:#065f46; }
     .state.RECHAZADA{ color:#b91c1c; }
+    .state.PENDIENTE_DE_PAGO{ color:#92400e; } /* tono distinto para “pendiente de pago” */
 
-    /* Pagination */
+    /* Pagination (sin cambios) */
     .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
     .pager button{
       all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
@@ -322,6 +345,22 @@
       return items.slice(start, start + size);
     }
 
+    function createPayButton(id){
+      const b = document.createElement('button');
+      b.className = 'pay-btn';
+      b.textContent = 'Pagar';
+      b.addEventListener('click', () => {
+        // Ajusta esta ruta si tu flujo de pago es distinto
+        location.href = `pago.html?id=${encodeURIComponent(id)}`;
+      });
+      return b;
+    }
+
+    function normalizeEstado(str){
+      const s = String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
+      return s; // ej: 'pendiente de pago'
+    }
+
     function render(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
@@ -384,11 +423,18 @@
 
         const tdEst = document.createElement('td');
         tdEst.className = 'w-estado';
-        const s = (it.estado_solicitud || 'pendiente').toUpperCase();
+        const estadoRaw = it.estado_solicitud || 'pendiente';
+        const estadoUpper = (estadoRaw || '').toUpperCase();
         const span = document.createElement('span');
-        span.className = 'state ' + stateClass(s);
-        span.textContent = s;
+        span.className = 'state ' + stateClass(estadoUpper);
+        span.textContent = estadoUpper;
         tdEst.appendChild(span);
+
+        // Mostrar botón Pagar solo si es "pendiente de pago"
+        if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
+          tdEst.appendChild(createPayButton(it.id));
+          span.classList.add('PENDIENTE_DE_PAGO');
+        }
 
         tr.append(tdEye, tdId, tdDir, tdTel, tdTipos, tdDet, tdFoto, tdCart, tdUpd, tdEst);
         tbody.appendChild(tr);
@@ -557,6 +603,3 @@
   </script>
 </body>
 </html>
-
-
-
