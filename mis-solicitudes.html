@@ -287,7 +287,7 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    // ÚNICO cambio previo: mostrar igual que pgAdmin (UTC en ms)
+    // ÚNICO CAMBIO: mostrar exactamente como en pgAdmin (UTC)
     function fmtDate(v){
       if (v === null || v === undefined || v === '') return '—';
       const d = new Date(Number(v)); // epoch ms
@@ -295,7 +295,7 @@
         return new Intl.DateTimeFormat('es-CL', {
           dateStyle:'medium',
           timeStyle:'short',
-          timeZone:'UTC'
+          timeZone:'UTC'          // <-- igual que en la BD que ves en pgAdmin
         }).format(d);
       } catch {
         return d.toUTCString();
@@ -432,7 +432,7 @@
         const tdEst = document.createElement('td');
         tdEst.className = 'w-estado';
         const estadoRaw = it.estado_solicitud || 'pendiente';
-        the estadoUpper = (estadoRaw || '').toUpperCase();
+        const estadoUpper = (estadoRaw || '').toUpperCase();
         const span = document.createElement('span');
         span.className = 'state ' + stateClass(estadoUpper);
         span.textContent = estadoUpper;
@@ -564,17 +564,22 @@
 
     /* ======== Descargas (webhook GET) ======== */
     async function downloadFromEndpoint(url, filenameFallback){
-      // Delega la descarga al navegador para aceptar respuestas binarias con
-      // Content-Disposition: attachment (n8n "Archivo"). Sin fetch.
       try {
+        const res = await fetch(url, { method:'GET' });
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        const json = await res.json();
+        const base64 = json.base64;
+        const mime = json.mime || 'application/octet-stream';
+        const fname = json.filename || filenameFallback;
+        const blob = b64toBlob(base64, mime);
         const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';  // evita reemplazar la página actual
-        a.rel = 'noopener';
+        a.href = URL.createObjectURL(blob);
+        a.download = fname;
         document.body.appendChild(a);
         a.click();
         a.remove();
-      } catch (e) {
+        setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+      } catch(e){
         console.error(e);
         showError('No fue posible descargar el archivo.');
       }
