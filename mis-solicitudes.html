@@ -203,9 +203,9 @@
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
-
-          <div class="pager" id="pager"></div>
         </table>
+
+        <div class="pager" id="pager"></div>
       </div>
     </div>
   </main>
@@ -301,6 +301,7 @@
     }
 
     const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
+
     let allItems = [];
     let page = 1;
     const pageSize = 10;
@@ -328,6 +329,7 @@
     function render(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
+
       const items = paginate(allItems, page, pageSize);
 
       for(const it of items){
@@ -342,203 +344,23 @@
         eye.addEventListener('click', () => openDrawer(it));
         tdEye.appendChild(eye);
 
-        const tdId = document.createElement('td'); tdId.className = 'w-id cell-ellipsis'; tdId.textContent = it.id ?? '—';
-        const tdDir = document.createElement('td'); tdDir.className = 'w-dir cell-ellipsis'; tdDir.textContent = it.direccion || '—';
-        const tdTel = document.createElement('td'); tdTel.className = 'w-tel cell-ellipsis'; tdTel.textContent = formatPhone(it.telefono);
+        const tdId = document.createElement('td');
+        tdId.className = 'w-id cell-ellipsis';
+        tdId.textContent = it.id ?? '—';
 
-        const tdTipos = document.createElement('td'); tdTipos.className = 'w-tipo cell-ellipsis';
-        tdTipos.textContent = displayTipos(parseTipos(it.tipos));
+        const tdDir = document.createElement('td');
+        tdDir.className = 'w-dir cell-ellipsis';
+        tdDir.textContent = it.direccion || '—';
 
-        const tdDet = document.createElement('td'); tdDet.className = 'w-det cell-ellipsis'; tdDet.textContent = it.detalle || '—';
+        const tdTel = document.createElement('td');
+        tdTel.className = 'w-tel cell-ellipsis';
+        tdTel.textContent = formatPhone(it.telefono);
 
-        const tdFoto = document.createElement('td'); tdFoto.className = 'w-file';
-        const btnFoto = document.createElement('button'); btnFoto.className = 'dl-btn'; btnFoto.textContent = 'Descargar';
-        btnFoto.addEventListener('click', () => downloadFotoLugar(it.id));
-        tdFoto.appendChild(btnFoto);
+        const tdTipos = document.createElement('td');
+        tdTipos.className = 'w-tipo cell-ellipsis';
+        const tiposArr = parseTipos(it.tipos);
+        tdTipos.textContent = displayTipos(tiposArr);
 
-        const tdCart = document.createElement('td'); tdCart.className = 'w-file';
-        const btnCart = document.createElement('button'); btnCart.className = 'dl-btn'; btnCart.textContent = 'Descargar';
-        btnCart.addEventListener('click', () => downloadCartola(it.id));
-        tdCart.appendChild(btnCart);
+        const tdDet = document.createElement('td');
+        tdDet.className =
 
-        const tdUpd = document.createElement('td'); tdUpd.className = 'w-date'; tdUpd.style.whiteSpace = 'nowrap'; tdUpd.textContent = fmtDate(it.updated_at);
-
-        const tdEst = document.createElement('td'); tdEst.className = 'w-estado';
-        const estadoRaw = it.estado_solicitud || 'pendiente';
-        const estadoUpper = (estadoRaw || '').toUpperCase();
-        const span = document.createElement('span');
-        span.className = 'state ' + stateClass(estadoUpper);
-        span.textContent = estadoUpper;
-        tdEst.appendChild(span);
-        if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
-          tdEst.appendChild(createPayButton(it.id));
-          span.classList.add('PENDIENTE_DE_PAGO');
-        }
-
-        tr.append(tdEye, tdId, tdDir, tdTel, tdTipos, tdDet, tdFoto, tdCart, tdUpd, tdEst);
-        tbody.appendChild(tr);
-      }
-      renderPager();
-    }
-
-    function renderPager(){
-      const total = allItems.length;
-      const pages = Math.max(1, Math.ceil(total / pageSize));
-      const pager = document.getElementById('pager');
-      pager.innerHTML = '';
-      if (pages <= 1) { pager.style.display = 'none'; return; }
-      pager.style.display = 'flex';
-
-      const btn = (label, handler, cls='')=>{
-        const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.addEventListener('click', handler); return b;
-      };
-      const num = (n)=>{
-        const b = document.createElement('span'); b.textContent = n;
-        b.className = 'num' + (n===page ? ' current' : ''); if (n !== page) b.addEventListener('click', ()=>{ page=n; render(); }); return b;
-      };
-      const sep = ()=>{ const s=document.createElement('span'); s.textContent='-'; s.className='sep'; return s; };
-
-      if (page > 1) pager.appendChild(btn('‹ Anterior', ()=>{ page=Math.max(1,page-1); render(); }));
-      if (pages <= 4) {
-        for (let i=1;i<=pages;i++){ if (i>1) pager.appendChild(sep()); pager.appendChild(num(i)); }
-      } else {
-        pager.appendChild(num(1)); pager.appendChild(sep());
-        pager.appendChild(num(2)); pager.appendChild(sep());
-        pager.appendChild(num(3)); pager.appendChild(sep());
-        pager.appendChild(num(4)); pager.appendChild(sep());
-        const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
-        pager.appendChild(sep()); pager.appendChild(num(pages));
-      }
-      if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
-    }
-
-    const drawer = document.getElementById('drawer');
-    const drawerBody = document.getElementById('drawerBody');
-    const backdrop = document.getElementById('drawerBackdrop');
-
-    function closeDrawer(){
-      drawer.classList.remove('open'); backdrop.classList.remove('show'); document.body.style.overflow = '';
-    }
-    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
-    backdrop.addEventListener('click', closeDrawer);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ menu.classList.remove('open'); closeDrawer(); } });
-
-    function field(label, value){
-      const div = document.createElement('div'); div.className = 'field';
-      const b = document.createElement('b'); b.textContent = label;
-      const p = document.createElement('div'); p.textContent = (value ?? '—');
-      div.append(b, p); return div;
-    }
-
-    function openDrawer(it){
-      drawerBody.innerHTML = '';
-      drawerBody.append(
-        field('ID', it.id),
-        field('Correo', it.correo || '—'),
-        field('Nombre', it.nombre || '—'),
-        field('RUT', it.rut || '—'),
-        field('Dirección', it.direccion || '—'),
-        field('Teléfono', formatPhone(it.telefono)),
-        field('RSH', it.rsh || '—'),
-        (function(){
-          const div = document.createElement('div'); div.className = 'field';
-          const b = document.createElement('b'); b.textContent = 'Tipo(s)';
-          const cont = document.createElement('div');
-          const tipos = parseTipos(it.tipos);
-          cont.textContent = tipos.length ? tipos.join(', ') : '—';
-          div.append(b, cont); return div;
-        })(),
-        field('Detalle', it.detalle || '—'),
-        field('Estado solicitud', (it.estado_solicitud||'—').toUpperCase()),
-        field('Última actualización', fmtDate(it.updated_at)),
-        field('Creada', fmtDate(it.created_at))
-      );
-      drawer.classList.add('open'); backdrop.classList.add('show'); document.body.style.overflow = 'hidden';
-    }
-
-    // ======== DESCARGAS (solo fetch + blob) ========
-    async function downloadFromEndpoint(url, filenameFallback){
-      try {
-        const res = await fetch(url, { method:'GET' });
-        if (!res.ok) throw new Error('HTTP '+res.status);
-
-        const ct = (res.headers.get('Content-Type') || '').toLowerCase();
-        let blob, fname = filenameFallback || 'archivo';
-
-        // Si el server devuelve JSON con base64
-        if (ct.includes('application/json')) {
-          const json = await res.json();
-          const base64 = json.base64 || json.data || json.file || '';
-          const mime = json.mime || json.mimeType || 'application/octet-stream';
-          if (!base64) throw new Error('JSON sin base64');
-          blob = b64toBlob(base64, mime);
-          fname = json.filename || fname;
-        } else {
-          // Flujo normal: binario directo
-          blob = await res.blob();
-          // Intento extraer filename del Content-Disposition
-          const cd = res.headers.get('Content-Disposition') || '';
-          const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
-          if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
-        }
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = fname; // si es cross-origin, el servidor manda el nombre final
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
-
-      } catch(e){
-        console.error(e);
-        showError('No fue posible descargar el archivo.');
-      }
-    }
-
-    // Base64 → Blob tolerante a padding/url-safe
-    function b64toBlob(b64, mime){
-      let s = String(b64).replace(/[\r\n\s]/g,'').replace(/-/g,'+').replace(/_/g,'/');
-      const pad = s.length % 4; if (pad) s += '='.repeat(4 - pad);
-      const byteChars = atob(s);
-      const byteNumbers = new Array(byteChars.length);
-      for (let i=0; i<byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
-      const byteArray = new Uint8Array(byteNumbers);
-      return new Blob([byteArray], {type:mime});
-    }
-
-    function downloadFotoLugar(id){
-      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar`;
-      return downloadFromEndpoint(url, `foto_lugar_${id}.png`);
-    }
-    function downloadCartola(id){
-      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh`;
-      return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
-    }
-
-    // ======== CARGA INICIAL ========
-    async function loadData(){
-      const email = getEmailFromClient();
-      if (!email) { showError('No se encontró el correo de la sesión.'); return; }
-      try{
-        const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-list`;
-        const body = new URLSearchParams({ email }).toString();
-        const res = await fetch(url, {
-          method:'POST',
-          headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-          body
-        });
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        allItems = Array.isArray(data) ? data : (data.items || []);
-        page = 1;
-        render();
-      }catch(e){
-        console.error(e);
-        showError('No fue posible cargar tus solicitudes.');
-      }
-    }
-    loadData();
-  </script>
-</body>
-</html>
