@@ -244,7 +244,6 @@
               <th class="w-tel">Teléfono</th>
               <th class="w-tipo">Tipo</th>
               <th class="w-det">Detalle</th>
-              <!-- Columna Foto lugar eliminada -->
               <th class="w-file">Cartola RSH</th>
               <th class="w-date">Última actualización</th>
               <th class="w-estado">Estado</th>
@@ -461,6 +460,13 @@
     }
     // -----------------------------------
 
+    // Helper robusto para detectar presencia real de datos
+    function hasValue(x){
+      if (x === null || x === undefined) return false;
+      if (typeof x === 'string' && x.trim() === '') return false;
+      return true; // objetos/bytes/arrays no vacíos cuentan como presentes
+    }
+
     function render(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
@@ -500,11 +506,9 @@
         tdDet.className = 'w-det cell-ellipsis';
         tdDet.textContent = it.detalle || '—';
 
-        /* Columna Foto lugar eliminada */
-
         const tdCart = document.createElement('td');
         tdCart.className = 'w-file';
-        const hasCartola = !!(it.cartola_rsh && it.cartola_rsh_mime);
+        const hasCartola = hasValue(it.cartola_rsh) && hasValue(it.cartola_rsh_mime);
         if (hasCartola){
           const btnCart = document.createElement('button');
           btnCart.className = 'dl-btn';
@@ -674,7 +678,6 @@
       } catch (e) { console.error(e); showError('No fue posible descargar el archivo.'); }
     }
 
-    /* Eliminado downloadFotoLugar */
     function downloadCartola(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
@@ -708,5 +711,3 @@
   </script>
 </body>
 </html>
-
-
