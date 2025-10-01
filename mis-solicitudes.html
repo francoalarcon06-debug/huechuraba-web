@@ -75,6 +75,7 @@
       overflow:hidden;
     }
 
+    /* Pie de la tarjeta para alinear el botón con el borde izquierdo */
     .table-footer{
       display:flex; justify-content:flex-start; align-items:center; gap:12px;
       padding: 12px 0 0 0;
@@ -118,19 +119,14 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    .w-date{ width:220px; }
+    /* Aproximo Estado a Última actualización, sin pegarlo a ⋮ */
+    .w-date{ width:220px; }      /* antes 240 */
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:160px; }
-
-    /* Estado a la izquierda, sin “cortes” */
-    th.w-estado, td.w-estado { padding-left: 0 !important; }
-    td.w-estado{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:12px 12px 12px 6px !important;  /* pequeño padding izquierdo */
-      border-bottom:6px solid #0b6ef3;        /* mismo borde que el resto */
-    }
-    /* sin márgenes negativos */
-    .kebab-btn{ margin-left:12px; }
+    .w-estado{ width:160px; }    /* antes 200 */
+    th.w-estado, td.w-estado { padding-left: 10px; }
+    /* Estado: texto a la izq, ⋮ a la der, separados */
+    td.w-estado{ display:flex; align-items:center; gap:12px; }
+    .kebab-btn{ margin-left:auto; } /* empuja ⋮ hacia el borde derecho del td */
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -154,6 +150,7 @@
     .state.RECHAZADA{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
 
+    /* Kebab (3 puntos) y menú por fila */
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
       width:32px; height:32px; border-radius:8px;
@@ -200,6 +197,13 @@
       margin-bottom:12px; background:#f6f9ff; border:1px solid #dbe4ff; border-radius:12px; padding:10px 12px;
     }
     .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
+    /* Evita desbordes en valores largos del drawer */
+    .field .value{
+      white-space:pre-wrap;       /* respeta saltos y permite bajar de línea */
+      overflow-wrap:anywhere;     /* rompe palabras largas sin espacios */
+      word-break:break-word;      /* fallback */
+      color:#111827;
+    }
     .muted{ color:#6b7280; }
 
     .backdrop{
@@ -263,6 +267,7 @@
 
         <div class="pager" id="pager"></div>
 
+        <!-- Botón volver, alineado con el borde izquierdo del recuadro -->
         <div class="table-footer">
           <button class="back-btn" id="backBtn">← Volver atrás</button>
         </div>
@@ -301,6 +306,7 @@
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
+    // Volver atrás => verify.html (simple y robusto)
     document.getElementById('backBtn').addEventListener('click', ()=>{
       const email = getEmailFromClient();
       if (email) {
@@ -395,6 +401,7 @@
       return s;
     }
 
+    // ---- Menú de 3 puntos por fila ----
     function createRowMenu(tdContainer, estadoRaw, id){
       const kebab = document.createElement('button');
       kebab.className = 'kebab-btn';
@@ -437,6 +444,7 @@
       document.addEventListener('click', ()=> menu.setAttribute('hidden',''));
       tdContainer.append(kebab, menu);
     }
+    // -----------------------------------
 
     function render(){
       const tbody = document.getElementById('tbody');
@@ -597,7 +605,9 @@
       const div = document.createElement('div');
       div.className = 'field';
       const b = document.createElement('b'); b.textContent = label;
-      const p = document.createElement('div'); p.textContent = (value ?? '—');
+      const p = document.createElement('div'); 
+      p.className = 'value';            // <<< para aplicar el wrap del drawer
+      p.textContent = (value ?? '—');
       div.append(b, p);
       return div;
     }
@@ -616,6 +626,7 @@
           const div = document.createElement('div'); div.className = 'field';
           const b = document.createElement('b'); b.textContent = 'Tipo(s)';
           const cont = document.createElement('div');
+          cont.className = 'value';
           const tipos = parseTipos(it.tipos);
           cont.textContent = tipos.length ? tipos.join(', ') : '—';
           div.append(b, cont); return div;
@@ -630,6 +641,7 @@
       document.body.style.overflow = 'hidden';
     }
 
+    // ================== DESCARGAS (FIX ANTI–2 BYTES) ==================
     async function downloadFromEndpoint(url, filenameFallback){
       try {
         const res = await fetch(url, {
@@ -648,6 +660,12 @@
         if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
 
         const buf = await res.arrayBuffer();
+
+        if (buf.byteLength < 10) {
+          console.warn('Respuesta demasiado pequeña:', buf.byteLength);
+          showError('No fue posible descargar el archivo (respuesta vacía). Intenta de nuevo.');
+          return;
+        }
 
         const blob = new Blob([buf], { type: mime });
         const a = document.createElement('a');
@@ -672,6 +690,7 @@
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
     }
+    // ================================================================
 
     async function loadData(){
       const email = getEmailFromClient();
