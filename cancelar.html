@@ -26,7 +26,7 @@
       background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
     }
 
-    /* Header (ligero, igual al resto del sitio) */
+    /* Header */
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
     .wrap{
       max-width:1120px; margin:0 auto; padding:18px 20px;
@@ -122,7 +122,6 @@
   </main>
 
   <script>
-    // --- util para recuperar email como en otras páginas ---
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -152,21 +151,21 @@
     btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     document.addEventListener('click', ()=> menu.classList.remove('open'));
 
-    // Cerrar sesión -> login.html
+    // Cerrar sesión -> login.html (limpia storage y redirige)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
         sessionStorage.removeItem('email');
         localStorage.removeItem('user');
       }catch(e){}
-      location.href = 'login.html';
+      window.location.href = 'login.html';
     });
 
-    // Botón volver a mis solicitudes
+    // Volver a mis solicitudes (manteniendo el email si está)
     document.getElementById('backToList').addEventListener('click', ()=>{
       const email = getEmailFromClient();
       const url = email ? `mis-solicitudes.html?email=${encodeURIComponent(email)}` : 'mis-solicitudes.html';
-      location.href = url;
+      window.location.href = url;
     });
   </script>
 </body>
