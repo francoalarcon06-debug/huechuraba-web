@@ -304,7 +304,7 @@
       resetUI();
     });
 
-    // ====== LOGIN (AQUÍ ESTÁ EL CAMBIO) ======
+    // ====== LOGIN (cambia SOLO la página de destino para PM) ======
     loginBtn.addEventListener('click', async () => {
       hide(loginError);
 
@@ -331,15 +331,17 @@
         const data = await res.json();
 
         if (res.ok && data.ok) {
-          // Guardar correo para verify.html (prioriza el que venga del backend)
           const emailToStore = (data.user && data.user.correo ? String(data.user.correo) : correo).trim();
           try {
             localStorage.setItem('email', emailToStore);
             sessionStorage.setItem('email', emailToStore);
           } catch (_) {}
 
-          // Redirigir pasando también el correo por querystring
-          location.href = 'verify.html?email=' + encodeURIComponent(emailToStore);
+          // >>> ÚNICO CAMBIO: si es PM va a municipal.html; si es vecino sigue en verify.html
+          const nextPage = (currentRole === 'PM') ? 'municipal.html' : 'verify.html';
+          location.href = nextPage + '?email=' + encodeURIComponent(emailToStore);
+          // <<<
+
         } else {
           if (data && data.error === "no_verificado") {
             loginError.textContent = "Cuenta no verificada";
@@ -407,6 +409,7 @@
   </script>
 </body>
 </html>
+
 
 
 
