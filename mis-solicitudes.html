@@ -658,15 +658,37 @@
     // ================== DESCARGAS ==================
     async function downloadFromEndpoint(url, filenameFallback){
       try {
-        const res = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store' });
+        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Headers expuestos por CORS desde n8n (Content-Type/Disposition)
         const mime = res.headers.get('Content-Type') || 'application/octet-stream';
         const cd   = res.headers.get('Content-Disposition') || '';
+
+        // Nombre de archivo
         let fname  = filenameFallback || 'archivo';
         const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
-        if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
+        if (m) {
+          fname = decodeURIComponent((m[1] || m[2] || m[3] || '').trim());
+        } else {
+          // Deriva extensión desde el MIME si no viene Content-Disposition
+          const extFromMime = (mt) => {
+            const map = {
+              'application/pdf': 'pdf',
+              'image/png': 'png',
+              'image/jpeg': 'jpg',
+              'image/jpg': 'jpg'
+            };
+            return map[mt] || (mt.includes('/') ? mt.split('/')[1] : 'bin');
+          };
+          if (!/\.[A-Za-z0-9]+$/.test(fname)) {
+            fname = `${fname}.${extFromMime(mime)}`;
+          }
+        }
+
         const buf = await res.arrayBuffer();
         if (buf.byteLength < 10) { showError('No fue posible descargar el archivo (respuesta vacía). Intenta de nuevo.'); return; }
+
         const blob = new Blob([buf], { type: mime });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -680,7 +702,8 @@
 
     function downloadCartola(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
-      return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
+      // sin extensión fija; la agrega downloadFromEndpoint según Content-Type
+      return downloadFromEndpoint(url, `cartola_rsh_${id}`);
     }
     // ================================================================
 
@@ -711,3 +734,4 @@
   </script>
 </body>
 </html>
+
