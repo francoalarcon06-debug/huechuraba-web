@@ -119,11 +119,11 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    /* Ajuste de proximidad: acerco "Estado" a "Última actualización" */
-    .w-date{ width:220px; }          /* antes 240 */
+    /* Ajuste de proximidad: acerco "Estado" a "Última actualización" y el texto más a la izquierda */
+    .w-date{ width:210px; }           /* un poco más angosta que tu base (220) para acercar Estado */
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:160px; }        /* antes 200 */
-    th.w-estado, td.w-estado { padding-left: 10px; }
+    .w-estado{ width:160px; }
+    th.w-estado, td.w-estado { padding-left: 0; }  /* texto de Estado más a la izquierda */
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -150,8 +150,8 @@
     /* Kebab (3 puntos) y menú por fila */
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
-      width:32px; height:32px; margin-left:8px; border-radius:8px;
-      background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
+      width:32px; height:32px; margin-left:12px;  /* espacio entre “PENDIENTE” y los 3 puntos */
+      border-radius:8px; background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
       font-weight:900;
     }
     .row-menu{
