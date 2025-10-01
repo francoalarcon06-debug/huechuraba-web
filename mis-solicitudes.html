@@ -75,7 +75,6 @@
       overflow:hidden;
     }
 
-    /* Pie de la tarjeta para alinear el botón con el borde izquierdo */
     .table-footer{
       display:flex; justify-content:flex-start; align-items:center; gap:12px;
       padding: 12px 0 0 0;
@@ -119,11 +118,10 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    /* Ajuste de proximidad: acerco "Estado" a "Última actualización" y el texto más a la izquierda */
-    .w-date{ width:210px; }           /* un poco más angosta que tu base (220) para acercar Estado */
+    .w-date{ width:210px; }
     th.w-date, td.w-date { padding-left: 14px; }
     .w-estado{ width:160px; }
-    th.w-estado, td.w-estado { padding-left: 0; }  /* texto de Estado más a la izquierda */
+    th.w-estado, td.w-estado { padding-left: 0; }
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -147,10 +145,9 @@
     .state.RECHAZADA{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
 
-    /* Kebab (3 puntos) y menú por fila */
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
-      width:32px; height:32px; margin-left:12px;  /* espacio entre “PENDIENTE” y los 3 puntos */
+      width:32px; height:32px; margin-left:12px;
       border-radius:8px; background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
       font-weight:900;
     }
@@ -257,7 +254,6 @@
 
         <div class="pager" id="pager"></div>
 
-        <!-- Botón volver, alineado con el borde izquierdo del recuadro -->
         <div class="table-footer">
           <button class="back-btn" id="backBtn">← Volver atrás</button>
         </div>
@@ -296,7 +292,7 @@
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
-    // Volver atrás => verify.html (simple y robusto)
+    // Botón volver
     document.getElementById('backBtn').addEventListener('click', ()=>{
       const email = getEmailFromClient();
       if (email) {
@@ -304,6 +300,16 @@
       } else {
         location.href = `verify.html`;
       }
+    });
+
+    // Cerrar sesión -> limpiar y llevar a login (index.html)
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      try{
+        localStorage.removeItem('email');
+        sessionStorage.removeItem('email');
+        localStorage.removeItem('user');
+      }catch(e){}
+      location.href = 'index.html';
     });
 
     const btn = document.getElementById('userBtn');
@@ -411,7 +417,9 @@
       if (!canCancel) btnCancel.setAttribute('aria-disabled','true');
       btnCancel.addEventListener('click', ()=>{
         if (btnCancel.getAttribute('aria-disabled') === 'true') return;
-        location.href = `cancelar.html?id=${encodeURIComponent(id)}`;
+        const email = getEmailFromClient();
+        const qs = email ? `?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}` : `?id=${encodeURIComponent(id)}`;
+        location.href = `cancelar.html${qs}`;
       });
 
       const btnPay = document.createElement('button');
@@ -628,32 +636,18 @@
       document.body.style.overflow = 'hidden';
     }
 
-    // ================== DESCARGAS (FIX ANTI–2 BYTES) ==================
+    // ================== DESCARGAS ==================
     async function downloadFromEndpoint(url, filenameFallback){
       try {
-        const res = await fetch(url, {
-          method: 'GET',
-          mode: 'cors',
-          cache: 'no-store',
-        });
-
+        const res = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         const mime = res.headers.get('Content-Type') || 'application/octet-stream';
         const cd   = res.headers.get('Content-Disposition') || '';
         let fname  = filenameFallback || 'archivo';
-
         const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
         if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
-
         const buf = await res.arrayBuffer();
-
-        if (buf.byteLength < 10) {
-          console.warn('Respuesta demasiado pequeña:', buf.byteLength);
-          showError('No fue posible descargar el archivo (respuesta vacía). Intenta de nuevo.');
-          return;
-        }
-
+        if (buf.byteLength < 10) { showError('No fue posible descargar el archivo (respuesta vacía). Intenta de nuevo.'); return; }
         const blob = new Blob([buf], { type: mime });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -662,11 +656,7 @@
         a.click();
         a.remove();
         setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
-
-      } catch (e) {
-        console.error(e);
-        showError('No fue posible descargar el archivo.');
-      }
+      } catch (e) { console.error(e); showError('No fue posible descargar el archivo.'); }
     }
 
     function downloadFotoLugar(id){
