@@ -304,7 +304,7 @@
       resetUI();
     });
 
-    // ====== LOGIN (cambia SOLO la página de destino para PM) ======
+    // ====== LOGIN (redirección decidida por el endpoint usado) ======
     loginBtn.addEventListener('click', async () => {
       hide(loginError);
 
@@ -319,8 +319,8 @@
 
       try {
         const endpoint = (currentRole === 'PM')
-          ? "/auth/login"
-          : "/auth/login-ciudadano";
+          ? "/auth/login"           // Personal Municipal
+          : "/auth/login-ciudadano"; // Vecinos
 
         const res = await fetch(API + endpoint, {
           method: 'POST',
@@ -337,10 +337,9 @@
             sessionStorage.setItem('email', emailToStore);
           } catch (_) {}
 
-          // >>> ÚNICO CAMBIO: si es PM va a municipal.html; si es vecino sigue en verify.html
-          const nextPage = (currentRole === 'PM') ? 'municipal.html' : 'verify.html';
-          location.href = nextPage + '?email=' + encodeURIComponent(emailToStore);
-          // <<<
+          // Destino según endpoint (evita cualquier cambio de rol por error)
+          const nextPage = (endpoint === "/auth/login") ? "municipal.html" : "verify.html";
+          location.href = nextPage + "?email=" + encodeURIComponent(emailToStore);
 
         } else {
           if (data && data.error === "no_verificado") {
