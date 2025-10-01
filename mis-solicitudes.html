@@ -119,14 +119,11 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    /* Aproximo Estado a Última actualización, sin pegarlo a ⋮ */
-    .w-date{ width:220px; }      /* antes 240 */
+    /* Ajuste de proximidad: acerco "Estado" a "Última actualización" */
+    .w-date{ width:220px; }          /* antes 240 */
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:160px; }    /* antes 200 */
+    .w-estado{ width:160px; }        /* antes 200 */
     th.w-estado, td.w-estado { padding-left: 10px; }
-    /* Estado: texto a la izq, ⋮ a la der, separados */
-    td.w-estado{ display:flex; align-items:center; gap:12px; }
-    .kebab-btn{ margin-left:auto; } /* empuja ⋮ hacia el borde derecho del td */
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -153,7 +150,7 @@
     /* Kebab (3 puntos) y menú por fila */
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
-      width:32px; height:32px; border-radius:8px;
+      width:32px; height:32px; margin-left:8px; border-radius:8px;
       background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
       font-weight:900;
     }
@@ -197,13 +194,6 @@
       margin-bottom:12px; background:#f6f9ff; border:1px solid #dbe4ff; border-radius:12px; padding:10px 12px;
     }
     .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
-    /* Evita desbordes en valores largos del drawer */
-    .field .value{
-      white-space:pre-wrap;       /* respeta saltos y permite bajar de línea */
-      overflow-wrap:anywhere;     /* rompe palabras largas sin espacios */
-      word-break:break-word;      /* fallback */
-      color:#111827;
-    }
     .muted{ color:#6b7280; }
 
     .backdrop{
@@ -605,9 +595,7 @@
       const div = document.createElement('div');
       div.className = 'field';
       const b = document.createElement('b'); b.textContent = label;
-      const p = document.createElement('div'); 
-      p.className = 'value';            // <<< para aplicar el wrap del drawer
-      p.textContent = (value ?? '—');
+      const p = document.createElement('div'); p.textContent = (value ?? '—');
       div.append(b, p);
       return div;
     }
@@ -626,7 +614,6 @@
           const div = document.createElement('div'); div.className = 'field';
           const b = document.createElement('b'); b.textContent = 'Tipo(s)';
           const cont = document.createElement('div');
-          cont.className = 'value';
           const tipos = parseTipos(it.tipos);
           cont.textContent = tipos.length ? tipos.join(', ') : '—';
           div.append(b, cont); return div;
