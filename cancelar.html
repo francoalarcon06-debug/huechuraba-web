@@ -151,14 +151,14 @@
     btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     document.addEventListener('click', ()=> menu.classList.remove('open'));
 
-    // Cerrar sesión -> login.html (limpia storage y redirige)
+    // Cerrar sesión -> index.html (no existe login.html en tu repo)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
         sessionStorage.removeItem('email');
         localStorage.removeItem('user');
       }catch(e){}
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     });
 
     // Volver a mis solicitudes (manteniendo el email si está)
