@@ -271,6 +271,8 @@
   <div class="backdrop" id="drawerBackdrop" aria-hidden="true"></div>
 
   <script>
+    const CANCEL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-cancelar';
+
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -415,11 +417,26 @@
       const btnCancel = document.createElement('button');
       btnCancel.textContent = 'Cancelar';
       if (!canCancel) btnCancel.setAttribute('aria-disabled','true');
-      btnCancel.addEventListener('click', ()=>{
+      btnCancel.addEventListener('click', async ()=>{
         if (btnCancel.getAttribute('aria-disabled') === 'true') return;
-        const email = getEmailFromClient();
-        const qs = email ? `?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}` : `?id=${encodeURIComponent(id)}`;
-        location.href = `cancelar.html${qs}`;
+        // Llamar al webhook de n8n y luego redirigir a la pantalla de confirmación
+        try{
+          btnCancel.setAttribute('aria-disabled','true');
+          const email = getEmailFromClient();
+          const body = new URLSearchParams({ id: String(id) });
+          if (email) body.append('email', email);
+          await fetch(CANCEL_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+            body
+          });
+        }catch(e){
+          console.warn('Cancelación: error al llamar al webhook', e);
+        }finally{
+          const email = getEmailFromClient();
+          const qs = email ? `?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}` : `?id=${encodeURIComponent(id)}`;
+          location.href = `cancelar.html${qs}`;
+        }
       });
 
       const btnPay = document.createElement('button');
@@ -696,3 +713,4 @@
   </script>
 </body>
 </html>
+
