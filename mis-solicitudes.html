@@ -123,7 +123,12 @@
     .w-date{ width:220px; }          /* antes 240 */
     th.w-date, td.w-date { padding-left: 14px; }
     .w-estado{ width:160px; }        /* antes 200 */
-    th.w-estado, td.w-estado { padding-left: 10px; }
+    /* >>> Movimiento de Estado y su texto hacia la izquierda */
+    th.w-estado, td.w-estado { padding-left: 0px; }
+    td.w-estado{ display:flex; align-items:center; gap:12px; }
+    td.w-estado .state{ margin-left:-6px; } /* ajuste fino */
+    /* El botón de 3 puntos se mantiene a la derecha */
+    .kebab-btn{ margin-left:auto; }
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -150,7 +155,7 @@
     /* Kebab (3 puntos) y menú por fila */
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
-      width:32px; height:32px; margin-left:8px; border-radius:8px;
+      width:32px; height:32px; border-radius:8px;
       background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
       font-weight:900;
     }
@@ -706,3 +711,4 @@
   </script>
 </body>
 </html>
+
