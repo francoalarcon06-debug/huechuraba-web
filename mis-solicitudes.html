@@ -511,11 +511,16 @@
 
         const tdCart = document.createElement('td');
         tdCart.className = 'w-file';
-        const btnCart = document.createElement('button');
-        btnCart.className = 'dl-btn';
-        btnCart.textContent = 'Descargar';
-        btnCart.addEventListener('click', () => downloadCartola(it.id));
-        tdCart.appendChild(btnCart);
+        const hasCartola = !!(it.cartola_rsh && it.cartola_rsh_mime);
+        if (hasCartola){
+          const btnCart = document.createElement('button');
+          btnCart.className = 'dl-btn';
+          btnCart.textContent = 'Descargar';
+          btnCart.addEventListener('click', () => downloadCartola(it.id));
+          tdCart.appendChild(btnCart);
+        } else {
+          tdCart.textContent = 'Archivo no subido';
+        }
 
         const tdUpd = document.createElement('td');
         tdUpd.className = 'w-date';
@@ -635,7 +640,6 @@
         field('RUT', it.rut || '—'),
         field('Dirección', it.direccion || '—'),
         field('Teléfono', formatPhone(it.telefono)),
-        field('RSH', it.rsh || '—'),
         (function(){
           const div = document.createElement('div'); div.className = 'field';
           const b = document.createElement('b'); b.textContent = 'Tipo(s)';
@@ -714,3 +718,4 @@
   </script>
 </body>
 </html>
+
