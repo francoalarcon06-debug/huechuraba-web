@@ -1,36 +1,410 @@
-async function login(event) {
-  event.preventDefault(); // evita que la página se recargue
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huechuraba – Identifícate</title>
 
-  // Obtén los valores del formulario
-  const correo = document.getElementById("correo").value.trim();
-  const contrasenia = document.getElementById("contrasenia").value;
+  <link rel="icon" type="image/png" href="favicon.png.png" />
 
-  try {
-    const res = await fetch("https://api.proyectosfranco.cl/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ correo, contrasenia })
+  <style>
+    :root{
+      --brand:#0a7cff;
+      --brand-strong:#0562d6;
+      --text:#1a1a1a;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --radius:14px;
+      --shadow:0 18px 40px rgba(2,40,90,.18);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: linear-gradient(135deg,#0a7cff,#00c6ff) fixed;
+    }
+
+    .hero{
+      width:100%;
+      background:#fff;
+      display:grid;
+      place-items:center;
+      padding:42px 16px 24px;
+      text-align:center;
+    }
+    .hero .logo{
+      width:min(520px, 75vw);
+      max-height:160px;
+      display:block;
+      margin:0 auto 12px auto;
+      object-fit:contain;
+    }
+    .hero .purpose{
+      margin:0 0 2px 0;
+      font-size:clamp(16px,2.3vw,20px);
+      color:#374151;
+      font-weight:600;
+    }
+
+    .main{ padding:28px 16px 56px; }
+    .wrap{ max-width:1000px; margin:0 auto; display:grid; gap:22px; }
+
+    .header{ text-align:center; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.15); }
+    .tag{
+      display:inline-block; margin:0 0 8px 0; padding:6px 12px; border-radius:999px;
+      background:#fff; color:var(--brand); font-weight:700; font-size:clamp(12px,1.9vw,14px);
+      box-shadow:0 6px 18px rgba(255,255,255,.25);
+    }
+    .header h1{ margin:.25rem 0 0; font-size:clamp(22px,3.3vw,34px); font-weight:800; letter-spacing:.2px; }
+
+    .choices{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:18px; }
+    @media (max-width:720px){ .choices{grid-template-columns:1fr} }
+    .card{
+      background:var(--card); border-radius:var(--radius); padding:26px; display:flex; gap:16px; align-items:center;
+      box-shadow:var(--shadow); border:1px solid rgba(255,255,255,.35);
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease; cursor:pointer;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow:0 22px 48px rgba(2,40,90,.22); }
+    .badge{
+      min-width:48px; min-height:48px; border-radius:12px; display:grid; place-items:center; color:#fff; font-weight:700;
+      background:linear-gradient(135deg, var(--brand), #22a6ff); box-shadow:0 8px 22px rgba(10,124,255,.25); font-size:18px;
+    }
+    .card h3{ margin:0 0 4px 0; font-size:20px } .card p{ margin:0; color:var(--muted) }
+    .card.active{
+      background:#d6e9ff; border-color: rgba(10,124,255,.6);
+      box-shadow: 0 26px 60px rgba(2,40,90,.35); transform: translateY(-3px);
+    }
+    .card.active .badge{ background:linear-gradient(135deg, #0349a5, #0562d6); }
+
+    .panel{
+      margin-top:8px; background:#fff; border:1px solid rgba(255,255,255,.35); border-radius:var(--radius);
+      box-shadow:var(--shadow); padding:26px; max-width:520px; justify-self:center; width:100%; display:none;
+    }
+    .panel.active{ display:block }
+    .subtitle{ margin:0 0 14px 0; font-weight:700; color:var(--brand-strong); }
+    .field{ width:100%; margin:10px 0; }
+    .input{
+      width:100%; padding:12px 14px; font-size:16px; border-radius:10px; border:1px solid #e5e7eb;
+      outline:0; transition:border .15s ease, box-shadow .15s ease;
+    }
+    .input:focus{ border-color:var(--brand); box-shadow:0 0 0 4px rgba(10,124,255,.12) }
+    .btn{
+      width:100%; padding:12px 16px; border:0; border-radius:10px;
+      background:linear-gradient(135deg, var(--brand), #1e90ff); color:#fff; font-weight:700; letter-spacing:.2px; cursor:pointer;
+      transition:filter .15s ease, transform .05s ease;
+    }
+    .btn:hover{ filter:brightness(1.04) } .btn:active{ transform:translateY(1px) }
+    .center{ text-align:center; }
+    .muted{ color:#6b7280 }
+    .hidden{ display:none }
+    .error{ margin:10px 0 0; color:#c0392b; font-weight:700; text-align:center; }
+    .success{ margin:10px 0 0; color:#0a7c2e; font-weight:700; text-align:center; }
+    .link { color:#000; font-weight:700; text-decoration:none; }
+
+    .screen{
+      position:fixed; inset:0; display:none; place-items:center;
+      background: linear-gradient(135deg,#0a7cff,#00c6ff);
+      z-index:9999;
+      padding: 24px;
+    }
+    .screen.show{ display:grid; }
+    .screen-card{
+      width:min(520px, 92vw);
+      background:rgba(255,255,255,0.16);
+      backdrop-filter: blur(6px);
+      border-radius:16px;
+      padding:28px 22px;
+      box-shadow:0 22px 60px rgba(0,0,0,.18);
+      text-align:center;
+      color:#fff;
+    }
+    .screen-check{
+      width:56px; height:56px; margin:0 auto 14px; display:block;
+      background:#2ecc71; border-radius:12px;
+      display:grid; place-items:center;
+      box-shadow:0 10px 24px rgba(46,204,113,.35);
+    }
+    .screen-check svg{ width:34px; height:34px; fill:#fff }
+    .screen-title{ font-size:clamp(22px,3vw,28px); font-weight:800; margin:10px 0 6px }
+    .screen-text{ margin:0 0 16px; opacity:.95 }
+    .screen .btn{ width:auto; min-width:240px; }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <img class="logo" src="logo-huechuraba.svg.svg" alt="Municipalidad de Huechuraba" />
+    <p class="purpose">Plataforma para <b>levantar solicitudes de Retiro de Escombros</b>.</p>
+  </section>
+
+  <section class="main">
+    <div class="wrap">
+      <header class="header">
+        <div class="tag">Identifícate para continuar</div>
+        <h1>Municipalidad de Huechuraba</h1>
+      </header>
+
+      <section class="choices">
+        <article class="card" id="cardPM" onclick="chooseRole('PM')">
+          <div class="badge">PM</div>
+          <div>
+            <h3>Personal de la Municipalidad</h3>
+            <p>Acceso para funcionarias y funcionarios.</p>
+          </div>
+        </article>
+
+        <article class="card" id="cardCZ" onclick="chooseRole('CZ')">
+          <div class="badge">CZ</div>
+          <div>
+            <h3>Vecinos</h3>
+            <p>Vecinas y vecinos para realizar solicitudes.</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- Login -->
+      <section id="loginPanel" class="panel" aria-live="polite">
+        <p class="subtitle" id="loginTitle">Acceso</p>
+
+        <div class="field">
+          <input id="loginEmail" class="input" type="email" placeholder="Correo" required />
+        </div>
+        <div class="field">
+          <input id="loginPass" class="input" type="password" placeholder="Contraseña" required />
+        </div>
+
+        <button id="loginBtn" class="btn">Entrar</button>
+        <p id="loginError" class="error hidden">Credenciales inválidas</p>
+
+        <p id="toRegisterRow" class="center muted hidden">¿No tienes cuenta? <a id="toRegisterLink" href="#" class="link">Regístrate</a></p>
+      </section>
+
+      <!-- Registro -->
+      <section id="registerPanel" class="panel" aria-live="polite">
+        <p class="subtitle">Registro – Vecinos</p>
+
+        <div class="field">
+          <input id="regNombre" class="input" type="text" placeholder="Nombre completo" />
+        </div>
+        <div class="field">
+          <input id="regCorreo" class="input" type="email" placeholder="Correo" />
+        </div>
+        <div class="field">
+          <input id="regTel" class="input" type="text" placeholder="Teléfono (formato 569XXXXXXXX)" />
+        </div>
+        <div class="field">
+          <input id="regPass" class="input" type="password" placeholder="Contraseña" />
+        </div>
+
+        <button id="regBtn" class="btn">Crear cuenta</button>
+        <p id="regMsg" class="error hidden"></p>
+        <p class="center"><a id="toLoginLink" href="#" class="link">Volver al inicio de sesión</a></p>
+      </section>
+    </div>
+  </section>
+
+  <!-- Pantalla de éxito (solo se muestra tras registrar) -->
+  <section id="registerSuccess" class="screen" aria-live="polite">
+    <div class="screen-card">
+      <div class="screen-check">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.4-1.4z"/>
+        </svg>
+      </div>
+      <p class="screen-title">¡Registro completado!</p>
+      <p class="screen-text">Tu cuenta ha sido creada con éxito.</p>
+      <button id="successToLogin" class="btn">Volver al inicio de sesión</button>
+    </div>
+  </section>
+
+  <script>
+    const API = "https://api.proyectosfranco.cl";
+
+    let currentRole = null;
+
+    const cardPM = document.getElementById('cardPM');
+    const cardCZ = document.getElementById('cardCZ');
+
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+
+    const loginTitle = document.getElementById('loginTitle');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPass  = document.getElementById('loginPass');
+    const loginBtn   = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const toRegisterRow  = document.getElementById('toRegisterRow');
+    const toRegisterLink = document.getElementById('toRegisterLink');
+
+    const regNombre = document.getElementById('regNombre');
+    const regCorreo = document.getElementById('regCorreo');
+    const regTel    = document.getElementById('regTel');
+    const regPass   = document.getElementById('regPass');
+    const regBtn    = document.getElementById('regBtn');
+    const regMsg    = document.getElementById('regMsg');
+    const toLoginLink = document.getElementById('toLoginLink');
+
+    const registerSuccess = document.getElementById('registerSuccess');
+    const successToLogin  = document.getElementById('successToLogin');
+
+    [loginEmail, loginPass].forEach(el => el.addEventListener('input', () => hide(loginError)));
+    [regNombre, regCorreo, regTel, regPass].forEach(el => el.addEventListener('input', () => hide(regMsg)));
+
+    function show(el){ el.classList.add('active'); el.classList.remove('hidden'); }
+    function hide(el){ el.classList.add('hidden'); el.classList.remove('active'); }
+    function resetInputs(){
+      loginEmail.value = ""; loginPass.value = "";
+      regNombre.value = ""; regCorreo.value = ""; regTel.value = ""; regPass.value = "";
+      hide(loginError); hide(regMsg);
+    }
+    function resetUI(){
+      currentRole = null;
+      cardPM.classList.remove('active');
+      cardCZ.classList.remove('active');
+      hide(loginPanel);
+      hide(registerPanel);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function chooseRole(role){
+      currentRole = role; resetInputs();
+
+      cardPM.classList.toggle('active', role === 'PM');
+      cardCZ.classList.toggle('active', role === 'CZ');
+
+      show(loginPanel); hide(registerPanel);
+
+      if (role === 'PM'){
+        loginTitle.textContent = "Acceso – Personal Municipal";
+        toRegisterRow.classList.add('hidden');
+      } else {
+        loginTitle.textContent = "Acceso – Vecinos";
+        toRegisterRow.classList.remove('hidden');
+      }
+
+      loginEmail.focus();
+    }
+
+    toRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentRole !== 'CZ') chooseRole('CZ');
+      hide(loginPanel); show(registerPanel); regNombre.focus();
     });
 
-    const data = await res.json();
+    toLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      hide(registerPanel); show(loginPanel); loginEmail.focus();
+    });
 
-    if (data && data.ok) {
-      // Usa el correo del backend si viene; si no, usa el del input
-      const emailToStore = (data.user && data.user.correo ? String(data.user.correo) : correo).trim();
+    successToLogin.addEventListener('click', () => {
+      registerSuccess.classList.remove('show');
+      resetUI();
+    });
 
-      // Guardar en ambos storages por si acaso
-      localStorage.setItem("email", emailToStore);
-      sessionStorage.setItem("email", emailToStore);
+    // ====== LOGIN (redirección decidida por el endpoint usado) ======
+    loginBtn.addEventListener('click', async () => {
+      hide(loginError);
 
-      alert("✅ Bienvenido " + (data.user?.nombre || ""));
+      const correo = loginEmail.value.trim();
+      const contrasenia = loginPass.value;
 
-      // Redirige pasando también el correo por querystring (belt & suspenders)
-      window.location.href = "verify.html?email=" + encodeURIComponent(emailToStore);
-    } else {
-      alert("❌ Error: " + (data?.error || "Credenciales inválidas"));
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ No se pudo conectar con el servidor");
-  }
-}
+      if (!correo || !contrasenia) {
+        loginError.textContent = "Completa tu correo y contraseña";
+        show(loginError);
+        return;
+      }
+
+      try {
+        const endpoint = (currentRole === 'PM')
+          ? "/auth/login"           // Personal Municipal
+          : "/auth/login-ciudadano"; // Vecinos
+
+        const res = await fetch(API + endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, contrasenia })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          const emailToStore = (data.user && data.user.correo ? String(data.user.correo) : correo).trim();
+          try {
+            localStorage.setItem('email', emailToStore);
+            sessionStorage.setItem('email', emailToStore);
+          } catch (_) {}
+
+          // Destino según endpoint (evita cualquier cambio de rol por error)
+          const nextPage = (endpoint === "/auth/login") ? "municipal.html" : "verify.html";
+          location.href = nextPage + "?email=" + encodeURIComponent(emailToStore);
+
+        } else {
+          if (data && data.error === "no_verificado") {
+            loginError.textContent = "Cuenta no verificada";
+          } else {
+            loginError.textContent = "Credenciales inválidas";
+          }
+          show(loginError);
+        }
+      } catch (e) {
+        loginError.textContent = "Error de conexión. Intenta de nuevo.";
+        show(loginError);
+      }
+    });
+
+    // Registro ciudadanía
+    regBtn.addEventListener('click', async () => {
+      hide(regMsg);
+
+      const nombre = regNombre.value.trim();
+      const correo = regCorreo.value.trim();
+      const telefono = regTel.value.trim();
+      const contrasenia = regPass.value;
+
+      if (!nombre || !correo || !telefono || !contrasenia) {
+        regMsg.textContent = "Completa todos los campos";
+        show(regMsg);
+        return;
+      }
+
+      if (!/^569\d{8}$/.test(telefono)) {
+        regMsg.textContent = "Teléfono inválido. Formato esperado: 569XXXXXXXX.";
+        show(regMsg);
+        return;
+      }
+
+      try {
+        const res = await fetch(API + "/ciudadanos/register", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, correo, telefono, contrasenia })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          registerSuccess.classList.add('show');
+        } else {
+          if (data && data.error === "correo_ya_registrado") {
+            regMsg.textContent = "Este correo ya está registrado.";
+          } else if (data && data.error === "telefono_invalido") {
+            regMsg.textContent = "Teléfono inválido. Formato: 569XXXXXXXX.";
+          } else {
+            regMsg.textContent = "No se pudo registrar.";
+          }
+          show(regMsg);
+        }
+      } catch (e) {
+        regMsg.textContent = "Error de conexión. Intenta de nuevo.";
+        show(regMsg);
+      }
+    });
+
+    // Estado inicial: NADA preseleccionado
+    resetUI();
+  </script>
+</body>
+</html>
