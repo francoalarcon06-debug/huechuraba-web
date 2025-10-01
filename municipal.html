@@ -4,183 +4,165 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Municipal</title>
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png.png" />
-
   <style>
     :root{
-      --brand:#0a7cff;
-      --brand-strong:#0562d6;
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
       --text:#0b1220;
       --muted:#475569;
-      --card:#ffffff;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
       --radius:16px;
-      --shadow:0 12px 40px rgba(2, 40, 90, .18);
+      --hover-blue:#eaf2ff;
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
       color:var(--text);
-      background:linear-gradient(180deg, #0b6ef3 0%, #0562d6 100%);
-      display:flex;
-      flex-direction:column;
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
     }
+    header{ background:var(--white); border-bottom:1px solid #e6eefc; }
+    .wrap{
+      max-width:1120px; margin:0 auto; padding:18px 20px;
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
+    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:var(--muted); font-size:15px; font-weight:600; }
 
-    /* Header igual al index */
-    .header{
-      width:100%;
-      background:#fff;
-      box-shadow:var(--shadow);
-      padding:14px 22px;
+    .userbox{ position:relative; }
+    .userbtn{
+      display:flex; align-items:center; gap:10px; background:var(--white);
+      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-weight:700; color:var(--outline); box-shadow: var(--shadow);
     }
-    .header__inner{
-      max-width:1200px;
-      margin:0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
+    .userbtn img{ width:22px; height:22px; object-fit:contain; }
+    .chev{ font-size:13px; }
+    .dropdown{
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:260px; display:none;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:16px;
+    .dropdown.open{ display:block; }
+    .dropdown .head{
+      padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff;
+      border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all;
     }
-    .brand img{height:54px; width:auto}
-    .brand__copy{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
+    .dropdown button{
+      all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
+      font-weight:700; color:#b91c1c;
     }
-    .brand__title{
-      margin:0;
-      font-weight:800;
-      font-size:28px;
-      color:#1e3a8a;
-      letter-spacing:.2px;
-    }
-    .brand__subtitle{
-      margin:0;
-      font-size:14px;
-      color:#334155;
-    }
+    .dropdown button:hover{ background:#fee2e2; }
 
-    /* Botón de sesión (estático, visual) */
-    .session{
-      background:#ffffff;
-      border:1px solid #e5e7eb;
-      border-radius:999px;
-      padding:10px 14px;
-      box-shadow:0 8px 22px rgba(15, 23, 42, .08);
-      display:flex;
-      align-items:center;
-      gap:10px;
-      cursor:default;
-      user-select:none;
-    }
-    .session__dot{
-      width:10px;height:10px;border-radius:50%;
-      background:var(--brand);
-      display:inline-block;
-    }
-    .session__label{
-      font-weight:600;
-      color:#1f2937;
-      font-size:14px;
-    }
-
-    /* Contenido principal (tarjetas) */
-    .content{
-      flex:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:48px 20px 72px;
-    }
-    .tiles{
-      width:100%;
-      max-width:1200px;
-      display:grid;
-      grid-template-columns: repeat(2, minmax(260px, 420px));
-      gap:34px;
-      place-content:center;
-      place-items:center;
-    }
+    main{ flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:88px 20px 84px; }
+    .grid{ max-width:980px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:42px; }
     .tile{
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:38px 28px 28px;
-      text-align:center;
-      text-decoration:none;
-      color:var(--text);
-      width:100%;
-      transition:transform .18s ease, box-shadow .18s ease;
+      border:4px solid #ffffff; border-radius:10px; padding:38px 24px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:#ffffff; box-shadow: 0 10px 26px rgba(0,0,0,.08);
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+      cursor:pointer;
     }
-    .tile:hover{
-      transform:translateY(-4px);
-      box-shadow:0 16px 48px rgba(2, 40, 90, .22);
-    }
-    .tile img{
-      width:110px; height:110px; object-fit:contain;
-      display:block; margin:0 auto 12px;
-      filter:contrast(0) brightness(0); /* negro, como en index */
-    }
-    .tile__label{
-      margin-top:8px;
-      font-size:13px;
-      font-weight:800;
-      letter-spacing:.3px;
-      text-transform:uppercase;
-    }
+    .tile:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.12); background: var(--hover-blue); }
+    .tile img{ width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1); margin-bottom:18px; }
+    .tile .label{ color:#000; letter-spacing:.6px; font-weight:800; font-size:13px; text-transform:uppercase; text-align:center; }
 
-    /* Responsive como el index */
-    @media (max-width:900px){
-      .tiles{grid-template-columns:1fr}
-      .brand__title{font-size:24px}
+    @media (max-width: 780px){
+      .grid{ grid-template-columns:1fr; gap:26px; }
+      .brand img{ height:64px; }
     }
   </style>
 </head>
 <body>
-  <!-- Header (logo + subtítulo + sesión) -->
-  <header class="header">
-    <div class="header__inner">
+
+  <header>
+    <div class="wrap">
       <div class="brand">
         <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
-        <div class="brand__copy">
-          <h1 class="brand__title">Huechuraba.</h1>
-          <p class="brand__subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros</strong>.</p>
-        </div>
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
       </div>
 
-      <div class="session" aria-label="Mi sesión">
-        <span class="session__dot"></span>
-        <span class="session__label">Mi sesión</span>
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span>Mi sesión</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" onclick="logout()">Cerrar sesión</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Tarjetas -->
-  <main class="content">
-    <div class="tiles">
-      <!-- Administrar solicitudes -->
-      <a class="tile" href="administrar.html">
-        <!-- Reuso la imagen que ya tienes subida -->
+  <main>
+    <div class="grid">
+      <div class="tile" onclick="irAAdministrar()">
         <img src="Realizar%20solicitud.png" alt="Administrar solicitudes" />
-        <div class="tile__label">Administrar solicitudes</div>
-      </a>
-
-      <!-- Solicitudes aprobadas -->
-      <a class="tile" href="aprobadas.html">
-        <!-- Reuso la imagen que ya tienes subida -->
+        <div class="label">Administrar solicitudes</div>
+      </div>
+      <div class="tile" onclick="irAAprobadas()">
         <img src="Ver%20estado%20solicitud.png" alt="Solicitudes aprobadas" />
-        <div class="tile__label">Solicitudes aprobadas</div>
-      </a>
+        <div class="label">Solicitudes aprobadas</div>
+      </div>
     </div>
   </main>
+
+  <script>
+    function getEmailFromClient(){
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e){}
+      return '';
+    }
+
+    (function(){
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+    })();
+
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') menu.classList.remove('open'); });
+
+    function withEmailIfAny(base){
+      const email = getEmailFromClient();
+      return email ? (base + '?email=' + encodeURIComponent(email)) : base;
+    }
+
+    function irAAdministrar(){ window.location.href = withEmailIfAny('administrar.html'); }
+    function irAAprobadas(){ window.location.href = withEmailIfAny('aprobadas.html'); }
+
+    function logout(){
+      localStorage.removeItem('email');
+      sessionStorage.removeItem('email');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+  </script>
 </body>
 </html>
