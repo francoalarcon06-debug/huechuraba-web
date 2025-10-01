@@ -122,10 +122,19 @@
     th.w-date, td.w-date { padding-left: 14px; }
 
     .w-estado{ width:160px; }
-    /* alineo el contenido de la celda de Estado a la izquierda del propio td */
     th.w-estado, td.w-estado { padding-left: 0px; }
+    /* Estado: texto a la izq, ⋮ a la der */
     td.w-estado{ display:flex; align-items:center; gap:12px; }
+    /* empuja ⋮ hacia el borde derecho del td */
     .kebab-btn{ margin-left:auto; }
+    /* mueve el texto un pelito más a la izquierda */
+    td.w-estado .state{ margin-left:-6px; }
+
+    /* Línea inferior continua solo en la celda Estado (evita “corte”) */
+    td.w-estado{
+      box-shadow: inset 0 -6px 0 #0b6ef3;
+      border-bottom:none;
+    }
 
     .actions-cell{ text-align:center; }
     .icon-btn{
@@ -710,4 +719,5 @@
   </script>
 </body>
 </html>
+
 
