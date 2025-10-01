@@ -122,14 +122,13 @@
     th.w-date, td.w-date { padding-left: 14px; }
     .w-estado{ width:160px; }
 
-    /* mover "Estado" y su valor hacia la izquierda, manteniendo ⋮ a la derecha
-       y restaurando el borde inferior como el resto de la tabla */
-    th.w-estado, td.w-estado { padding-left: 0px; }
+    /* mover "Estado" y su valor hacia la izquierda manteniendo ⋮ a la derecha */
+    th.w-estado, td.w-estado { padding-left: 0 !important; }
     td.w-estado{
       display:flex; align-items:center; gap:12px;
-      border-bottom:6px solid #0b6ef3;   /* igual que las demás celdas */
+      border-bottom:6px solid #0b6ef3;   /* igual que el resto */
     }
-    td.w-estado .state{ margin-left:-14px; } /* más a la izquierda */
+    td.w-estado .state{ margin-left:-22px; } /* un poco más a la izquierda */
     .kebab-btn{ margin-left:auto; }
 
     .actions-cell{ text-align:center; }
@@ -240,7 +239,7 @@
     <div class="container">
       <h1>Solicitudes</h1>
 
-    <div id="msgError" class="error"></div>
+      <div id="msgError" class="error"></div>
 
       <div class="table-card">
         <table>
@@ -501,10 +500,10 @@
         const tdEst = document.createElement('td');
         tdEst.className = 'w-estado';
         const estadoRaw = it.estado_solicitud || 'pendiente';
-        const estadoUpper = (estadoRaw || '').toUpperCase();
+        theEstado = (estadoRaw || '').toUpperCase();
         const span = document.createElement('span');
-        span.className = 'state ' + stateClass(estadoUpper);
-        span.textContent = estadoUpper;
+        span.className = 'state ' + theEstado.replaceAll(' ', '_');
+        span.textContent = theEstado;
         tdEst.appendChild(span);
 
         if (normalizeEstado(estadoRaw) === 'pendiente de pago') {
