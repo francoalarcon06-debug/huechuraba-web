@@ -67,7 +67,6 @@
     }
 
     .container{ max-width:1600px; margin:0 auto; }
-
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
     .table-card{
@@ -96,25 +95,18 @@
 
     .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-
     .w-dir{ width:200px; }
     th.w-dir, td.w-dir { padding-left: 40px; }
-
     .w-tel{ width:140px; }
     th.w-tel, td.w-tel { padding-left: 14px; }
-
     .w-tipo{ width:220px; }
     th.w-tipo, td.w-tipo { padding-left: 14px; }
-
     .w-det{ width:240px; }
     th.w-det, td.w-det { padding-left: 14px; }
-
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
-
     .w-date{ width:240px; }
     th.w-date, td.w-date { padding-left: 14px; }
-
     .w-estado{ width:200px; }
     th.w-estado, td.w-estado { padding-left: 14px; }
 
@@ -242,7 +234,6 @@
   <div class="backdrop" id="drawerBackdrop" aria-hidden="true"></div>
 
   <script>
-    /* ======== Header (correo / sesión) ======== */
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -269,7 +260,6 @@
     btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     document.addEventListener('click', ()=> menu.classList.remove('open'));
 
-    /* ======== Utils ======== */
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
@@ -324,7 +314,6 @@
       return v;
     }
 
-    /* ======== Data & render ======== */
     const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
 
     let allItems = [];
@@ -484,7 +473,6 @@
       if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
     }
 
-    /* ======== Drawer ======== */
     const drawer = document.getElementById('drawer');
     const drawerBody = document.getElementById('drawerBody');
     const backdrop = document.getElementById('drawerBackdrop');
@@ -542,28 +530,59 @@
       document.body.style.overflow = 'hidden';
     }
 
-    /* ======== Descargas (navegación directa al Webhook) ======== */
-    function navigateForDownload(url){
-      // Ancla temporal para dejar que el navegador gestione la descarga
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';   // permite cerrar la pestaña nueva que abre n8n
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+    // ================== DESCARGAS (FIX ANTI–2 BYTES) ==================
+    async function downloadFromEndpoint(url, filenameFallback){
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          mode: 'cors',         // el nodo Archivo ya devuelve ACAO: *
+          cache: 'no-store',    // no guardar nada intermedio
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const mime = res.headers.get('Content-Type') || 'application/octet-stream';
+        const cd   = res.headers.get('Content-Disposition') || '';
+        let fname  = filenameFallback || 'archivo';
+
+        // intentar extraer filename del header
+        const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
+        if (m) fname = decodeURIComponent(m[1] || m[2] || m[3]).trim();
+
+        const buf = await res.arrayBuffer();
+
+        // si el proxy sirvió basura, no guardamos 2 bytes
+        if (buf.byteLength < 10) {
+          console.warn('Respuesta demasiado pequeña:', buf.byteLength);
+          showError('No fue posible descargar el archivo (respuesta vacía). Intenta de nuevo.');
+          return;
+        }
+
+        const blob = new Blob([buf], { type: mime });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fname;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+
+      } catch (e) {
+        console.error(e);
+        showError('No fue posible descargar el archivo.');
+      }
     }
 
     function downloadFotoLugar(id){
-      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar`;
-      navigateForDownload(url);
+      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar&t=${Date.now()}`;
+      return downloadFromEndpoint(url, `foto_lugar_${id}`);
     }
     function downloadCartola(id){
-      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh`;
-      navigateForDownload(url);
+      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
+      return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
     }
+    // ================================================================
 
-    /* ======== Carga inicial ======== */
     async function loadData(){
       const email = getEmailFromClient();
       if (!email) { showError('No se encontró el correo de la sesión.'); return; }
@@ -573,7 +592,7 @@
         const body = new URLSearchParams({ email }).toString();
         const res = await fetch(url, {
           method:'POST',
-          headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Accept':'application/json' },
+          headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
           body
         });
         if(!res.ok) throw new Error('HTTP '+res.status);
@@ -591,5 +610,3 @@
   </script>
 </body>
 </html>
-
-
