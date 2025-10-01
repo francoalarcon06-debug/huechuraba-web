@@ -120,14 +120,16 @@
     th.w-file, td.w-file { padding-left: 14px; }
 
     /* Ajuste de proximidad: acerco "Estado" a "Última actualización" */
-    .w-date{ width:220px; }          /* antes 240 */
+    .w-date{ width:220px; }
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:160px; }        /* antes 200 */
-    /* >>> Movimiento de Estado y su texto hacia la izquierda */
+    .w-estado{ width:160px; }
+    /* mover a la izquierda y mantener ⋮ a la derecha */
     th.w-estado, td.w-estado { padding-left: 0px; }
-    td.w-estado{ display:flex; align-items:center; gap:12px; }
-    td.w-estado .state{ margin-left:-6px; } /* ajuste fino */
-    /* El botón de 3 puntos se mantiene a la derecha */
+    td.w-estado{ display:flex; align-items:center; gap:12px;
+      /* relleno inferior para que no se vea cortado */
+      box-shadow: inset 0 -6px 0 #0b6ef3; border-bottom:none;
+    }
+    td.w-estado .state{ margin-left:-12px; } /* más a la izquierda */
     .kebab-btn{ margin-left:auto; }
 
     .actions-cell{ text-align:center; }
@@ -711,4 +713,3 @@
   </script>
 </body>
 </html>
-
