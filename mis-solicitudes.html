@@ -144,7 +144,6 @@
     .state.ACEPTADA{ color:#065f46; }
     .state.RECHAZADA{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
-    /* NUEVO: estado CANCELADO en rojo */
     .state.CANCELADO{ color:#b91c1c; }
 
     .kebab-btn{
@@ -245,7 +244,7 @@
               <th class="w-tel">Teléfono</th>
               <th class="w-tipo">Tipo</th>
               <th class="w-det">Detalle</th>
-              <th class="w-file">Foto lugar</th>
+              <!-- Columna Foto lugar eliminada -->
               <th class="w-file">Cartola RSH</th>
               <th class="w-date">Última actualización</th>
               <th class="w-estado">Estado</th>
@@ -413,7 +412,7 @@
       menu.setAttribute('hidden','');
 
       const estNorm = normalizeEstado(estadoRaw);
-      const canCancel = estNorm !== 'cancelado';        // <--- deshabilita cuando está cancelado
+      const canCancel = estNorm !== 'cancelado';
       const canPay    = estNorm === 'pendiente de pago';
 
       const btnCancel = document.createElement('button');
@@ -501,13 +500,7 @@
         tdDet.className = 'w-det cell-ellipsis';
         tdDet.textContent = it.detalle || '—';
 
-        const tdFoto = document.createElement('td');
-        tdFoto.className = 'w-file';
-        const btnFoto = document.createElement('button');
-        btnFoto.className = 'dl-btn';
-        btnFoto.textContent = 'Descargar';
-        btnFoto.addEventListener('click', () => downloadFotoLugar(it.id));
-        tdFoto.appendChild(btnFoto);
+        /* Columna Foto lugar eliminada */
 
         const tdCart = document.createElement('td');
         tdCart.className = 'w-file';
@@ -543,7 +536,7 @@
 
         createRowMenu(tdEst, estadoRaw, it.id);
 
-        tr.append(tdEye, tdId, tdDir, tdTel, tdTipos, tdDet, tdFoto, tdCart, tdUpd, tdEst);
+        tr.append(tdEye, tdId, tdDir, tdTel, tdTipos, tdDet, tdCart, tdUpd, tdEst);
         tbody.appendChild(tr);
       }
 
@@ -681,10 +674,7 @@
       } catch (e) { console.error(e); showError('No fue posible descargar el archivo.'); }
     }
 
-    function downloadFotoLugar(id){
-      const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=foto_lugar&t=${Date.now()}`;
-      return downloadFromEndpoint(url, `foto_lugar_${id}`);
-    }
+    /* Eliminado downloadFotoLugar */
     function downloadCartola(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
       return downloadFromEndpoint(url, `cartola_rsh_${id}.pdf`);
@@ -718,4 +708,5 @@
   </script>
 </body>
 </html>
+
 
