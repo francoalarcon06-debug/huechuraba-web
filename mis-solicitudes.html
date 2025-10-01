@@ -144,6 +144,8 @@
     .state.ACEPTADA{ color:#065f46; }
     .state.RECHAZADA{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
+    /* NUEVO: estado CANCELADO en rojo */
+    .state.CANCELADO{ color:#b91c1c; }
 
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
@@ -411,7 +413,7 @@
       menu.setAttribute('hidden','');
 
       const estNorm = normalizeEstado(estadoRaw);
-      const canCancel = estNorm !== 'cancelada';
+      const canCancel = estNorm !== 'cancelado';        // <--- deshabilita cuando está cancelado
       const canPay    = estNorm === 'pendiente de pago';
 
       const btnCancel = document.createElement('button');
@@ -419,7 +421,6 @@
       if (!canCancel) btnCancel.setAttribute('aria-disabled','true');
       btnCancel.addEventListener('click', async ()=>{
         if (btnCancel.getAttribute('aria-disabled') === 'true') return;
-        // Llamar al webhook de n8n y luego redirigir a la pantalla de confirmación
         try{
           btnCancel.setAttribute('aria-disabled','true');
           const email = getEmailFromClient();
@@ -713,4 +714,3 @@
   </script>
 </body>
 </html>
-
