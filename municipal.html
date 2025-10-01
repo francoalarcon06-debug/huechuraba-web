@@ -3,69 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Huechuraba – Panel Municipal</title>
+  <title>Huechuraba – Municipal</title>
   <link rel="icon" type="image/png" href="favicon.png.png" />
   <style>
     :root{
       --brand:#0a7cff;
+      --brand-strong:#0562d6;
       --text:#1a1a1a;
       --card:#ffffff;
+      --muted:#6b7280;
+      --radius:14px;
       --shadow:0 18px 40px rgba(2,40,90,.18);
     }
+
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      color:var(--text);
-      background: linear-gradient(135deg,#0a7cff,#00c6ff) fixed;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(to bottom, #0b6ef3, #0562d6);
+      display:flex;
+      flex-direction:column;
     }
-    .hero{
-      width:100%;
+    header{
       background:#fff;
-      display:grid;
-      place-items:center;
-      padding:42px 16px 20px;
-      text-align:center;
+      padding:1rem 2rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow:var(--shadow);
     }
-    .logo{ width:min(520px,75vw); max-height:160px; object-fit:contain; margin:0 auto 10px }
-    .wrap{ max-width:1000px; margin:0 auto; padding:28px 16px 56px }
+    header img{height:50px}
+    header h1{margin:0;font-size:1.25rem;color:var(--brand-strong)}
+    .content{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:2rem;
+    }
     .card{
-      background:var(--card); border-radius:14px; padding:22px; box-shadow:var(--shadow);
-      border:1px solid rgba(255,255,255,.35);
+      background:var(--card);
+      padding:2rem;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      text-align:center;
+      width:250px;
+      cursor:pointer;
+      transition: transform .2s;
+      text-decoration:none;
+      color:var(--text);
     }
-    h1{ margin:0 0 10px; color:#fff; text-align:center; text-shadow:0 2px 10px rgba(0,0,0,.15) }
-    .muted{ color:#374151; margin:0 }
-    .btn{
-      display:inline-block; padding:12px 18px; border-radius:10px; border:0;
-      background:linear-gradient(135deg,#0a7cff,#1e90ff); color:#fff; font-weight:700; cursor:pointer
-    }
+    .card:hover{transform:translateY(-5px)}
+    .card img{height:80px;margin-bottom:1rem}
+    .card-title{font-weight:bold;font-size:1rem}
   </style>
 </head>
 <body>
-  <section class="hero">
-    <img class="logo" src="logo-huechuraba.svg.svg" alt="Municipalidad de Huechuraba" />
-    <p class="muted">Acceso del <b>Personal Municipal</b></p>
-  </section>
-
-  <div class="wrap">
-    <h1>Panel Municipal – Inicio</h1>
-    <div class="card">
-      <p class="muted" id="saludo">Cargando…</p>
-      <!-- Aquí más adelante conectamos las vistas/acciones del personal -->
-      <div style="margin-top:16px">
-        <a class="btn" href="index.html">Cerrar sesión</a>
-      </div>
+  <header>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <img src="logo.png" alt="Logo" />
+      <h1>Huechuraba – Municipal</h1>
     </div>
-  </div>
+  </header>
 
-  <script>
-    // Mostrar correo que llega desde index por querystring (si viene)
-    const params = new URLSearchParams(location.search);
-    const email = params.get('email');
-    const saludo = document.getElementById('saludo');
-    saludo.textContent = email
-      ? `Bienvenido/a, ${email}`
-      : 'Bienvenido/a';
-  </script>
+  <main class="content">
+    <a href="administrar.html" class="card">
+      <img src="https://img.icons8.com/ios-filled/100/000000/settings.png" alt="Administrar"/>
+      <div class="card-title">ADMINISTRAR SOLICITUDES</div>
+    </a>
+
+    <a href="aprobadas.html" class="card">
+      <img src="https://img.icons8.com/ios-filled/100/000000/checklist.png" alt="Aprobadas"/>
+      <div class="card-title">SOLICITUDES APROBADAS</div>
+    </a>
+  </main>
 </body>
 </html>
+
