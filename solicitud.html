@@ -157,21 +157,14 @@
           <input id="direccion" name="direccion" class="input" type="text" placeholder="Calle y número, comuna – Región Metropolitana" required />
         </div>
 
-        <!-- TELÉFONO + RSH -->
+        <!-- TELÉFONO -->
         <div class="row cols">
           <div>
             <label for="telefono">Teléfono móvil</label>
             <input id="telefono" name="telefono" class="input" type="text" inputmode="numeric" placeholder="569XXXXXXXX" required />
             <div class="hint">Formato obligatorio: 569XXXXXXXX</div>
           </div>
-          <div>
-            <label for="rsh">% Registro social de hogares</label>
-            <select id="rsh" name="rsh" class="select" required>
-              <option value="" selected disabled>Selecciona…</option>
-              <option>40%</option><option>50%</option><option>60%</option>
-              <option>70%</option><option>80%</option><option>90%</option><option>100%</option>
-            </select>
-          </div>
+          <div></div>
         </div>
 
         <!-- TIPO(S) DE SOLICITUD -->
@@ -192,18 +185,19 @@
           <div class="counter"><span id="cnt">0</span>/600</div>
         </div>
 
-        <!-- ARCHIVOS -->
-        <div class="row cols">
-          <div>
-            <label for="fotoLugar">Adjuntar fotografía del lugar</label>
-            <input id="fotoLugar" name="fotoLugar" class="input" type="file" accept="image/png" required />
-            <span class="file-note">Solo PNG (hasta 5MB).</span>
+        <!-- NUEVO: Checkbox Cartola -->
+        <div class="row">
+          <label>Registro social de hogares</label>
+          <div class="checks">
+            <label><input type="checkbox" id="hasCartola" /> ¿Tiene su cartola del registro social de hogares?</label>
           </div>
-          <div>
-            <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
-            <input id="cartolaRSH" name="cartolaRSH" class="input" type="file" accept="application/pdf" required />
-            <span class="file-note">Solo PDF (máximo 5 MB).</span>
-          </div>
+        </div>
+
+        <!-- NUEVO: Bloque cartola (se muestra solo si se marca el checkbox) -->
+        <div class="row" id="cartolaBlock" style="display:none;">
+          <label for="cartolaRSH">Adjuntar cartola registro social de hogares</label>
+          <input id="cartolaRSH" name="cartolaRSH" class="input" type="file" accept="application/pdf,image/png" />
+          <span class="file-note">PDF o PNG (máximo 5 MB).</span>
         </div>
 
         <!-- ERRORES -->
@@ -298,20 +292,27 @@
     detalle.addEventListener('keyup', updateCounter);
     updateCounter();
 
-    /* ======== Archivos: PNG único (<=5MB) y PDF (<=5MB) ======== */
-    const foto = document.getElementById('fotoLugar');
-    foto.addEventListener('change', () => {
-      const f = foto.files[0];
-      if (!f) return;
-      if (f.type !== 'image/png') { foto.value = ''; return showError('La fotografía debe ser PNG'); }
-      if (f.size > 5 * 1024 * 1024) { foto.value = ''; return showError('La fotografía no puede superar 5 MB'); }
+    /* ======== Mostrar/Ocultar cartola según checkbox ======== */
+    const hasCartola = document.getElementById('hasCartola');
+    const cartolaBlock = document.getElementById('cartolaBlock');
+    const cartolaInput = document.getElementById('cartolaRSH');
+
+    hasCartola.addEventListener('change', () => {
+      if (hasCartola.checked) {
+        cartolaBlock.style.display = '';
+      } else {
+        cartolaBlock.style.display = 'none';
+        cartolaInput.value = ''; // limpiar archivo si desmarca
+      }
     });
-    const pdf = document.getElementById('cartolaRSH');
-    pdf.addEventListener('change', () => {
-      const f = pdf.files[0];
+
+    /* ======== Validación archivo cartola (PDF o PNG, <=5MB) ======== */
+    cartolaInput.addEventListener('change', () => {
+      const f = cartolaInput.files[0];
       if (!f) return;
-      if (f.type !== 'application/pdf') { pdf.value = ''; return showError('La cartola debe ser PDF'); }
-      if (f.size > 5 * 1024 * 1024) { pdf.value = ''; return showError('El PDF no puede superar 5 MB'); }
+      const okType = (f.type === 'application/pdf' || f.type === 'image/png');
+      if (!okType){ cartolaInput.value=''; return showError('La cartola debe ser PDF o PNG'); }
+      if (f.size > 5 * 1024 * 1024){ cartolaInput.value=''; return showError('El archivo no puede superar 5 MB'); }
     });
 
     /* ======== Errores ======== */
@@ -322,7 +323,7 @@
     document.getElementById('frmSolicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Requeridos
+      // Requeridos básicos
       if (!document.getElementById('nombre').value.trim()) return showError('Ingresa tu nombre completo');
 
       const rutVal = rutInput.value.trim();
@@ -330,7 +331,6 @@
 
       if (!document.getElementById('direccion').value.trim()) return showError('Ingresa tu dirección');
       if (!/^569\d{8}$/.test(tel.value.trim())) return showError('El teléfono debe tener el formato 569XXXXXXXX');
-      if (!document.getElementById('rsh').value) return showError('Selecciona tu porcentaje RSH');
 
       // Al menos 1 tipo
       const tiposSel = Array.from(document.querySelectorAll('input[name="tipos"]:checked'));
@@ -339,15 +339,14 @@
       // Detalle mínimo 30 caracteres
       if (detalle.value.trim().length < 30) return showError('El detalle debe tener al menos 30 caracteres');
 
-      // Archivos OBLIGATORIOS
-      const fImg = foto.files[0];
-      const fPdf = pdf.files[0];
-      if (!fImg) return showError('Debes adjuntar una fotografía PNG (hasta 5 MB)');
-      if (!fPdf) return showError('Debes adjuntar la cartola RSH en PDF (hasta 5 MB)');
-      if (fImg.type !== 'image/png') return showError('La fotografía debe ser PNG');
-      if (fImg.size > 5 * 1024 * 1024) return showError('La fotografía no puede superar 5 MB');
-      if (fPdf.type !== 'application/pdf') return showError('La cartola debe ser PDF');
-      if (fPdf.size > 5 * 1024 * 1024) return showError('El PDF no puede superar 5 MB');
+      // Si marcó cartola, exigir archivo válido
+      if (hasCartola.checked) {
+        const f = cartolaInput.files[0];
+        if (!f) return showError('adjunte su cartola del registro social de hogares o desmarque la casilla');
+        const okType = (f.type === 'application/pdf' || f.type === 'image/png');
+        if (!okType) return showError('La cartola debe ser PDF o PNG');
+        if (f.size > 5 * 1024 * 1024) return showError('El archivo no puede superar 5 MB');
+      }
 
       // Enviar a n8n (Production URL)
       const url = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitudes-create';
@@ -376,5 +375,6 @@
   </script>
 </body>
 </html>
+
 
 
