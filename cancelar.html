@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huechuraba – Solicitud finalizada</title>
+  <link rel="icon" type="image/png" href="favicon.png.png" />
+  <style>
+    :root{
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
+      --text:#0b1220;
+      --muted:#475569;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
+      --ok:#10b981;
+    }
+    *{box-sizing:border-box}
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+      color:var(--text);
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+    }
+
+    /* Header (ligero, igual al resto del sitio) */
+    header{ background:#fff; border-bottom:1px solid #e6eefc; }
+    .wrap{
+      max-width:1120px; margin:0 auto; padding:18px 20px;
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
+    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
+
+    .userbox{ position:relative; }
+    .userbtn{
+      display:flex; align-items:center; gap:10px; background:#fff;
+      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow);
+    }
+    .userbtn img{ width:22px; height:22px; object-fit:contain; }
+    .chev{ font-size:13px; }
+    .dropdown{
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:260px; display:none;
+    }
+    .dropdown.open{ display:block; }
+    .dropdown .head{
+      padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff;
+      border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all;
+    }
+    .dropdown button{
+      all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
+      font-weight:700; color:#b91c1c;
+    }
+    .dropdown button:hover{ background:#fee2e2; }
+
+    /* Centro */
+    main{ flex:1; display:grid; place-items:center; padding:40px 16px; }
+    .card{
+      width:min(560px, 92vw);
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.20);
+      backdrop-filter: blur(6px);
+      border-radius:20px;
+      padding:28px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+      color:#eaf2ff;
+      text-align:center;
+    }
+    .icon{
+      width:64px; height:64px; border-radius:16px;
+      display:inline-grid; place-items:center; margin:4px auto 12px;
+      background:#e8fff6; color:#065f46; font-size:34px; line-height:1; box-shadow: var(--shadow);
+    }
+    h1{
+      margin:10px 0 6px; font-size:28px; color:#fff;
+    }
+    .sub{ margin:0 0 18px; color:#e6f0ff; }
+    .btn{
+      all:unset; display:inline-block; padding:10px 16px; border-radius:10px; cursor:pointer;
+      background:#fff; color:#0b3a88; border:2px solid #0b3a88; font-weight:800; box-shadow: var(--shadow);
+    }
+    .btn:hover{ transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+      </div>
+
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span>Mi sesión</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" id="logoutBtn">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card" role="status" aria-live="polite">
+      <div class="icon">✔</div>
+      <h1>¡Solicitud finalizada!</h1>
+      <p class="sub">Su solicitud se ha finalizado correctamente.</p>
+      <button class="btn" id="backToList">Volver a mis solicitudes</button>
+    </div>
+  </main>
+
+  <script>
+    // --- util para recuperar email como en otras páginas ---
+    function getEmailFromClient(){
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e){}
+      return '';
+    }
+
+    // Mostrar correo en menú
+    (function(){
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+    })();
+
+    // Menú sesión
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+
+    // Cerrar sesión -> login.html
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      try{
+        localStorage.removeItem('email');
+        sessionStorage.removeItem('email');
+        localStorage.removeItem('user');
+      }catch(e){}
+      location.href = 'login.html';
+    });
+
+    // Botón volver a mis solicitudes
+    document.getElementById('backToList').addEventListener('click', ()=>{
+      const email = getEmailFromClient();
+      const url = email ? `mis-solicitudes.html?email=${encodeURIComponent(email)}` : 'mis-solicitudes.html';
+      location.href = url;
+    });
+  </script>
+</body>
+</html>
