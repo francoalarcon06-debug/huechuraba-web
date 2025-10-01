@@ -4,80 +4,183 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Municipal</title>
+
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png.png" />
+
   <style>
     :root{
       --brand:#0a7cff;
       --brand-strong:#0562d6;
-      --text:#1a1a1a;
+      --text:#0b1220;
+      --muted:#475569;
       --card:#ffffff;
-      --muted:#6b7280;
-      --radius:14px;
-      --shadow:0 18px 40px rgba(2,40,90,.18);
+      --radius:16px;
+      --shadow:0 12px 40px rgba(2, 40, 90, .18);
     }
 
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(to bottom, #0b6ef3, #0562d6);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      color:var(--text);
+      background:linear-gradient(180deg, #0b6ef3 0%, #0562d6 100%);
       display:flex;
       flex-direction:column;
     }
-    header{
+
+    /* Header igual al index */
+    .header{
+      width:100%;
       background:#fff;
-      padding:1rem 2rem;
+      box-shadow:var(--shadow);
+      padding:14px 22px;
+    }
+    .header__inner{
+      max-width:1200px;
+      margin:0 auto;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      box-shadow:var(--shadow);
+      gap:16px;
     }
-    header img{height:50px}
-    header h1{margin:0;font-size:1.25rem;color:var(--brand-strong)}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+    .brand img{height:54px; width:auto}
+    .brand__copy{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .brand__title{
+      margin:0;
+      font-weight:800;
+      font-size:28px;
+      color:#1e3a8a;
+      letter-spacing:.2px;
+    }
+    .brand__subtitle{
+      margin:0;
+      font-size:14px;
+      color:#334155;
+    }
+
+    /* Botón de sesión (estático, visual) */
+    .session{
+      background:#ffffff;
+      border:1px solid #e5e7eb;
+      border-radius:999px;
+      padding:10px 14px;
+      box-shadow:0 8px 22px rgba(15, 23, 42, .08);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      cursor:default;
+      user-select:none;
+    }
+    .session__dot{
+      width:10px;height:10px;border-radius:50%;
+      background:var(--brand);
+      display:inline-block;
+    }
+    .session__label{
+      font-weight:600;
+      color:#1f2937;
+      font-size:14px;
+    }
+
+    /* Contenido principal (tarjetas) */
     .content{
       flex:1;
       display:flex;
-      justify-content:center;
       align-items:center;
-      gap:2rem;
+      justify-content:center;
+      padding:48px 20px 72px;
     }
-    .card{
+    .tiles{
+      width:100%;
+      max-width:1200px;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(260px, 420px));
+      gap:34px;
+      place-content:center;
+      place-items:center;
+    }
+    .tile{
       background:var(--card);
-      padding:2rem;
       border-radius:var(--radius);
       box-shadow:var(--shadow);
+      padding:38px 28px 28px;
       text-align:center;
-      width:250px;
-      cursor:pointer;
-      transition: transform .2s;
       text-decoration:none;
       color:var(--text);
+      width:100%;
+      transition:transform .18s ease, box-shadow .18s ease;
     }
-    .card:hover{transform:translateY(-5px)}
-    .card img{height:80px;margin-bottom:1rem}
-    .card-title{font-weight:bold;font-size:1rem}
+    .tile:hover{
+      transform:translateY(-4px);
+      box-shadow:0 16px 48px rgba(2, 40, 90, .22);
+    }
+    .tile img{
+      width:110px; height:110px; object-fit:contain;
+      display:block; margin:0 auto 12px;
+      filter:contrast(0) brightness(0); /* negro, como en index */
+    }
+    .tile__label{
+      margin-top:8px;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+    }
+
+    /* Responsive como el index */
+    @media (max-width:900px){
+      .tiles{grid-template-columns:1fr}
+      .brand__title{font-size:24px}
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div style="display:flex;align-items:center;gap:.75rem">
-      <img src="logo.png" alt="Logo" />
-      <h1>Huechuraba – Municipal</h1>
+  <!-- Header (logo + subtítulo + sesión) -->
+  <header class="header">
+    <div class="header__inner">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div class="brand__copy">
+          <h1 class="brand__title">Huechuraba.</h1>
+          <p class="brand__subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros</strong>.</p>
+        </div>
+      </div>
+
+      <div class="session" aria-label="Mi sesión">
+        <span class="session__dot"></span>
+        <span class="session__label">Mi sesión</span>
+      </div>
     </div>
   </header>
 
+  <!-- Tarjetas -->
   <main class="content">
-    <a href="administrar.html" class="card">
-      <img src="https://img.icons8.com/ios-filled/100/000000/settings.png" alt="Administrar"/>
-      <div class="card-title">ADMINISTRAR SOLICITUDES</div>
-    </a>
+    <div class="tiles">
+      <!-- Administrar solicitudes -->
+      <a class="tile" href="administrar.html">
+        <!-- Reuso la imagen que ya tienes subida -->
+        <img src="Realizar%20solicitud.png" alt="Administrar solicitudes" />
+        <div class="tile__label">Administrar solicitudes</div>
+      </a>
 
-    <a href="aprobadas.html" class="card">
-      <img src="https://img.icons8.com/ios-filled/100/000000/checklist.png" alt="Aprobadas"/>
-      <div class="card-title">SOLICITUDES APROBADAS</div>
-    </a>
+      <!-- Solicitudes aprobadas -->
+      <a class="tile" href="aprobadas.html">
+        <!-- Reuso la imagen que ya tienes subida -->
+        <img src="Ver%20estado%20solicitud.png" alt="Solicitudes aprobadas" />
+        <div class="tile__label">Solicitudes aprobadas</div>
+      </a>
+    </div>
   </main>
 </body>
 </html>
-
