@@ -2,69 +2,102 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Huechuraba – Autorizaciones</title>
   <link rel="icon" type="image/png" href="favicon.png.png" />
   <style>
     :root{
-      --white:#ffffff; --blue:#0b6ef3; --blue-dark:#0a54c9; --text:#0b1220;
-      --muted:#475569; --outline:#1e40af; --shadow:0 8px 28px rgba(2,6,23,.10);
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
+      --text:#0b1220;
+      --muted:#475569;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
+      --danger:#7f1d1d;
+      --danger-border:#fecaca;
+      --danger-text:#ffe3e3;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
-      color:var(--text);display:flex;flex-direction:column;
-      background:linear-gradient(180deg,#eaf2ff 0%,#eaf2ff 44%,#cfe3ff 45%,#b9d6ff 100%);
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+      color:var(--text);
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
     }
-    header{background:#fff;border-bottom:1px solid #e6eefc}
-    .wrap{max-width:1120px;margin:0 auto;padding:18px 20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px}
-    .brand{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:16px}
-    .brand img{height:78px;width:auto;object-fit:contain}
-    .brand .subtitle{grid-column:1/-1;margin:6px 0 0;color:#475569;font-size:15px;font-weight:600}
-    .userbox{position:relative}
-    .userbtn{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--outline);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;color:#1e40af;box-shadow:var(--shadow)}
-    .userbtn img{width:22px;height:22px;object-fit:contain}
-    .chev{font-size:13px}
-    .dropdown{position:absolute;right:0;top:calc(100% + 8px);background:#fff;border:1px solid #dbe4ff;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;min-width:260px;display:none}
-    .dropdown.open{display:block}
-    .dropdown .head{padding:12px 14px;font-size:14px;color:#0b3a88;background:#f8fbff;border-bottom:1px solid #e6eefc;font-weight:700;word-break:break-all}
-    .dropdown button{all:unset;display:block;width:100%;padding:12px 14px;cursor:pointer;font-weight:700;color:#b91c1c}
-    .dropdown button:hover{background:#fee2e2}
-    main{flex:1;background:linear-gradient(180deg,var(--blue) 0%,var(--blue-dark) 100%);padding:26px 16px 70px}
-    .container{max-width:900px;margin:0 auto}
-    h1{color:#fff;font-size:32px;margin:0 0 16px}
-    .card{background:#0b6ef3;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.12) inset,0 10px 24px rgba(0,0,0,.10);padding:18px}
-    .form{background:#0b6ef3;border-radius:14px;padding:18px}
-    .section{background:#0c5fe0;border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:16px;margin-bottom:16px}
-    .section h2{color:#e6f0ff;font-size:18px;margin:0 0 8px}
-    label{display:block;color:#e6f0ff;font-weight:800;margin:10px 0 6px}
-    .hint{color:#eaf2ffcc;font-size:12px;margin-top:4px}
-    input[type="text"],input[type="email"],textarea{width:100%;padding:12px;border-radius:10px;border:2px solid #0b3a88;outline:none;font-size:14px;box-shadow:var(--shadow);background:#fff}
-    textarea{min-height:110px;resize:vertical}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-    .row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
-    @media (max-width:860px){.row,.row-3,.row-4{grid-template-columns:1fr}.wrap{grid-template-columns:1fr}.brand img{height:64px}}
-    .readonly input,.readonly textarea{background:#f8fbff;color:#1f2937}
-    .radio-group{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-    .money-wrap{display:flex;align-items:center;gap:10px}
-    .money-prefix{font-weight:900;color:#0b3a88;background:#fff;border:2px solid #0b3a88;padding:8px 10px;border-radius:10px}
-    .money-input{flex:1}
-    .upload{background:#eaf2ff;border:2px dashed #0b3a88;padding:14px;border-radius:12px;display:flex;gap:12px;align-items:center;color:#0b3a88;font-weight:700}
-    .upload input{display:none}
-    .upload .btn{all:unset;background:#fff;border:2px solid #0b3a88;color:#0b3a88;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer;box-shadow:var(--shadow)}
-    .thumb{width:80px;height:80px;border-radius:10px;object-fit:cover;display:none;border:2px solid #0b3a88}
-    .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
-    .btn{all:unset;background:#fff;border:2px solid #0b3a88;color:#0b3a88;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;box-shadow:var(--shadow)}
-    .btn.primary{background:#0b3a88;color:#fff}
-    .error{color:#ffe3e3;background:#7f1d1d;border:1px solid #fecaca;padding:8px 10px;border-radius:8px;display:none;margin:12px 0 0}
-    .error.show{display:block}
-    .ok{color:#064e3b;background:#d1fae5;border:1px solid #10b981;padding:8px 10px;border-radius:8px;display:none;margin:12px 0 0}
-    .ok.show{display:block}
-    /* Debug area */
-    #dbg{display:none;white-space:pre-wrap;background:#0b3a8840;border:1px dashed #fff;color:#fff;padding:10px;border-radius:8px;margin-top:12px}
+    header{ background:#fff; border-bottom:1px solid #e6eefc; }
+    .wrap{
+      max-width:1120px; margin:0 auto; padding:18px 20px;
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
+    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
+
+    main{
+      flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+      padding:26px 16px 70px;
+    }
+    .container{ max-width:1000px; margin:0 auto; }
+    h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
+
+    .card{
+      background:#0b6ef3; padding:18px; border-radius:14px;
+      box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
+      margin-bottom:18px;
+    }
+    .grid{
+      display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;
+    }
+    .field{ display:grid; gap:6px; }
+    .label{ color:#e6f0ff; font-weight:800; font-size:14px; }
+    input, textarea{
+      width:100%; padding:10px 12px; border-radius:10px; border:none;
+      background:rgba(255,255,255,.92);
+      box-shadow: var(--shadow);
+      font-size:14px;
+    }
+    textarea{ min-height:120px; resize:vertical; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .row-3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+
+    .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
+    .btn{
+      all:unset; cursor:pointer; padding:10px 14px; border-radius:10px; font-weight:800;
+      background:#fff; border:2px solid #0b3a88; color:#0b3a88; box-shadow:var(--shadow);
+    }
+    .btn-primary{ background:#0b3a88; color:#fff; }
+
+    .error{
+      color:var(--danger-text); background:var(--danger); border:1px solid var(--danger-border);
+      padding:10px 12px; border-radius:8px; margin:0 0 12px 0; display:none; white-space:pre-wrap;
+    }
+    .error.show{ display:block; }
+
+    .debug{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background:#083344; color:#e2e8f0; border:1px solid #075985; padding:10px; border-radius:10px;
+      overflow:auto; max-height:240px; display:none;
+    }
+
+    .cartola{
+      background:rgba(255,255,255,.12); padding:12px; border-radius:10px; color:#fff;
+      display:grid; gap:10px;
+    }
+    .cartola img{ max-width:320px; border-radius:12px; box-shadow:var(--shadow); background:#fff; }
+    .cartola .hint{ color:#e6f0ff; font-size:13px; }
+    .link{
+      all:unset; cursor:pointer; color:#fff; background:#0b3a88; padding:8px 12px; border-radius:10px; font-weight:800;
+      border:2px solid #0b3a88; display:inline-block;
+    }
+
+    @media (max-width: 760px){
+      .grid, .row, .row-3{ grid-template-columns: 1fr; }
+      h1{ font-size:26px; }
+    }
   </style>
 </head>
 <body>
@@ -75,17 +108,7 @@
         <div></div>
         <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
       </div>
-      <div class="userbox">
-        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
-          <img src="cuenta.png" alt="Cuenta" />
-          <span>Mi sesión</span>
-          <span class="chev" aria-hidden="true">▾</span>
-        </button>
-        <div class="dropdown" id="userMenu" role="menu">
-          <div class="head" id="emailFull">—</div>
-          <button type="button" id="logoutBtn">Cerrar sesión</button>
-        </div>
-      </div>
+      <div></div>
     </div>
   </header>
 
@@ -93,296 +116,242 @@
     <div class="container">
       <h1>Autorizaciones</h1>
 
-      <div id="msgError" class="error"></div>
-      <div id="msgOk" class="ok"></div>
-      <pre id="dbg"></pre>
+      <div id="msgError" class="error">No fue posible cargar el detalle de la solicitud.</div>
+      <pre id="msgDebug" class="debug"></pre>
 
-      <!-- Datos de la solicitud (solo lectura) -->
-      <div class="card readonly" id="cardDatos">
-        <div class="section">
-          <h2>Datos de la solicitud</h2>
-          <div class="row-4">
-            <div><label>ID</label><input type="text" id="v_id" disabled /></div>
-            <div><label>Correo</label><input type="text" id="v_correo" disabled /></div>
-            <div><label>Nombre completo</label><input type="text" id="v_nombre" disabled /></div>
-            <div><label>RUT</label><input type="text" id="v_rut" disabled /></div>
+      <div class="card">
+        <div class="grid">
+          <div class="field">
+            <label class="label">ID</label>
+            <input id="f_id" disabled />
           </div>
-          <div class="row">
-            <div><label>Dirección</label><input type="text" id="v_direccion" disabled /></div>
-            <div><label>Teléfonos</label><input type="text" id="v_telefonos" disabled /></div>
+          <div class="field">
+            <label class="label">Correo</label>
+            <input id="f_correo" disabled />
           </div>
-          <div class="row">
-            <div><label>Tipo</label><input type="text" id="v_tipo" disabled /></div>
-            <div><label>Detalle</label><input type="text" id="v_detalle" disabled /></div>
+
+          <div class="field">
+            <label class="label">Nombre completo</label>
+            <input id="f_nombre" disabled />
           </div>
-          <div id="cartolaRow" style="display:none; margin-top:10px;">
-            <label>Cartola RSH</label>
-            <a id="v_cartola" href="#" target="_blank" class="btn">Ver cartola</a>
-            <div class="hint">Se muestra solo si el vecino adjuntó la cartola.</div>
+          <div class="field">
+            <label class="label">RUT</label>
+            <input id="f_rut" disabled />
+          </div>
+
+          <div class="field">
+            <label class="label">Dirección</label>
+            <input id="f_direccion" disabled />
+          </div>
+          <div class="field">
+            <label class="label">Teléfonos</label>
+            <input id="f_telefonos" disabled />
+          </div>
+
+          <div class="field">
+            <label class="label">Tipo</label>
+            <input id="f_tipos" disabled />
+          </div>
+          <div class="field">
+            <label class="label">Detalle</label>
+            <input id="f_detalle" disabled />
           </div>
         </div>
       </div>
 
-      <!-- Formulario de visita -->
-      <div class="form" style="margin-top:16px;">
-        <div class="section">
-          <h2>Comentario de visita</h2>
-          <label for="f_comentario">Comentario de visita</label>
-          <textarea id="f_comentario" maxlength="600" placeholder="Escriba su comentario (máx. 600 caracteres)"></textarea>
-          <div class="hint"><span id="charsLeft">600</span> caracteres restantes.</div>
+      <div id="cartolaBox" class="card cartola" style="display:none">
+        <div class="label" style="color:#e6f0ff">Cartola RSH</div>
+        <div id="cartolaPreview"></div>
+        <div class="hint">Si el archivo es imagen se previsualiza. Si es PDF u otro tipo, verás un botón para descargar.</div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label class="label">Comentario de visita</label>
+          <textarea id="f_comentario" placeholder="Escriba su comentario (máx. 600 caracteres)"></textarea>
         </div>
 
-        <div class="section">
-          <h2>Precio</h2>
-          <div class="radio-group" role="radiogroup" aria-label="Precio">
-            <label><input type="radio" name="precio" value="gratis" id="p_gratis"> Gratis</label>
-            <label><input type="radio" name="precio" value="otro" id="p_otro"> Otro</label>
+        <div class="row-3" style="margin-top:10px">
+          <div class="field">
+            <label class="label">Precio</label>
+            <div>
+              <label><input type="radio" name="precio" value="gratis" checked /> Gratis</label>
+              &nbsp;&nbsp;
+              <label><input type="radio" name="precio" value="otro" /> Otro</label>
+            </div>
           </div>
-          <div id="precioOtroWrap" class="money-wrap" style="display:none; margin-top:10px;">
-            <span class="money-prefix">$</span>
-            <input type="text" id="f_monto" class="money-input" inputmode="numeric" placeholder="0" />
-          </div>
-          <div class="hint">Si elige “Otro”, ingrese un valor en CLP. Se formatea automáticamente con puntos de miles.</div>
+          <div></div><div></div>
         </div>
 
-        <div class="section">
-          <h2>Fotografía (obligatoria)</h2>
-          <div class="upload">
-            <img id="thumb" class="thumb" alt="Vista previa" />
-            <button type="button" id="pickBtn" class="btn">Usar cámara / subir foto</button>
-            <input id="fileInput" type="file" accept="image/*" capture="environment" />
-          </div>
-          <div class="hint">Solo se permite <strong>una</strong> foto. Volver a elegir reemplaza la anterior.</div>
+        <div class="field" style="margin-top:10px">
+          <label class="label">Fotografía (obligatoria)</label>
+          <button class="btn" disabled>Usar cámara / subir foto</button>
+          <div class="hint" style="color:#e6f0ff">Solo se permite una foto. Volver a elegir reemplaza la anterior.</div>
         </div>
 
         <div class="actions">
-          <button class="btn" id="cancelBtn">Cancelar</button>
-          <button class="btn primary" id="saveBtn">Guardar</button>
+          <button id="btnCancel" class="btn">Cancelar</button>
+          <button id="btnSave" class="btn btn-primary">Guardar</button>
         </div>
       </div>
     </div>
   </main>
 
   <script>
-    // ===== Endpoints =====
+    // ====== CONFIG ======
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
-    const SAVE_ENDPOINT   = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
 
-    // Sesión UI
-    function getEmailFromClient(){
-      const ls = (localStorage.getItem('email') || '').trim();
-      if (ls) return ls;
-      const ss = (sessionStorage.getItem('email') || '').trim();
-      if (ss) return ss;
-      const qs = new URLSearchParams(location.search).get('email');
-      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
-      try { const u = JSON.parse(localStorage.getItem('user')||'{}'); if (u && u.correo) return String(u.correo).trim(); } catch(e){}
-      return '';
-    }
-    (function(){ document.getElementById('emailFull').textContent = getEmailFromClient() || '—'; })();
-
-    const btn = document.getElementById('userBtn');
-    const menu = document.getElementById('userMenu');
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
-    document.addEventListener('click', ()=> menu.classList.remove('open'));
-    document.getElementById('logoutBtn').addEventListener('click', ()=>{ try{localStorage.removeItem('email');sessionStorage.removeItem('email');localStorage.removeItem('user');}catch(e){} location.href='index.html'; });
-
-    const msgError = document.getElementById('msgError');
-    const msgOk = document.getElementById('msgOk');
-    const dbg = document.getElementById('dbg');
-    function showError(t){ msgOk.classList.remove('show'); msgError.textContent=t; msgError.classList.add('show'); }
-    function showOk(t){ msgError.classList.remove('show'); msgOk.textContent=t; msgOk.classList.add('show'); }
-    function showDbg(obj){ try{ dbg.textContent = typeof obj==='string' ? obj : JSON.stringify(obj,null,2); dbg.style.display='block'; }catch(e){} }
-
+    // ====== UTILS ======
     const qs = new URLSearchParams(location.search);
-    const SOL_ID = Number(qs.get('id') || 0);
-    if (!SOL_ID){ showError('Falta el parámetro "id" en la URL.'); } else { loadDetalle(SOL_ID); }
+    const id = Number(qs.get('id') || 0) || 0;
 
-    function normalizeTipos(val){
+    function showError(msg, debug) {
+      const e = document.getElementById('msgError');
+      e.textContent = msg || 'Ocurrió un error.';
+      e.classList.add('show');
+
+      const dbg = document.getElementById('msgDebug');
+      if (debug) {
+        dbg.style.display = 'block';
+        try { dbg.textContent = typeof debug === 'string' ? debug : JSON.stringify(debug, null, 2); }
+        catch { dbg.textContent = String(debug); }
+      } else {
+        dbg.style.display = 'none';
+        dbg.textContent = '';
+      }
+    }
+    function hideError() {
+      document.getElementById('msgError').classList.remove('show');
+      const dbg = document.getElementById('msgDebug');
+      dbg.style.display = 'none';
+      dbg.textContent = '';
+    }
+
+    function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
-      if (typeof val === 'string'){
-        const s = sTrim(val);
-        if (s.startsWith('{') && s.endsWith('}')){
+      if (typeof val === 'string') {
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')) {
           const inner = s.slice(1,-1);
           if (!inner) return [];
           return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
         }
-        return s ? [s] : [];
+        if (s) return [s];
       }
       return [];
     }
-    function sTrim(x){ return String(x||'').trim(); }
-
-    async function loadDetalle(id){
-      try{
-        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
-        const r = await fetch(url, { method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors' });
-
-        // Si la red falla o no es 2xx
-        if (!r.ok){
-          const raw = await r.text().catch(()=> '');
-          showDbg({status:r.status, raw});
-          throw new Error('HTTP '+r.status);
-        }
-
-        // Intentar JSON primero; si no, quedarnos con texto
-        let bodyText = '';
-        try { bodyText = await r.text(); }
-        catch(e){ console.error('No se pudo leer body como texto', e); throw e; }
-
-        let d;
-        try { d = JSON.parse(bodyText); }
-        catch(e){
-          // No era JSON. Mostrarlo y fallar.
-          showDbg(bodyText || '(sin cuerpo)');
-          throw new Error('Respuesta no es JSON');
-        }
-
-        // Mostrar en debug siempre la respuesta interpretada
-        showDbg(d);
-
-        // Aceptamos varios formatos:
-        // 1) {status:200, data:{...}}
-        // 2) {data:{...}}
-        // 3) {id:..., ...} directo
-        let detalle = null;
-        if (d && typeof d==='object'){
-          if (d.data && typeof d.data==='object') detalle = d.data;
-          else if ('id' in d || 'ID' in d) detalle = d;
-        }
-        if (!detalle){
-          throw new Error('JSON sin "data" ni "id"');
-        }
-
-        // Rellenar campos
-        setVal('v_id', detalle.id ?? detalle.ID ?? '—');
-        setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
-        setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
-        setVal('v_rut', detalle.rut ?? '—');
-        setVal('v_direccion', detalle.direccion ?? '—');
-
-        const tel = detalle.telefono ?? detalle.telefonos ?? '';
-        setVal('v_telefonos', formatPhone(tel || '—'));
-
-        const tiposStr = normalizeTipos(detalle.tipos || []).join(', ') || '—';
-        setVal('v_tipo', tiposStr);
-        setVal('v_detalle', detalle.detalle ?? '—');
-
-        // Cartola opcional
-        try {
-          const cart = detalle.cartola;
-          if (cart && cart.b64 && cart.mime){
-            const urlBlob = makeBlobUrlFromB64(cart.b64, cart.mime);
-            if (urlBlob){
-              document.getElementById('cartolaRow').style.display = '';
-              const a = document.getElementById('v_cartola');
-              a.href = urlBlob;
-              const ext = (String(cart.mime).trim().split('/')[1] || 'bin');
-              a.download = `cartola_${detalle.id}.${ext}`;
-            } else {
-              document.getElementById('cartolaRow').style.display = 'none';
-            }
-          } else {
-            document.getElementById('cartolaRow').style.display = 'none';
-          }
-        } catch(cartErr){
-          console.error('Error preparando cartola:', cartErr);
-          document.getElementById('cartolaRow').style.display = 'none';
-        }
-
-        // Ok: ocultar error si estaba visible
-        msgError.classList.remove('show');
-
-      }catch(err){
-        console.error('Fallo en loadDetalle:', err);
-        showError('No fue posible cargar el detalle de la solicitud.');
-      }
+    function displayTipos(arr){
+      if (!arr || !arr.length) return '—';
+      const clean = arr.map(t => String(t).replace(/^"(.*)"$/,'$1').replace(/^'(.*)'$/,'$1'));
+      if (clean.length <= 2) return clean.join(', ');
+      return clean.slice(0,2).join(', ') + ', ...';
     }
-
-    // Limpia base64 y recorta MIME
-    function makeBlobUrlFromB64(b64, mime){
-      try {
-        const clean = String(b64 || '').replace(/[^A-Za-z0-9+/=]/g, ''); // elimina \n, \r, espacios, etc.
-        const raw = atob(clean);
-        const len = raw.length; const arr = new Uint8Array(len);
-        for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
-        const type = String(mime || 'application/octet-stream').trim();
-        return URL.createObjectURL(new Blob([arr], {type}));
-      } catch(e){
-        console.error('Error creando blob desde base64:', e);
-        return null;
-      }
-    }
-
-    function setVal(id, val){ document.getElementById(id).value = (val==null || val==='') ? '—' : String(val); }
     function formatPhone(v){
       if (!v) return '—';
       const digits = String(v).replace(/\D/g,'');
-      if (digits.length===11 && digits.startsWith('569')) return `+56 9 ${digits.slice(3,7)} ${digits.slice(7,11)}`;
-      if (digits.length===9  && digits.startsWith('9'))   return `+56 9 ${digits.slice(1,5)} ${digits.slice(5,9)}`;
+      if (digits.length === 11 && digits.startsWith('569')) {
+        const a = digits.slice(3,7);
+        const b = digits.slice(7,11);
+        return `+56 9 ${a} ${b}`;
+      }
+      if (digits.length === 9 && digits.startsWith('9')) {
+        const a = digits.slice(1,5);
+        const b = digits.slice(5,9);
+        return `+56 9 ${a} ${b}`;
+      }
       return v;
     }
 
-    // Comentario contador
-    const comentarioEl = document.getElementById('f_comentario');
-    const charsLeftEl = document.getElementById('charsLeft');
-    comentarioEl.addEventListener('input', ()=>{
-      const max = Number(comentarioEl.getAttribute('maxlength')) || 600;
-      charsLeftEl.textContent = Math.max(0, max - comentarioEl.value.length);
-    });
+    function renderCartola(cartola){
+      const wrap = document.getElementById('cartolaBox');
+      const prev = document.getElementById('cartolaPreview');
+      prev.innerHTML = '';
+      if (!cartola || !cartola.mime || !cartola.b64) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'grid';
+      const mime = String(cartola.mime).trim().toLowerCase();
+      const dataUrl = `data:${mime};base64,${cartola.b64}`;
+      if (mime.startsWith('image/')) {
+        const img = new Image();
+        img.src = dataUrl;
+        img.alt = 'Cartola RSH';
+        prev.appendChild(img);
+      } else {
+        const a = document.createElement('a');
+        a.className = 'link';
+        a.href = dataUrl;
+        a.download = 'cartola_rsh';
+        a.textContent = 'Descargar cartola';
+        prev.appendChild(a);
+      }
+    }
 
-    // Precio
-    const rGratis = document.getElementById('p_gratis');
-    const rOtro   = document.getElementById('p_otro');
-    const wrapMonto = document.getElementById('precioOtroWrap');
-    const montoEl = document.getElementById('f_monto');
-    function updatePrecioUI(){ if (rOtro.checked){ wrapMonto.style.display=''; montoEl.focus(); } else { wrapMonto.style.display='none'; montoEl.value=''; } }
-    rGratis.addEventListener('change', updatePrecioUI);
-    rOtro.addEventListener('change', updatePrecioUI);
-    montoEl.addEventListener('input', ()=>{ const d = montoEl.value.replace(/\D/g,''); montoEl.value = d ? d.replace(/\B(?=(\d{3})+(?!\d))/g,'.') : '' });
-
-    // Foto única
-    const pickBtn = document.getElementById('pickBtn');
-    const fileInput = document.getElementById('fileInput');
-    const thumb = document.getElementById('thumb');
-    pickBtn.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', ()=>{
-      if (!fileInput.files || fileInput.files.length===0){ thumb.style.display='none'; thumb.src=''; return; }
-      if (fileInput.files.length>1){ const dt=new DataTransfer(); dt.items.add(fileInput.files[0]); fileInput.files=dt.files; }
-      const f=fileInput.files[0];
-      if (!f.type.startsWith('image/')){ showError('El archivo debe ser una imagen.'); fileInput.value=''; thumb.style.display='none'; return; }
-      const reader=new FileReader(); reader.onload=(e)=>{ thumb.src=e.target.result; thumb.style.display='block'; }; reader.readAsDataURL(f);
-    });
-
-    // Botones guardar/cancelar
-    document.getElementById('cancelBtn').addEventListener('click', ()=>{ history.back(); });
-    document.getElementById('saveBtn').addEventListener('click', async ()=>{
-      const faltas=[], comentario=comentarioEl.value.trim();
-      if (!comentario) faltas.push('Comentario de visita');
-      let precio_tipo='', monto_raw='';
-      if (rGratis.checked){ precio_tipo='gratis'; }
-      else if (rOtro.checked){ precio_tipo='otro'; const m=(montoEl.value||'').replace(/\./g,'').trim(); if (!m) faltas.push('Monto (CLP)'); monto_raw=m; }
-      else { faltas.push('Seleccionar precio (Gratis / Otro)'); }
-      if (!fileInput.files || fileInput.files.length===0) faltas.push('Fotografía');
-      if (faltas.length){ showError('Complete: '+faltas.join(', ')+'.'); return; }
+    // ====== CARGA INICIAL ======
+    async function loadDetail() {
+      if (!id) {
+        showError('Parámetro "id" inválido.');
+        return;
+      }
+      hideError();
 
       try{
-        const fd=new FormData();
-        fd.append('id', String(SOL_ID));
-        fd.append('comentario', comentario);
-        fd.append('precio_tipo', precio_tipo);
-        if (precio_tipo==='otro') fd.append('monto', monto_raw);
-        fd.append('foto', fileInput.files[0]);
-        const res=await fetch(SAVE_ENDPOINT,{method:'POST',body:fd});
-        if (!res.ok){
-          const raw = await res.text().catch(()=> '');
-          showDbg({saveStatus:res.status, raw});
-          throw new Error('HTTP '+res.status);
+        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
+        const res = await fetch(url, {
+          method:'GET',
+          headers: { 'Accept':'application/json' },
+          mode:'cors',
+          cache:'no-store'
+        });
+
+        // Si n8n devuelve un 200/400/404/500 con JSON -> seguimos leyendo igual
+        const text = await res.text();
+        let payload;
+        try { payload = JSON.parse(text); }
+        catch { payload = { status: res.status, raw: text }; }
+
+        if (!res.ok) {
+          showError('No fue posible cargar el detalle de la solicitud.', payload);
+          return;
         }
-        showOk('Visita guardada correctamente.');
-      }catch(e){ console.error(e); showError('No fue posible guardar la visita. Intente nuevamente.'); }
+
+        // Esperamos formato { status: 200, data: {...} }
+        const status = Number(payload?.status ?? res.status);
+        if (status !== 200 || !payload?.data) {
+          showError('Respuesta inválida desde el servidor.', payload);
+          return;
+        }
+
+        const d = payload.data;
+
+        // Pinta campos
+        document.getElementById('f_id').value         = d.id ?? '';
+        document.getElementById('f_correo').value     = d.correo || '';
+        document.getElementById('f_nombre').value     = d.nombre || '';
+        document.getElementById('f_rut').value        = d.rut || '';
+        document.getElementById('f_direccion').value  = d.direccion || '';
+        document.getElementById('f_telefonos').value  = formatPhone(d.telefono || '');
+        document.getElementById('f_tipos').value      = displayTipos(parseTipos(d.tipos));
+        document.getElementById('f_detalle').value    = d.detalle || '';
+
+        renderCartola(d.cartola);
+      }catch(err){
+        console.error(err);
+        showError('Error de red al consultar el detalle.', String(err));
+      }
+    }
+
+    // ====== BOTONES ======
+    document.getElementById('btnCancel').addEventListener('click', ()=>{
+      history.back();
     });
+    document.getElementById('btnSave').addEventListener('click', ()=>{
+      alert('Guardar: pendiente de implementar 👍');
+    });
+
+    // run
+    loadDetail();
   </script>
 </body>
 </html>
-
