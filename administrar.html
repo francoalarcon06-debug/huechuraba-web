@@ -18,6 +18,7 @@
       --danger:#b91c1c;
       --ok:#065f46;
       --warn:#1f2937;
+      --hover:#f1f5ff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -72,37 +73,10 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      overflow:hidden;
+      /* antes: overflow:hidden; -> cortaba el menú */
+      overflow: visible; /* permite que el dropdown se vea completo */
+      position: relative;
     }
-
-    /* Encabezado con filtro a la derecha */
-    .toolbar{
-      display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:0 6px 10px;
-      color:#e6f0ff; font-weight:800;
-    }
-    .filter{
-      position:relative; display:flex; align-items:center; gap:10px;
-    }
-    .filter-label{ color:#e6f0ff; font-weight:800; }
-    .filter-btn{
-      all:unset; display:inline-flex; align-items:center; gap:8px; background:#fff;
-      border:2px solid #0b3a88; color:#0b3a88; padding:8px 12px; border-radius:18px; font-weight:800; cursor:pointer;
-      box-shadow: var(--shadow); white-space:nowrap; max-width: 320px;
-    }
-    .filter-btn .chip{ background:#eaf2ff; padding:4px 8px; border-radius:14px; font-weight:800; }
-    .filter-menu{
-      position:absolute; top:44px; right:0; z-index:20;
-      background:#fff; border:1px solid #dbe4ff; border-radius:12px; box-shadow:var(--shadow);
-      padding:6px; width: 260px; max-height: 320px;
-      overflow-y:auto; overflow-x:hidden; /* sin scroll horizontal */
-      white-space: nowrap; /* y nunca corta palabras con salto de línea */
-    }
-    .filter-menu[hidden]{ display:none; }
-    .filter-menu button{
-      all:unset; display:block; width:100%; padding:11px 12px; border-radius:10px; cursor:pointer;
-      font-weight:800; color:#0b3a88;
-    }
-    .filter-menu button:hover{ background:#f1f5ff; }
 
     .table-footer{
       display:flex; justify-content:flex-start; align-items:center; gap:12px;
@@ -134,30 +108,53 @@
 
     .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    .w-actions{ width:56px; text-align:center; }
     .w-id{ width:76px; }
-    .w-dir{ width:220px; }
-    .w-tel{ width:160px; }
+    .w-dir{ width:200px; }
+    th.w-dir, td.w-dir { padding-left: 40px; }
+    .w-tel{ width:140px; }
+    th.w-tel, td.w-tel { padding-left: 14px; }
     .w-tipo{ width:220px; }
-    .w-det{ width:360px; }
-    .w-estado{ width:160px; }
+    th.w-tipo, td.w-tipo { padding-left: 14px; }
+    .w-det{ width:240px; }
+    th.w-det, td.w-det { padding-left: 14px; }
+    .w-estado{ width:160px; padding-left: 0; }
 
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.ACEPTADA{ color:#065f46; }
-    .state.RECHAZADO{ color:#b91c1c; }
+    .state.RECHAZADA{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
     .state.CANCELADO{ color:#b91c1c; }
 
+    /* -------- Filtro de estado (dropdown) -------- */
+    .state-filter{ position:relative; display:inline-block; }
+    .state-chip{
+      display:inline-flex; align-items:center; gap:8px;
+      background:#fff; color:#0b3a88; font-weight:800; border-radius:20px;
+      padding:6px 12px; box-shadow: var(--shadow); cursor:pointer; border:2px solid #0b3a88;
+    }
+    .state-label{ color:#e6f0ff; font-weight:900; margin-right:8px; }
+    .state-caret{ color:#e6f0ff; font-weight:900; margin-left:6px; }
+
+    #stateMenu{
+      position:absolute; right:0; top:calc(100% + 8px);
+      background:#fff; border:1px solid #dbe4ff; border-radius:12px;
+      box-shadow: var(--shadow); min-width:240px; display:none;
+      z-index: 9999; /* que quede por sobre todo */
+      max-height: 320px; /* si hay muchas opciones, que scrollee */
+      overflow: auto;
+    }
+    #stateMenu.open{ display:block; }
+    #stateMenu button{
+      all:unset; display:block; width:100%; padding:10px 14px; cursor:pointer;
+      font-weight:800; color:#0b3a88;
+    }
+    #stateMenu button:hover{ background:var(--hover); }
+    /* ---------------------------------------------- */
+
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
-
-    @media (max-width: 1100px){
-      .w-det{ width:280px; }
-      .w-tipo{ width:200px; }
-    }
-    @media (max-width: 920px){
-      .w-det{ display:none; }
-    }
   </style>
 </head>
 <body>
@@ -191,24 +188,6 @@
       <div id="msgError" class="error"></div>
 
       <div class="table-card">
-        <!-- Toolbar con filtro -->
-        <div class="toolbar">
-          <div class="filter">
-            <span class="filter-label">Estado</span>
-            <button id="estadoBtn" class="filter-btn" aria-expanded="false" aria-haspopup="true">
-              <span class="chip" id="estadoChip">Todos</span>
-              ▾
-            </button>
-            <div id="estadoMenu" class="filter-menu" hidden>
-              <button data-value="todos">Todos</button>
-              <button data-value="pendiente">Pendiente</button>
-              <button data-value="cancelado">Cancelado</button>
-              <button data-value="pendiente de pago">Pendiente de pago</button>
-              <button data-value="rechazado">Rechazado</button>
-            </div>
-          </div>
-        </div>
-
         <table>
           <thead>
             <tr>
@@ -217,13 +196,30 @@
               <th class="w-tel">Teléfono</th>
               <th class="w-tipo">Tipo</th>
               <th class="w-det">Detalle</th>
-              <th class="w-estado">Estado</th>
+              <th class="w-estado">
+                <span class="state-label">Estado</span>
+                <span class="state-caret">▾</span>
+                <span class="state-filter">
+                  <button id="stateFilterBtn" class="state-chip" type="button">
+                    <span id="stateFilterValue">Todos</span>
+                  </button>
+                  <div id="stateMenu" role="menu" aria-labelledby="stateFilterBtn">
+                    <button data-value="">Todos</button>
+                    <button data-value="pendiente">Pendiente</button>
+                    <button data-value="cancelado">Cancelado</button>
+                    <button data-value="pendiente de pago">Pendiente de pago</button>
+                    <button data-value="rechazado">Rechazado</button>
+                  </div>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="6" style="text-align:center;color:#e6f0ff;padding:16px 8px;">Cargando…</td></tr>
+            <tr><td colspan="6" style="background:rgba(255,255,255,.12); color:#e6f0ff; padding:12px;">Sin resultados</td></tr>
           </tbody>
         </table>
+
+        <div class="pager" id="pager"></div>
 
         <div class="table-footer">
           <button class="back-btn" id="backBtn">← Volver atrás</button>
@@ -233,7 +229,8 @@
   </main>
 
   <script>
-    // ========= Utilidades de sesión =========
+    const ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list';
+
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -255,6 +252,13 @@
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
+    // Botón volver
+    document.getElementById('backBtn').addEventListener('click', ()=>{
+      const email = getEmailFromClient();
+      location.href = email ? `municipal.html?email=${encodeURIComponent(email)}` : `municipal.html`;
+    });
+
+    // Cerrar sesión -> limpiar y llevar a login (index.html)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
@@ -262,11 +266,6 @@
         localStorage.removeItem('user');
       }catch(e){}
       location.href = 'index.html';
-    });
-    document.getElementById('backBtn').addEventListener('click', ()=>{
-      const email = getEmailFromClient();
-      if (email) location.href = `verify.html?email=${encodeURIComponent(email)}`;
-      else location.href = 'verify.html';
     });
 
     const btn = document.getElementById('userBtn');
@@ -277,12 +276,18 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    function formatPhone(v){
-      if (!v) return '—';
-      const digits = String(v).replace(/\D/g,'');
-      if (digits.length === 11 && digits.startsWith('569')) return `+56 9 ${digits.slice(3,7)} ${digits.slice(7)}`;
-      if (digits.length === 9 && digits.startsWith('9')) return `+56 9 ${digits.slice(1,5)} ${digits.slice(5)}`;
-      return v;
+    function fmtDate(v){
+      if (v === null || v === undefined || v === '') return '—';
+      const d = new Date(Number(v));
+      try {
+        return new Intl.DateTimeFormat('es-CL', {
+          dateStyle:'medium',
+          timeStyle:'short',
+          timeZone:'UTC'
+        }).format(d);
+      } catch {
+        return d.toUTCString();
+      }
     }
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
@@ -303,102 +308,191 @@
       if (clean.length <= 2) return clean.join(', ');
       return clean.slice(0,2).join(', ') + ', ...';
     }
+    function formatPhone(v){
+      if (!v) return '—';
+      const digits = String(v).replace(/\D/g,'');
+      if (digits.length === 11 && digits.startsWith('569')) {
+        const a = digits.slice(3,7);
+        const b = digits.slice(7,11);
+        return `+56 9 ${a} ${b}`;
+      }
+      if (digits.length === 9 && digits.startsWith('9')) {
+        const a = digits.slice(1,5);
+        const b = digits.slice(5,9);
+        return `+56 9 ${a} ${b}`;
+      }
+      return v;
+    }
     const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
-    const normalizeEstado = (s) => String(s||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
 
-    // ========= Datos y render =========
+    // ------- Filtro de estado -------
+    const filterBtn = document.getElementById('stateFilterBtn');
+    const filterVal = document.getElementById('stateFilterValue');
+    const filterMenu = document.getElementById('stateMenu');
+    let currentEstado = '';
+
+    filterBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      filterMenu.classList.toggle('open');
+    });
+    filterMenu.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-value]');
+      if (!btn) return;
+      currentEstado = btn.getAttribute('data-value') || '';
+      filterVal.textContent = currentEstado ? capitalize(currentEstado) : 'Todos';
+      page = 1;
+      loadData();
+      filterMenu.classList.remove('open');
+    });
+    document.addEventListener('click', ()=> filterMenu.classList.remove('open'));
+    function capitalize(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+    // --------------------------------
+
     let allItems = [];
-    let estadoActual = 'todos';
+    let page = 1;
+    const pageSize = 10;
 
-    function setEstadoChip(text){ document.getElementById('estadoChip').textContent = text; }
+    function paginate(items, p, size){
+      const start = (p-1)*size;
+      return items.slice(start, start + size);
+    }
 
-    function filteredItems(){
-      if (estadoActual === 'todos') return allItems.slice();
-      const target = normalizeEstado(estadoActual);
-      return allItems.filter(it => normalizeEstado(it.estado_solicitud) === target);
+    function hasValue(x){
+      if (x === null || x === undefined) return false;
+      if (typeof x === 'string' && x.trim() === '') return false;
+      return true;
     }
 
     function render(){
       const tbody = document.getElementById('tbody');
-      const items = filteredItems();
+      tbody.innerHTML = '';
+
+      const items = paginate(allItems, page, pageSize);
 
       if (!items.length){
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e6f0ff;padding:14px 8px;">Sin resultados</td></tr>';
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.background = 'rgba(255,255,255,.12)';
+        td.style.color = '#e6f0ff';
+        td.style.padding = '12px';
+        td.textContent = 'Sin resultados';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        renderPager();
         return;
       }
 
-      tbody.innerHTML = '';
       for(const it of items){
         const tr = document.createElement('tr');
 
-        const tdId = document.createElement('td'); tdId.className='w-id cell-ellipsis'; tdId.textContent = it.id ?? '—';
-        const tdDir= document.createElement('td'); tdDir.className='w-dir cell-ellipsis'; tdDir.textContent = it.direccion || '—';
-        const tdTel= document.createElement('td'); tdTel.className='w-tel cell-ellipsis'; tdTel.textContent = formatPhone(it.telefono);
-        const tdTip= document.createElement('td'); tdTip.className='w-tipo cell-ellipsis'; tdTip.textContent = displayTipos(parseTipos(it.tipos));
-        const tdDet= document.createElement('td'); tdDet.className='w-det cell-ellipsis'; tdDet.textContent = it.detalle || '—';
+        const tdId = document.createElement('td');
+        tdId.className = 'w-id cell-ellipsis';
+        tdId.textContent = it.id ?? '—';
 
-        const tdEst= document.createElement('td'); tdEst.className='w-estado';
-        const estadoUpper = (it.estado_solicitud || '').toUpperCase();
+        const tdDir = document.createElement('td');
+        tdDir.className = 'w-dir cell-ellipsis';
+        tdDir.textContent = it.direccion || '—';
+
+        const tdTel = document.createElement('td');
+        tdTel.className = 'w-tel cell-ellipsis';
+        tdTel.textContent = formatPhone(it.telefono);
+
+        const tdTipos = document.createElement('td');
+        tdTipos.className = 'w-tipo cell-ellipsis';
+        tdTipos.textContent = displayTipos(parseTipos(it.tipos));
+
+        const tdDet = document.createElement('td');
+        tdDet.className = 'w-det cell-ellipsis';
+        tdDet.textContent = it.detalle || '—';
+
+        const tdEst = document.createElement('td');
+        tdEst.className = 'w-estado';
+        const estadoUpper = String(it.estado_solicitud || 'pendiente').toUpperCase();
         const span = document.createElement('span');
         span.className = 'state ' + stateClass(estadoUpper);
         span.textContent = estadoUpper;
         tdEst.appendChild(span);
 
-        tr.append(tdId, tdDir, tdTel, tdTip, tdDet, tdEst);
+        tr.append(tdId, tdDir, tdTel, tdTipos, tdDet, tdEst);
         tbody.appendChild(tr);
       }
+
+      renderPager();
     }
 
-    // ========= Filtro de estado (UI) =========
-    const estadoBtn  = document.getElementById('estadoBtn');
-    const estadoMenu = document.getElementById('estadoMenu');
+    function renderPager(){
+      const total = allItems.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      const pager = document.getElementById('pager');
+      pager.innerHTML = '';
 
-    estadoBtn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      const hidden = estadoMenu.hasAttribute('hidden');
-      if (hidden) estadoMenu.removeAttribute('hidden'); else estadoMenu.setAttribute('hidden','');
-      estadoBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
-    });
-    document.addEventListener('click', ()=> estadoMenu.setAttribute('hidden',''));
+      if (pages <= 1) {
+        pager.style.display = 'none';
+        return;
+      }
+      pager.style.display = 'flex';
 
-    estadoMenu.querySelectorAll('button').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const v = b.getAttribute('data-value');
-        estadoActual = v || 'todos';
-        setEstadoChip(b.textContent.trim());
-        estadoMenu.setAttribute('hidden','');
-        estadoBtn.setAttribute('aria-expanded','false');
-        // filtrado en cliente, sin tocar lo demás
-        render();
-      });
-    });
+      const btn = (label, handler, cls='')=>{
+        const b = document.createElement('button');
+        b.textContent = label;
+        if (cls) b.className = cls;
+        b.addEventListener('click', handler);
+        return b;
+      };
+      const num = (n)=>{
+        const s = document.createElement('span');
+        s.textContent = n;
+        s.className = 'num' + (n===page ? ' current' : '');
+        if (n !== page) s.addEventListener('click', ()=>{ page=n; render(); });
+        return s;
+      };
+      const sep = ()=>{ const s=document.createElement('span'); s.textContent='-'; s.className='sep'; return s; };
 
-    // ========= Carga desde API =========
+      if (page > 1) pager.appendChild(btn('‹ Anterior', ()=>{ page=Math.max(1,page-1); render(); }));
+
+      if (pages <= 4) {
+        for (let i=1;i<=pages;i++){
+          if (i>1) pager.appendChild(sep());
+          pager.appendChild(num(i));
+        }
+      } else {
+        pager.appendChild(num(1));
+        pager.appendChild(sep());
+        pager.appendChild(num(2));
+        pager.appendChild(sep());
+        pager.appendChild(num(3));
+        pager.appendChild(sep());
+        pager.appendChild(num(4));
+        pager.appendChild(sep());
+        const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
+        pager.appendChild(sep());
+        pager.appendChild(num(pages));
+      }
+
+      if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
+    }
+
     async function loadData(){
       try{
-        // Si el backend acepta "estado", se lo pasamos. Igualmente filtramos en cliente.
-        const params = new URLSearchParams();
-        if (estadoActual && estadoActual !== 'todos') params.set('estado', estadoActual);
-        const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list` + (params.toString()?`?${params.toString()}`:'');
-        const res = await fetch(url, { method:'GET', headers:{ 'Cache-Control':'no-store' }});
+        const url = new URL(ENDPOINT);
+        if (currentEstado) url.searchParams.set('estado', currentEstado);
+        const res = await fetch(url.toString(), { method:'GET', cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-
-        // Acepta tanto {items,total,...} como array directo
-        const items = Array.isArray(data) ? data : (data.items || []);
-        // Ordenar por id desc como pediste
-        allItems = items.slice().sort((a,b)=> (Number(b.id||0) - Number(a.id||0)));
+        const items = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
+        // Ordenar por id desc por si acaso
+        items.sort((a,b)=> Number(b.id||0) - Number(a.id||0));
+        allItems = items;
         render();
       }catch(e){
         console.error(e);
         showError('No fue posible cargar las solicitudes.');
-        const tbody = document.getElementById('tbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ffe3e3;padding:14px 8px;">Error al cargar</td></tr>';
+        allItems = [];
+        render();
       }
     }
 
-    // Estado inicial
-    setEstadoChip('Todos');
     loadData();
   </script>
 </body>
