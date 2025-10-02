@@ -266,15 +266,13 @@
   </main>
 
   <script>
-    // ====== Endpoints de producción (disparan el flujo en n8n) ======
-    const DETAIL_ENDPOINT = {
-      primary: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail',
-      fallbackList: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list'
-    };
-    const SAVE_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
-    // ===============================================================
+    // ====== Endpoints ======
+    // SOLO usamos el endpoint de detalle para no disparar el flujo de lista.
+    const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
+    const SAVE_ENDPOINT   = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
+    // =======================
 
-    // Sesión UI (igual estilo que otras páginas)
+    // Sesión UI
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -315,7 +313,7 @@
     function showError(t){ msgOk.classList.remove('show'); msgError.textContent = t; msgError.classList.add('show'); }
     function showOk(t){ msgError.classList.remove('show'); msgOk.textContent = t; msgOk.classList.add('show'); }
 
-    // === Carga del detalle (dispara el flujo en n8n) ===
+    // === Carga del detalle ===
     const qs = new URLSearchParams(location.search);
     const SOL_ID = Number(qs.get('id') || 0);
 
@@ -341,46 +339,17 @@
 
     async function loadDetalle(id){
       try{
-        // 1) Llamada al webhook de detalle (GET ?id=...) -> activa el flujo
-        let detalle = null;
-        try{
-          const u = `${DETAIL_ENDPOINT.primary}?id=${encodeURIComponent(id)}`;
-          const r = await fetch(u, {
-            method:'GET',
-            headers:{'Accept':'application/json'},
-            cache:'no-store',
-            mode:'cors'
-          });
-          if (r.ok){
-            const d = await r.json();
-            if (d && (d.id || d.ID || (d.data && d.data.id))){
-              detalle = d.data || d;
-            }
-          }
-        }catch(e){ /* fallback abajo */ }
+        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
+        const r = await fetch(url, { method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors' });
+        if (!r.ok) throw new Error('HTTP '+r.status);
+        const d = await r.json();
+        const detalle = d?.data || d;
 
-        // 2) Fallback: traer lista y filtrar por id
-        if (!detalle){
-          const u2 = `${DETAIL_ENDPOINT.fallbackList}?page=1&per_page=200`;
-          const r2 = await fetch(u2, {
-            method:'GET',
-            headers:{'Accept':'application/json'},
-            cache:'no-store',
-            mode:'cors'
-          });
-          if (!r2.ok) throw new Error('HTTP '+r2.status);
-          const data = await r2.json();
-          let items = Array.isArray(data) ? data
-                    : Array.isArray(data.items) ? data.items
-                    : (data.data && Array.isArray(data.data.items)) ? data.data.items
-                    : [];
-          detalle = items.find(x => Number(x.id) === Number(id)) || null;
+        if (!detalle || (!detalle.id && !detalle.ID)){
+          throw new Error('No se encontró la solicitud.');
         }
 
-        if (!detalle) throw new Error('No se encontró la solicitud.');
-
-        // Mapeo seguro de campos (usa '—' si no existe)
-        setVal('v_id', detalle.id ?? '—');
+        setVal('v_id', detalle.id ?? detalle.ID ?? '—');
         setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
         setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
         setVal('v_rut', detalle.rut ?? '—');
@@ -394,8 +363,7 @@
         const cartolaUrl = detalle.cartola_url || detalle.cartola || '';
         if (cartolaUrl){
           document.getElementById('cartolaRow').style.display = '';
-          const a = document.getElementById('v_cartola');
-          a.href = cartolaUrl;
+          document.getElementById('v_cartola').href = cartolaUrl;
         } else {
           document.getElementById('cartolaRow').style.display = 'none';
         }
@@ -472,7 +440,6 @@
         thumb.src = '';
         return;
       }
-      // Solo una foto
       if (fileInput.files.length > 1){
         const dt = new DataTransfer();
         dt.items.add(fileInput.files[0]);
@@ -529,13 +496,12 @@
         fd.append('id', String(SOL_ID));
         fd.append('comentario', comentario);
         fd.append('precio_tipo', precio_tipo);
-        if (precio_tipo === 'otro') fd.append('monto', monto_raw); // sin puntos
-        fd.append('foto', fileInput.files[0]); // UNA sola foto
+        if (precio_tipo === 'otro') fd.append('monto', monto_raw);
+        fd.append('foto', fileInput.files[0]);
 
         const res = await fetch(SAVE_ENDPOINT, { method:'POST', body: fd });
         if (!res.ok) throw new Error('HTTP '+res.status);
         showOk('Visita guardada correctamente.');
-        // setTimeout(()=> location.href='administrar.html', 1200);
       }catch(e){
         console.error(e);
         showError('No fue posible guardar la visita. Intente nuevamente.');
@@ -544,4 +510,3 @@
   </script>
 </body>
 </html>
-
