@@ -63,6 +63,8 @@
     .error.show{display:block}
     .ok{color:#064e3b;background:#d1fae5;border:1px solid #10b981;padding:8px 10px;border-radius:8px;display:none;margin:12px 0 0}
     .ok.show{display:block}
+    /* Debug area */
+    #dbg{display:none;white-space:pre-wrap;background:#0b3a8840;border:1px dashed #fff;color:#fff;padding:10px;border-radius:8px;margin-top:12px}
   </style>
 </head>
 <body>
@@ -93,6 +95,7 @@
 
       <div id="msgError" class="error"></div>
       <div id="msgOk" class="ok"></div>
+      <pre id="dbg"></pre>
 
       <!-- Datos de la solicitud (solo lectura) -->
       <div class="card readonly" id="cardDatos">
@@ -186,8 +189,10 @@
 
     const msgError = document.getElementById('msgError');
     const msgOk = document.getElementById('msgOk');
+    const dbg = document.getElementById('dbg');
     function showError(t){ msgOk.classList.remove('show'); msgError.textContent=t; msgError.classList.add('show'); }
     function showOk(t){ msgError.classList.remove('show'); msgOk.textContent=t; msgOk.classList.add('show'); }
+    function showDbg(obj){ try{ dbg.textContent = typeof obj==='string' ? obj : JSON.stringify(obj,null,2); dbg.style.display='block'; }catch(e){} }
 
     const qs = new URLSearchParams(location.search);
     const SOL_ID = Number(qs.get('id') || 0);
@@ -196,7 +201,7 @@
     function normalizeTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string'){
-        const s = val.trim();
+        const s = sTrim(val);
         if (s.startsWith('{') && s.endsWith('}')){
           const inner = s.slice(1,-1);
           if (!inner) return [];
@@ -206,28 +211,50 @@
       }
       return [];
     }
+    function sTrim(x){ return String(x||'').trim(); }
 
     async function loadDetalle(id){
       try{
         const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
         const r = await fetch(url, { method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors' });
-        if (!r.ok) throw new Error('HTTP '+r.status);
+
+        // Si la red falla o no es 2xx
+        if (!r.ok){
+          const raw = await r.text().catch(()=> '');
+          showDbg({status:r.status, raw});
+          throw new Error('HTTP '+r.status);
+        }
+
+        // Intentar JSON primero; si no, quedarnos con texto
+        let bodyText = '';
+        try { bodyText = await r.text(); }
+        catch(e){ console.error('No se pudo leer body como texto', e); throw e; }
 
         let d;
-        try {
-          d = await r.json();
-        } catch(parseErr){
-          console.error('Error parseando JSON de detalle:', parseErr);
-          throw new Error('Respuesta no válida del servidor.');
+        try { d = JSON.parse(bodyText); }
+        catch(e){
+          // No era JSON. Mostrarlo y fallar.
+          showDbg(bodyText || '(sin cuerpo)');
+          throw new Error('Respuesta no es JSON');
         }
 
-        const detalle = d && (d.data || d);
-        if (!detalle || (detalle.id == null && detalle.ID == null)){
-          console.error('Detalle vacío o sin ID:', detalle);
-          throw new Error('No se encontró la solicitud.');
+        // Mostrar en debug siempre la respuesta interpretada
+        showDbg(d);
+
+        // Aceptamos varios formatos:
+        // 1) {status:200, data:{...}}
+        // 2) {data:{...}}
+        // 3) {id:..., ...} directo
+        let detalle = null;
+        if (d && typeof d==='object'){
+          if (d.data && typeof d.data==='object') detalle = d.data;
+          else if ('id' in d || 'ID' in d) detalle = d;
+        }
+        if (!detalle){
+          throw new Error('JSON sin "data" ni "id"');
         }
 
-        // Rellenar campos seguros
+        // Rellenar campos
         setVal('v_id', detalle.id ?? detalle.ID ?? '—');
         setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
         setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
@@ -241,7 +268,7 @@
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
-        // Cartola: que no bote toda la carga si algo falla
+        // Cartola opcional
         try {
           const cart = detalle.cartola;
           if (cart && cart.b64 && cart.mime){
@@ -263,7 +290,7 @@
           document.getElementById('cartolaRow').style.display = 'none';
         }
 
-        // Si llegamos aquí, no mostramos error
+        // Ok: ocultar error si estaba visible
         msgError.classList.remove('show');
 
       }catch(err){
@@ -272,7 +299,7 @@
       }
     }
 
-    // Limpia base64 (quita CR/LF/espacios/tab) y recorta MIME
+    // Limpia base64 y recorta MIME
     function makeBlobUrlFromB64(b64, mime){
       try {
         const clean = String(b64 || '').replace(/[^A-Za-z0-9+/=]/g, ''); // elimina \n, \r, espacios, etc.
@@ -327,7 +354,7 @@
       const reader=new FileReader(); reader.onload=(e)=>{ thumb.src=e.target.result; thumb.style.display='block'; }; reader.readAsDataURL(f);
     });
 
-    // Botones
+    // Botones guardar/cancelar
     document.getElementById('cancelBtn').addEventListener('click', ()=>{ history.back(); });
     document.getElementById('saveBtn').addEventListener('click', async ()=>{
       const faltas=[], comentario=comentarioEl.value.trim();
@@ -347,10 +374,15 @@
         if (precio_tipo==='otro') fd.append('monto', monto_raw);
         fd.append('foto', fileInput.files[0]);
         const res=await fetch(SAVE_ENDPOINT,{method:'POST',body:fd});
-        if (!res.ok) throw new Error('HTTP '+res.status);
+        if (!res.ok){
+          const raw = await res.text().catch(()=> '');
+          showDbg({saveStatus:res.status, raw});
+          throw new Error('HTTP '+res.status);
+        }
         showOk('Visita guardada correctamente.');
       }catch(e){ console.error(e); showError('No fue posible guardar la visita. Intente nuevamente.'); }
     });
   </script>
 </body>
 </html>
+
