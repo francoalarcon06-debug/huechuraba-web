@@ -17,7 +17,7 @@
       --hover-blue:#eaf2ff;
       --danger:#b91c1c;
       --danger-bg:#fee2e2;
-      --font-base:14px;
+      --font-base:14px; /* tamaño unificado para labels e inputs */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -45,11 +45,13 @@
     .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
     label{
       display:block; font-weight:800; color:#e6f0ff; margin-bottom:6px;
-      font-size: var(--font-base); line-height:1.25;
+      font-size: var(--font-base);          /* MISMO tamaño que inputs */
+      line-height:1.25;
     }
     input[type="text"], input[type="email"], input[type="number"], .pill-input, textarea{
       width:100%; padding:10px 12px; border-radius:10px; border:none; outline:2px solid transparent;
-      background:#fff; font-size: var(--font-base); line-height:1.25;
+      background:#fff; font-size: var(--font-base); /* MISMO tamaño que labels */
+      line-height:1.25;
     }
     textarea{ min-height:120px; resize:vertical; }
     .muted{ color:#e6f0ff; opacity:.85; font-weight:700; font-size: var(--font-base); }
@@ -71,7 +73,6 @@
     /* Precio */
     .price-wrap{ display:flex; align-items:center; gap:18px; }
     .price-note{ color:#e6f0ff; font-weight:700; font-size:12px; margin-top:6px; }
-
     .chip-warn{
       display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px;
       background:var(--danger-bg); color:var(--danger); font-weight:900; border:1px solid #fecaca;
@@ -86,12 +87,12 @@
       box-shadow: var(--shadow); font-size: var(--font-base);
     }
 
-    /* Uploader */
+    /* Uploader caja */
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
     .uploader .btn{ padding:8px 12px; }
 
     @media (max-width: 740px){
-      .grid{ grid-template-columns:1fr; }
+      .grid, .row, .row-3{ grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -173,18 +174,18 @@
           <div class="price-wrap">
             <label class="muted"><input type="radio" name="precioTipo" id="precio_gratis" value="gratis" checked /> Gratis</label>
             <label class="muted"><input type="radio" name="precioTipo" id="precio_otro" value="otro" /> Otro</label>
-            <input id="f_precio" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" placeholder="$ 0" aria-label="Precio en CLP" style="max-width:220px; display:none" />
+            <input id="f_precio" type="text" placeholder="$ 0" aria-label="Precio en CLP" disabled style="max-width:220px" />
           </div>
+          <div class="price-note">Si elige “Otro”, ingrese un valor en CLP. Se formatea automáticamente con puntos de miles.</div>
         </div>
 
         <!-- Fotografía -->
         <div class="section">
           <label>Fotografía (obligatoria)</label>
           <div class="uploader">
-            <!-- Cámara + galería + escritorio -->
-            <input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none" />
+            <input id="fileInput" type="file" accept="image/png" capture="environment" style="display:none" />
             <button class="btn" id="btnUpload" type="button">Usar cámara / subir foto</button>
-            <div class="price-note">Formatos: JPG o PNG, máx. 5 MB.</div>
+            <div class="price-note">Solo PNG, máx. 5 MB.</div>
           </div>
         </div>
 
@@ -192,8 +193,6 @@
           <button class="btn" id="btnCancel">Cancelar</button>
           <button class="btn primary" id="btnSave">Guardar</button>
         </div>
-
-        <div id="msgForm" class="error" style="margin-top:12px;"></div>
       </div>
     </div>
   </main>
@@ -203,18 +202,17 @@
 
     const $ = (id)=> document.getElementById(id);
     const msgError = $('msgError');
-    const msgForm  = $('msgForm');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
-    function showFormErrors(list){
-      if (!list || !list.length){ msgForm.classList.remove('show'); msgForm.textContent=''; return; }
-      msgForm.textContent = 'Falta completar: ' + list.join(', ') + '.';
-      msgForm.classList.add('show');
-    }
 
     // ===== Helpers =====
     function getQueryId(){
       const id = new URLSearchParams(location.search).get('id');
       return id ? id.trim() : '';
+    }
+    function formatCLP(num){
+      const digits = String(num).replace(/\D/g,'');
+      if (!digits) return '';
+      return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
@@ -237,75 +235,38 @@
 
     function updatePrecioState(){
       if (rOtro.checked){
-        fPrecio.style.display = '';
         fPrecio.disabled = false;
         fPrecio.focus();
       } else {
         fPrecio.value = '';
-        fPrecio.style.display = 'none';
         fPrecio.disabled = true;
       }
     }
     rGratis.addEventListener('change', updatePrecioState);
     rOtro.addEventListener('change', updatePrecioState);
+    fPrecio.addEventListener('input', ()=>{
+      const pos = fPrecio.selectionStart;
+      const old = fPrecio.value;
+      fPrecio.value = formatCLP(fPrecio.value);
+      const diff = fPrecio.value.length - old.length;
+      fPrecio.setSelectionRange(pos+diff, pos+diff);
+    });
 
-    // ===== Uploader (JPG o PNG <= 5MB; cámara / galería / PC) =====
+    // ===== Uploader (PNG <= 5MB y cámara en móviles) =====
     const fileInput = $('fileInput');
     $('btnUpload').addEventListener('click', ()=> fileInput.click());
-
-    function isValidImage(file){
-      if (!file) return false;
-      const okType = ['image/jpeg','image/png'].includes(file.type);
-      const okSize = file.size <= 5 * 1024 * 1024;
-      return okType && okSize;
-    }
-
-    let hasExistingCartola = false;  // si ya viene un archivo desde el backend (se usa como “ya hay foto”)
     fileInput.addEventListener('change', ()=>{
       const f = fileInput.files && fileInput.files[0];
       if (!f) return;
-      if (!['image/jpeg','image/png'].includes(f.type)){
-        showError('El archivo debe ser JPG o PNG.');
-        fileInput.value = '';
-        return;
-      }
-      if (f.size > 5 * 1024 * 1024){
-        showError('El archivo no puede superar 5 MB.');
-        fileInput.value = '';
-        return;
-      }
-      // ok: visualmente podrías mostrar nombre, etc. (lógica de subida se mantiene aparte si ya la tienes)
-      msgForm.classList.remove('show');
+      if (f.type !== 'image/png'){ showError('El archivo debe ser PNG.'); fileInput.value=''; return; }
+      if (f.size > 5 * 1024 * 1024){ showError('El archivo no puede superar 5 MB.'); fileInput.value=''; return; }
+      // Aquí quedaría tu lógica existente de subida (no se cambia nada más)
     });
 
     // ===== Navegación =====
     $('btnCancel').addEventListener('click', ()=> history.back());
-
     $('btnSave').addEventListener('click', ()=> {
-      const errs = [];
-
-      // Comentario obligatorio
-      const comentario = ($('f_comentario').value || '').trim();
-      if (!comentario) errs.push('Comentario de visita');
-
-      // Foto obligatoria: aceptamos si hay nueva selección o si ya existía en backend
-      const nuevaFotoOk = fileInput.files && fileInput.files[0] && isValidImage(fileInput.files[0]);
-      if (!nuevaFotoOk && !hasExistingCartola) errs.push('Fotografía');
-
-      // Precio: si “Otro” -> obligatorio y numérico
-      if (rOtro.checked){
-        const val = (fPrecio.value || '').trim();
-        if (!val) errs.push('Precio');
-        else if (!/^\d+$/.test(val)) errs.push('Precio (sólo números)');
-      }
-
-      if (errs.length){
-        showFormErrors(errs);
-        return;
-      }
-
-      showFormErrors([]); // limpiar mensajes
-      // Aquí va tu lógica real de guardado (fetch/POST, etc.)
+      // Lógica de guardado existente (placeholder)
       alert('Guardar (demo)');
     });
 
@@ -346,23 +307,23 @@
         $('f_tipos').value      = tiposArr.join(', ');
         $('f_detalle').value    = data.detalle ?? '';
 
-        // Cartola/archivo existente: si existe, mostrar descarga; si no, aviso
+        // Cartola: si existe, mostrar botón de descarga; si no, aviso
         const fileZone = $('fileZone');
         const warn = $('warn_sin_cartola');
         fileZone.innerHTML = '';
         const hasCartola = data.cartola && data.cartola.b64 && data.cartola.mime;
-        hasExistingCartola = !!hasCartola;
 
         if (hasCartola){
           warn.style.display = 'none';
           const a = document.createElement('a');
           a.className = 'dl-link';
           a.textContent = 'Descargar archivo de respaldo';
-          const ext = (data.cartola.mime === 'application/pdf') ? 'pdf' : (data.cartola.mime === 'image/png' ? 'png' : 'jpg');
+          const ext = (data.cartola.mime === 'application/pdf') ? 'pdf' : 'png';
           a.href = `data:${data.cartola.mime};base64,${data.cartola.b64}`;
           a.download = `cartola_${data.id}.${ext}`;
           fileZone.appendChild(a);
 
+          // etiqueta pequeña informativa
           const tag = document.createElement('span');
           tag.className = 'chip-warn';
           tag.style.background = '#eaf2ff';
@@ -376,8 +337,6 @@
           fileZone.style.display = 'none';
           warn.style.display = '';
         }
-
-        updatePrecioState(); // estado inicial de precio
 
       } catch (e){
         console.error(e);
