@@ -14,10 +14,6 @@
       --muted:#475569;
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
-      --card:#f6f9ff;
-      --danger:#b91c1c;
-      --ok:#065f46;
-      --warn:#1f2937;
       --hover-blue:#eaf2ff;
     }
     *{box-sizing:border-box}
@@ -119,7 +115,6 @@
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
     .state.CANCELADO{ color:#b91c1c; }
 
-    /* Filtro en cabecera (flecha) */
     .filter-wrap{ display:inline-flex; align-items:center; gap:6px; position:relative; }
     .filter-btn{
       all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px;
@@ -220,10 +215,8 @@
   </main>
 
   <script>
-    // ===== Endpoint de administración =====
     const ADMIN_LIST_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list';
 
-    // ===== Utilidades de sesión =====
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -267,7 +260,6 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    // ===== Helpers de datos =====
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -307,13 +299,11 @@
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
     }
 
-    // ===== Estado del UI =====
     let allItems = [];
     let page = 1;
     const pageSize = 10;
     let filterState = '';
 
-    // ===== Filtro (flecha en cabecera) =====
     const filterBtn  = document.getElementById('filterBtn');
     const filterMenu = document.getElementById('filterMenu');
     const activeFilter = document.getElementById('activeFilter');
@@ -358,6 +348,18 @@
       if (page > totalPages) page = totalPages;
 
       const items = paginate(filtered, page, pageSize);
+
+      if (!items.length){
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.textAlign = 'center';
+        td.textContent = 'Sin resultados';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        renderPager(0);
+        return;
+      }
 
       for(const it of items){
         const tr = document.createElement('tr');
@@ -455,15 +457,30 @@
       if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    // ===== Carga (servidor) =====
+    // ==== Cargar datos del endpoint (robusto con distintas formas de respuesta) ====
     async function loadAll(){
       try{
-        const res = await fetch(ADMIN_LIST_ENDPOINT, { method:'GET', cache:'no-store' });
+        const url = `${ADMIN_LIST_ENDPOINT}?page=1&per_page=${pageSize}`;
+        const res = await fetch(url, {
+          method:'GET',
+          cache:'no-store',
+          headers:{ 'Accept':'application/json' },
+          mode:'cors'
+        });
         if (!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-        allItems = (Array.isArray(data) ? data : (data.items || []))
-          .slice()
-          .sort((a,b)=> Number(b.id||0) - Number(a.id||0));
+
+        // Intentos de lectura compatibles
+        let items = [];
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (Array.isArray(data.items)) {
+          items = data.items;
+        } else if (data.data && Array.isArray(data.data.items)) {
+          items = data.data.items;
+        }
+
+        allItems = (items || []).slice().sort((a,b)=> Number(b.id||0) - Number(a.id||0));
         page = 1;
         render();
       }catch(e){
@@ -471,8 +488,8 @@
         showError('No fue posible cargar las solicitudes.');
       }
     }
+
     loadAll();
   </script>
 </body>
 </html>
-
