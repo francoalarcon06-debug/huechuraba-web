@@ -69,7 +69,8 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      overflow:hidden;
+      /* Antes estaba overflow:hidden y cortaba el menú de filtro */
+      overflow:visible;
     }
 
     .table-footer{
@@ -122,7 +123,7 @@
     .filter-btn:hover{ background:rgba(255,255,255,.12); }
     .filter-menu{
       position:absolute; top:120%; right:0; background:#fff; border:1px solid #dbe4ff; border-radius:10px;
-      box-shadow:var(--shadow); overflow:hidden; min-width:220px; display:none; z-index:10;
+      box-shadow:var(--shadow); overflow:hidden; min-width:220px; display:none; z-index:1000;
     }
     .filter-menu.open{ display:block; }
     .filter-menu button{
@@ -470,7 +471,6 @@
         if (!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
 
-        // Intentos de lectura compatibles
         let items = [];
         if (Array.isArray(data)) {
           items = data;
@@ -493,3 +493,4 @@
   </script>
 </body>
 </html>
+
