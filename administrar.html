@@ -14,11 +14,7 @@
       --muted:#475569;
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
-      --card:#f6f9ff;
-      --danger:#b91c1c;
-      --ok:#065f46;
-      --warn:#1f2937;
-      --hover:#f1f5ff;
+      --hover-blue:#eaf2ff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -73,9 +69,7 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      /* antes: overflow:hidden; -> cortaba el menú */
-      overflow: visible; /* permite que el dropdown se vea completo */
-      position: relative;
+      overflow:hidden;
     }
 
     .table-footer{
@@ -108,50 +102,46 @@
 
     .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .w-actions{ width:56px; text-align:center; }
-    .w-id{ width:76px; }
-    .w-dir{ width:200px; }
-    th.w-dir, td.w-dir { padding-left: 40px; }
-    .w-tel{ width:140px; }
-    th.w-tel, td.w-tel { padding-left: 14px; }
-    .w-tipo{ width:220px; }
-    th.w-tipo, td.w-tipo { padding-left: 14px; }
-    .w-det{ width:240px; }
-    th.w-det, td.w-det { padding-left: 14px; }
-    .w-estado{ width:160px; padding-left: 0; }
+    .w-id{ width:100px; }
+    .w-dir{ width:260px; }
+    .w-tel{ width:160px; }
+    .w-tipo{ width:240px; }
+    .w-det{ width:360px; }
+    .w-estado{ width:200px; }
 
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
-    .state.ACEPTADA{ color:#065f46; }
-    .state.RECHAZADA{ color:#b91c1c; }
+    .state.RECHAZADO{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }
     .state.CANCELADO{ color:#b91c1c; }
 
-    /* -------- Filtro de estado (dropdown) -------- */
-    .state-filter{ position:relative; display:inline-block; }
-    .state-chip{
-      display:inline-flex; align-items:center; gap:8px;
-      background:#fff; color:#0b3a88; font-weight:800; border-radius:20px;
-      padding:6px 12px; box-shadow: var(--shadow); cursor:pointer; border:2px solid #0b3a88;
+    .filter-wrap{ display:inline-flex; align-items:center; gap:6px; position:relative; }
+    .filter-btn{
+      all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px;
     }
-    .state-label{ color:#e6f0ff; font-weight:900; margin-right:8px; }
-    .state-caret{ color:#e6f0ff; font-weight:900; margin-left:6px; }
+    .filter-btn:hover{ background:rgba(255,255,255,.12); }
+    .filter-menu{
+      position:absolute; top:120%; right:0; background:#fff; border:1px solid #dbe4ff; border-radius:10px;
+      box-shadow:var(--shadow); overflow:hidden; min-width:220px; display:none; z-index:10;
+    }
+    .filter-menu.open{ display:block; }
+    .filter-menu button{
+      all:unset; display:block; width:100%; padding:10px 12px; cursor:pointer; font-weight:800; color:#0b3a88;
+    }
+    .filter-menu button:hover{ background:#f1f5ff; }
+    .active-filter{
+      background:#fff; color:#0b3a88; border-radius:999px; padding:2px 8px; font-weight:800; margin-left:6px;
+    }
 
-    #stateMenu{
-      position:absolute; right:0; top:calc(100% + 8px);
-      background:#fff; border:1px solid #dbe4ff; border-radius:12px;
-      box-shadow: var(--shadow); min-width:240px; display:none;
-      z-index: 9999; /* que quede por sobre todo */
-      max-height: 320px; /* si hay muchas opciones, que scrollee */
-      overflow: auto;
+    .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
+    .pager button{
+      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
     }
-    #stateMenu.open{ display:block; }
-    #stateMenu button{
-      all:unset; display:block; width:100%; padding:10px 14px; cursor:pointer;
-      font-weight:800; color:#0b3a88;
+    .pager .num{
+      background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;
     }
-    #stateMenu button:hover{ background:var(--hover); }
-    /* ---------------------------------------------- */
+    .pager .num.current{ background:#0b3a88; color:#fff; }
+    .pager .sep{ color:#e6f0ff; font-weight:900; user-select:none; }
 
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
@@ -197,26 +187,22 @@
               <th class="w-tipo">Tipo</th>
               <th class="w-det">Detalle</th>
               <th class="w-estado">
-                <span class="state-label">Estado</span>
-                <span class="state-caret">▾</span>
-                <span class="state-filter">
-                  <button id="stateFilterBtn" class="state-chip" type="button">
-                    <span id="stateFilterValue">Todos</span>
-                  </button>
-                  <div id="stateMenu" role="menu" aria-labelledby="stateFilterBtn">
-                    <button data-value="">Todos</button>
-                    <button data-value="pendiente">Pendiente</button>
-                    <button data-value="cancelado">Cancelado</button>
-                    <button data-value="pendiente de pago">Pendiente de pago</button>
-                    <button data-value="rechazado">Rechazado</button>
+                <span class="filter-wrap">
+                  Estado
+                  <button id="filterBtn" class="filter-btn" title="Filtrar">▾</button>
+                  <span id="activeFilter" class="active-filter" style="display:none"></span>
+                  <div id="filterMenu" class="filter-menu" role="menu">
+                    <button data-state="">Todos</button>
+                    <button data-state="pendiente">Pendiente</button>
+                    <button data-state="cancelado">Cancelado</button>
+                    <button data-state="pendiente de pago">Pendiente de pago</button>
+                    <button data-state="rechazado">Rechazado</button>
                   </div>
                 </span>
               </th>
             </tr>
           </thead>
-          <tbody id="tbody">
-            <tr><td colspan="6" style="background:rgba(255,255,255,.12); color:#e6f0ff; padding:12px;">Sin resultados</td></tr>
-          </tbody>
+          <tbody id="tbody"></tbody>
         </table>
 
         <div class="pager" id="pager"></div>
@@ -229,7 +215,7 @@
   </main>
 
   <script>
-    const ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list';
+    const ADMIN_LIST_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list';
 
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
@@ -252,13 +238,11 @@
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
-    // Botón volver
-    document.getElementById('backBtn').addEventListener('click', ()=>{
-      const email = getEmailFromClient();
-      location.href = email ? `municipal.html?email=${encodeURIComponent(email)}` : `municipal.html`;
-    });
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
 
-    // Cerrar sesión -> limpiar y llevar a login (index.html)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
@@ -268,27 +252,14 @@
       location.href = 'index.html';
     });
 
-    const btn = document.getElementById('userBtn');
-    const menu = document.getElementById('userMenu');
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
-    document.addEventListener('click', ()=> menu.classList.remove('open'));
+    document.getElementById('backBtn').addEventListener('click', ()=>{
+      const email = getEmailFromClient();
+      location.href = email ? `municipal.html?email=${encodeURIComponent(email)}` : 'municipal.html';
+    });
 
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    function fmtDate(v){
-      if (v === null || v === undefined || v === '') return '—';
-      const d = new Date(Number(v));
-      try {
-        return new Intl.DateTimeFormat('es-CL', {
-          dateStyle:'medium',
-          timeStyle:'short',
-          timeZone:'UTC'
-        }).format(d);
-      } catch {
-        return d.toUTCString();
-      }
-    }
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -324,62 +295,69 @@
       return v;
     }
     const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
+    function normalizeEstado(str){
+      return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
+    }
 
-    // ------- Filtro de estado -------
-    const filterBtn = document.getElementById('stateFilterBtn');
-    const filterVal = document.getElementById('stateFilterValue');
-    const filterMenu = document.getElementById('stateMenu');
-    let currentEstado = '';
+    let allItems = [];
+    let page = 1;
+    const pageSize = 10;
+    let filterState = '';
+
+    const filterBtn  = document.getElementById('filterBtn');
+    const filterMenu = document.getElementById('filterMenu');
+    const activeFilter = document.getElementById('activeFilter');
 
     filterBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       filterMenu.classList.toggle('open');
     });
-    filterMenu.addEventListener('click', (e)=>{
-      const btn = e.target.closest('button[data-value]');
-      if (!btn) return;
-      currentEstado = btn.getAttribute('data-value') || '';
-      filterVal.textContent = currentEstado ? capitalize(currentEstado) : 'Todos';
-      page = 1;
-      loadData();
-      filterMenu.classList.remove('open');
-    });
     document.addEventListener('click', ()=> filterMenu.classList.remove('open'));
-    function capitalize(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
-    // --------------------------------
+    filterMenu.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        filterState = (b.dataset.state || '').trim();
+        page = 1;
+        if (filterState){
+          activeFilter.textContent = b.textContent;
+          activeFilter.style.display = '';
+        } else {
+          activeFilter.textContent = '';
+          activeFilter.style.display = 'none';
+        }
+        filterMenu.classList.remove('open');
+        render();
+      });
+    });
 
-    let allItems = [];
-    let page = 1;
-    const pageSize = 10;
-
+    function getFiltered(){
+      if (!filterState) return allItems;
+      const tgt = normalizeEstado(filterState);
+      return allItems.filter(x => normalizeEstado(x.estado_solicitud) === tgt);
+    }
     function paginate(items, p, size){
       const start = (p-1)*size;
       return items.slice(start, start + size);
-    }
-
-    function hasValue(x){
-      if (x === null || x === undefined) return false;
-      if (typeof x === 'string' && x.trim() === '') return false;
-      return true;
     }
 
     function render(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
 
-      const items = paginate(allItems, page, pageSize);
+      const filtered = getFiltered();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      if (page > totalPages) page = totalPages;
+
+      const items = paginate(filtered, page, pageSize);
 
       if (!items.length){
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 6;
-        td.style.background = 'rgba(255,255,255,.12)';
-        td.style.color = '#e6f0ff';
-        td.style.padding = '12px';
+        td.style.textAlign = 'center';
         td.textContent = 'Sin resultados';
         tr.appendChild(td);
         tbody.appendChild(tr);
-        renderPager();
+        renderPager(0);
         return;
       }
 
@@ -418,29 +396,24 @@
         tbody.appendChild(tr);
       }
 
-      renderPager();
+      renderPager(filtered.length);
     }
 
-    function renderPager(){
-      const total = allItems.length;
-      const pages = Math.max(1, Math.ceil(total / pageSize));
+    function renderPager(total){
       const pager = document.getElementById('pager');
       pager.innerHTML = '';
 
-      if (pages <= 1) {
-        pager.style.display = 'none';
-        return;
-      }
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      if (pages <= 1) { pager.style.display = 'none'; return; }
       pager.style.display = 'flex';
 
-      const btn = (label, handler, cls='')=>{
+      const makeBtn = (label, handler) => {
         const b = document.createElement('button');
         b.textContent = label;
-        if (cls) b.className = cls;
         b.addEventListener('click', handler);
         return b;
       };
-      const num = (n)=>{
+      const makeNum = (n) => {
         const s = document.createElement('span');
         s.textContent = n;
         s.className = 'num' + (n===page ? ' current' : '');
@@ -449,51 +422,83 @@
       };
       const sep = ()=>{ const s=document.createElement('span'); s.textContent='-'; s.className='sep'; return s; };
 
-      if (page > 1) pager.appendChild(btn('‹ Anterior', ()=>{ page=Math.max(1,page-1); render(); }));
+      if (page > 1) pager.appendChild(makeBtn('‹ Anterior', ()=>{ page--; render(); }));
 
-      if (pages <= 4) {
-        for (let i=1;i<=pages;i++){
+      if (pages <= 6){
+        for(let i=1;i<=pages;i++){
           if (i>1) pager.appendChild(sep());
-          pager.appendChild(num(i));
+          pager.appendChild(makeNum(i));
         }
       } else {
-        pager.appendChild(num(1));
+        pager.appendChild(makeNum(1)); pager.appendChild(sep());
+        if (page <= 3){
+          pager.appendChild(makeNum(2)); pager.appendChild(sep());
+          pager.appendChild(makeNum(3)); pager.appendChild(sep());
+          pager.appendChild(makeNum(4)); pager.appendChild(sep());
+          const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
+        } else if (page >= pages-2){
+          const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
+          pager.appendChild(sep());
+          pager.appendChild(makeNum(pages-3)); pager.appendChild(sep());
+          pager.appendChild(makeNum(pages-2)); pager.appendChild(sep());
+          pager.appendChild(makeNum(pages-1)); pager.appendChild(sep());
+        } else {
+          const dots1 = document.createElement('span'); dots1.textContent='...'; dots1.className='sep'; pager.appendChild(dots1);
+          pager.appendChild(sep());
+          pager.appendChild(makeNum(page-1)); pager.appendChild(sep());
+          pager.appendChild(makeNum(page));   pager.appendChild(sep());
+          pager.appendChild(makeNum(page+1)); pager.appendChild(sep());
+          const dots2 = document.createElement('span'); dots2.textContent='...'; dots2.className='sep'; pager.appendChild(dots2);
+        }
         pager.appendChild(sep());
-        pager.appendChild(num(2));
-        pager.appendChild(sep());
-        pager.appendChild(num(3));
-        pager.appendChild(sep());
-        pager.appendChild(num(4));
-        pager.appendChild(sep());
-        const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
-        pager.appendChild(sep());
-        pager.appendChild(num(pages));
+        pager.appendChild(makeNum(pages));
       }
 
-      if (page < pages) pager.appendChild(btn('Siguiente ›', ()=>{ page=Math.min(pages,page+1); render(); }));
+      if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    async function loadData(){
+    // ==== Cargar datos del endpoint (normalización robusta) ====
+    async function loadAll(){
       try{
-        const url = new URL(ENDPOINT);
-        if (currentEstado) url.searchParams.set('estado', currentEstado);
-        const res = await fetch(url.toString(), { method:'GET', cache:'no-store' });
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        const items = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
-        // Ordenar por id desc por si acaso
-        items.sort((a,b)=> Number(b.id||0) - Number(a.id||0));
-        allItems = items;
+        const url = `${ADMIN_LIST_ENDPOINT}?page=1&per_page=${pageSize}`;
+        const res = await fetch(url, {
+          method:'GET',
+          cache:'no-store',
+          headers:{ 'Accept':'application/json' },
+          mode:'cors'
+        });
+        if (!res.ok) throw new Error('HTTP '+res.status);
+
+        // Parseo defensivo
+        let data;
+        const txt = await res.text();
+        try { data = JSON.parse(txt); } catch { console.warn('Respuesta no-JSON:', txt); data = {}; }
+
+        // Normalización de posibles formas de "items"
+        let items = [];
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (Array.isArray(data.items)) {
+          items = data.items;
+        } else if (data.items && typeof data.items === 'object') {
+          const vals = Object.values(data.items);
+          if (vals.length && typeof vals[0] === 'object') items = vals;
+        } else if (data.data && Array.isArray(data.data.items)) {
+          items = data.data.items;
+        } else if (data.data && Array.isArray(data.data)) {
+          items = data.data;
+        }
+
+        allItems = (items || []).slice().sort((a,b)=> Number(b.id||0) - Number(a.id||0));
+        page = 1;
         render();
       }catch(e){
         console.error(e);
         showError('No fue posible cargar las solicitudes.');
-        allItems = [];
-        render();
       }
     }
 
-    loadData();
+    loadAll();
   </script>
 </body>
 </html>
