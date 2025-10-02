@@ -457,7 +457,7 @@
       if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    // ==== Cargar datos del endpoint (robusto con distintas formas de respuesta) ====
+    // ==== Cargar datos del endpoint (normalización robusta) ====
     async function loadAll(){
       try{
         const url = `${ADMIN_LIST_ENDPOINT}?page=1&per_page=${pageSize}`;
@@ -468,16 +468,25 @@
           mode:'cors'
         });
         if (!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
 
-        // Intentos de lectura compatibles
+        // Parseo defensivo
+        let data;
+        const txt = await res.text();
+        try { data = JSON.parse(txt); } catch { console.warn('Respuesta no-JSON:', txt); data = {}; }
+
+        // Normalización de posibles formas de "items"
         let items = [];
         if (Array.isArray(data)) {
           items = data;
         } else if (Array.isArray(data.items)) {
           items = data.items;
+        } else if (data.items && typeof data.items === 'object') {
+          const vals = Object.values(data.items);
+          if (vals.length && typeof vals[0] === 'object') items = vals;
         } else if (data.data && Array.isArray(data.data.items)) {
           items = data.data.items;
+        } else if (data.data && Array.isArray(data.data)) {
+          items = data.data;
         }
 
         allItems = (items || []).slice().sort((a,b)=> Number(b.id||0) - Number(a.id||0));
