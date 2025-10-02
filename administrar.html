@@ -15,7 +15,7 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
-      --cell-bg:#edf3ff; /* <- NUEVO: fondo opaco para celdas */
+      --cell-bg:#edf3ff; /* fondo opaco para celdas */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -70,6 +70,8 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
+      /* evita recortes visuales del sticky en móviles */
+      overflow: visible; /* <= */
     }
 
     .table-footer{
@@ -85,6 +87,7 @@
     .table-scroll{
       width:100%;
       overflow-x:auto;
+      overflow-y:visible;              /* <= evita corte vertical del sticky en mobile */
       -webkit-overflow-scrolling:touch;
     }
     .table-scroll:focus{ outline:none; }
@@ -101,8 +104,8 @@
       background:#0b6ef3; /* asegura header opaco */
     }
     tbody td{
-      background:var(--cell-bg); /* <- ANTES era rgba(255,255,255,.12) */
-      color:#0b1220;             /* mejor contraste sobre fondo claro */
+      background:var(--cell-bg);
+      color:#0b1220;
       padding:10px; font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
@@ -172,8 +175,7 @@
       position: sticky;
       left: 0;
       z-index: 2;
-      background: var(--cell-bg); /* opaco, mismo que el resto */
-      /* se elimina el separador que se veía en móvil */
+      background: var(--cell-bg);
       border-right: none;
       box-shadow: none;
     }
@@ -186,7 +188,8 @@
       .edit-btn{ padding:5px 9px; font-size:12px; }
       .back-btn{ padding:7px 10px; }
       .table-card{ padding:14px; }
-      .table-scroll{ margin:0 -2px; }
+      /* quita recortes en los bordes y da respiración al scroll */
+      .table-scroll{ margin:0; padding:0 8px 6px; } /* <= antes tenía margen negativo */
     }
   </style>
 </head>
