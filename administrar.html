@@ -157,6 +157,21 @@
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
 
+    /* ===== NUEVO: fijar la primera columna al hacer scroll horizontal ===== */
+    thead th:first-child{
+      position: sticky;
+      left: 0;
+      z-index: 3;                 /* por encima de las celdas del body */
+      background: #0b6ef3;        /* mismo tono del card para que no parpadee */
+    }
+    tbody td:first-child{
+      position: sticky;
+      left: 0;
+      z-index: 2;                 /* debajo del header pero encima del resto */
+      background: rgba(255,255,255,.12);  /* mismo fondo que la fila */
+      border-right: 2px solid rgba(255,255,255,.20); /* pequeño separador visual */
+    }
+
     @media (max-width: 680px){
       .wrap{ padding:14px 12px; }
       h1{ font-size:26px; }
@@ -534,3 +549,4 @@
   </script>
 </body>
 </html>
+
