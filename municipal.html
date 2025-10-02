@@ -44,7 +44,7 @@
     .userbtn img{ width:22px; height:22px; object-fit:contain; }
     .chev{ font-size:13px; }
     .dropdown{
-      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff; z-index:10;
       border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
       overflow:hidden; min-width:260px; display:none;
     }
@@ -59,8 +59,15 @@
     }
     .dropdown button:hover{ background:#fee2e2; }
 
-    main{ flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:88px 20px 84px; }
-    .grid{ max-width:980px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:42px; }
+    main{
+      flex:1;
+      background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+      padding:88px 20px 84px;
+    }
+    .grid{
+      max-width:980px; margin:0 auto;
+      display:grid; grid-template-columns:1fr 1fr; gap:42px;
+    }
     .tile{
       border:4px solid #ffffff; border-radius:10px; padding:38px 24px;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -72,9 +79,31 @@
     .tile img{ width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1); margin-bottom:18px; }
     .tile .label{ color:#000; letter-spacing:.6px; font-weight:800; font-size:13px; text-transform:uppercase; text-align:center; }
 
+    /* Tablet y móvil: 1 columna, menos padding, elementos más compactos */
     @media (max-width: 780px){
-      .grid{ grid-template-columns:1fr; gap:26px; }
+      .wrap{ padding:14px 12px; gap:12px; }
       .brand img{ height:64px; }
+      .brand .subtitle{ font-size:14px; }
+      .userbtn{ padding:8px 12px; }
+      main{ padding:28px 12px 60px; }
+      .grid{ grid-template-columns:1fr; gap:22px; max-width:640px; }
+      .tile{ padding:28px 18px; }
+      .tile img{ width:96px; height:96px; margin-bottom:14px; }
+      .tile .label{ font-size:12.5px; }
+    }
+
+    /* Teléfonos estrechos: ocupar casi todo el ancho */
+    @media (max-width: 430px){
+      .wrap{ padding:12px 10px; }
+      .brand{ column-gap:10px; }
+      .brand img{ height:50px; }
+      .brand .subtitle{ font-size:13px; }
+      .userbtn{ padding:7px 10px; gap:8px; }
+      main{ padding:22px 10px 52px; }
+      .grid{ max-width:100%; gap:18px; }
+      .tile{ padding:22px 14px; border-width:3px; }
+      .tile img{ width:84px; height:84px; }
+      .tile .label{ font-size:12px; }
     }
   </style>
 </head>
@@ -166,4 +195,3 @@
   </script>
 </body>
 </html>
-
