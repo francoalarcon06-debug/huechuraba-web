@@ -231,17 +231,19 @@
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
-        // Cartola (sanitizando mime y b64)
+        // Cartola segura
         const cart = detalle.cartola;
         if (cart && cart.b64 && cart.mime){
-          const mime = String(cart.mime).trim();
-          const b64  = String(cart.b64).replace(/[\r\n\s]+/g,'');
-          const url  = makeBlobUrlFromB64(b64, mime);
-          document.getElementById('cartolaRow').style.display = '';
-          const a = document.getElementById('v_cartola');
-          a.href = url;
-          const ext = (mime.split('/')[1] || 'bin');
-          a.download = `cartola_${detalle.id}.${ext}`;
+          const url = makeBlobUrlFromB64(cart.b64, cart.mime);
+          if (url){
+            document.getElementById('cartolaRow').style.display = '';
+            const a = document.getElementById('v_cartola');
+            a.href = url;
+            const ext = (String(cart.mime).split('/')[1] || 'bin');
+            a.download = `cartola_${detalle.id}.${ext}`;
+          } else {
+            document.getElementById('cartolaRow').style.display = 'none';
+          }
         } else {
           document.getElementById('cartolaRow').style.display = 'none';
         }
@@ -251,12 +253,21 @@
       }
     }
 
+    // Versión robusta: limpia base64 y asegura el mime
     function makeBlobUrlFromB64(b64, mime){
-      const clean = String(b64 || '').replace(/[\r\n\s]+/g,'');
-      const raw = atob(clean); const len = raw.length; const arr = new Uint8Array(len);
-      for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
-      return URL.createObjectURL(new Blob([arr], {type:(mime||'application/octet-stream').trim()}));
+      try {
+        const clean = String(b64 || '').replace(/[^A-Za-z0-9+/=]/g, ''); // quita CR/LF, tabs, espacios, etc.
+        const raw = atob(clean);
+        const len = raw.length; const arr = new Uint8Array(len);
+        for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
+        const type = String(mime || 'application/octet-stream').trim();
+        return URL.createObjectURL(new Blob([arr], {type}));
+      } catch(e){
+        console.error('Error creando blob de cartola:', e);
+        return null;
+      }
     }
+
     function setVal(id, val){ document.getElementById(id).value = (val==null || val==='') ? '—' : String(val); }
     function formatPhone(v){
       if (!v) return '—';
