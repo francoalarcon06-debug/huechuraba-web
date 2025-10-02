@@ -254,7 +254,7 @@
             <button type="button" id="pickBtn" class="btn">Usar cámara / subir foto</button>
             <input id="fileInput" type="file" accept="image/*" capture="environment" />
           </div>
-          <div class="hint">Solo se permite **una** foto. Volver a elegir reemplaza la anterior.</div>
+          <div class="hint">Solo se permite <strong>una</strong> foto. Volver a elegir reemplaza la anterior.</div>
         </div>
 
         <div class="actions">
@@ -267,12 +267,11 @@
 
   <script>
     // ====== Endpoints ======
-    // SOLO usamos el endpoint de detalle para no disparar el flujo de lista.
+    // SOLO detalle (para no encender el flujo de "solicitudes-list")
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
     const SAVE_ENDPOINT   = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
-    // =======================
 
-    // Sesión UI
+    // ====== Sesión UI ======
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -307,15 +306,17 @@
       location.href = 'index.html';
     });
 
-    // Mensajes
+    // ====== Mensajes ======
     const msgError = document.getElementById('msgError');
     const msgOk = document.getElementById('msgOk');
     function showError(t){ msgOk.classList.remove('show'); msgError.textContent = t; msgError.classList.add('show'); }
     function showOk(t){ msgError.classList.remove('show'); msgOk.textContent = t; msgOk.classList.add('show'); }
 
-    // === Carga del detalle ===
+    // ====== Carga del detalle SOLO por el endpoint de detalle ======
     const qs = new URLSearchParams(location.search);
     const SOL_ID = Number(qs.get('id') || 0);
+
+    let loading = false; // guard anti-doble llamado
 
     if (!SOL_ID){
       showError('Falta el parámetro "id" en la URL.');
@@ -338,39 +339,50 @@
     }
 
     async function loadDetalle(id){
+      if (loading) return;
+      loading = true;
       try{
         const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
         const r = await fetch(url, { method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors' });
         if (!r.ok) throw new Error('HTTP '+r.status);
         const d = await r.json();
-        const detalle = d?.data || d;
 
-        if (!detalle || (!detalle.id && !detalle.ID)){
-          throw new Error('No se encontró la solicitud.');
-        }
+        // El flujo responde { status: 200, data: {...} }
+        const detalle = d && d.data ? d.data : d;
+        if (!detalle || (detalle.id == null && detalle.ID == null)) throw new Error('Respuesta inválida');
 
+        // Mapeo seguro de campos
         setVal('v_id', detalle.id ?? detalle.ID ?? '—');
         setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
         setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
         setVal('v_rut', detalle.rut ?? '—');
         setVal('v_direccion', detalle.direccion ?? '—');
+
         const tel = detalle.telefono ?? detalle.telefonos ?? '—';
         setVal('v_telefonos', formatPhone(tel));
+
         const tiposStr = normalizeTipos(detalle.tipos || []).join(', ') || '—';
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
-        const cartolaUrl = detalle.cartola_url || detalle.cartola || '';
-        if (cartolaUrl){
-          document.getElementById('cartolaRow').style.display = '';
-          document.getElementById('v_cartola').href = cartolaUrl;
+        // Cartola: el flujo puede enviar { cartola: { mime, b64 } } o null
+        const cartola = detalle.cartola || null;
+        const cartolaRow = document.getElementById('cartolaRow');
+        const a = document.getElementById('v_cartola');
+        if (cartola && cartola.b64){
+          a.href = `data:${cartola.mime || 'application/octet-stream'};base64,${cartola.b64}`;
+          cartolaRow.style.display = '';
+        } else if (detalle.cartola_url){
+          a.href = detalle.cartola_url;
+          cartolaRow.style.display = '';
         } else {
-          document.getElementById('cartolaRow').style.display = 'none';
+          cartolaRow.style.display = 'none';
         }
-
       }catch(err){
         console.error(err);
         showError('No fue posible cargar el detalle de la solicitud.');
+      } finally {
+        loading = false;
       }
     }
 
@@ -390,7 +402,7 @@
       return v;
     }
 
-    // === Comentario contador ===
+    // ====== Comentario contador ======
     const comentarioEl = document.getElementById('f_comentario');
     const charsLeftEl = document.getElementById('charsLeft');
     comentarioEl.addEventListener('input', ()=>{
@@ -399,7 +411,7 @@
       charsLeftEl.textContent = left;
     });
 
-    // === Precio radios + monto CLP ===
+    // ====== Precio radios + monto CLP ======
     const rGratis = document.getElementById('p_gratis');
     const rOtro   = document.getElementById('p_otro');
     const wrapMonto = document.getElementById('precioOtroWrap');
@@ -417,7 +429,7 @@
     rGratis.addEventListener('change', updatePrecioUI);
     rOtro.addEventListener('change', updatePrecioUI);
 
-    // Formateo CLP en vivo (solo dígitos, con puntos de miles)
+    // Formateo CLP en vivo
     montoEl.addEventListener('input', ()=>{
       const digits = montoEl.value.replace(/\D/g,'');
       if (!digits){
@@ -427,7 +439,7 @@
       montoEl.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     });
 
-    // === Foto única (usar cámara) ===
+    // ====== Foto única ======
     const pickBtn = document.getElementById('pickBtn');
     const fileInput = document.getElementById('fileInput');
     const thumb = document.getElementById('thumb');
@@ -457,12 +469,9 @@
       reader.readAsDataURL(f);
     });
 
-    // Cancelar
-    document.getElementById('cancelBtn').addEventListener('click', ()=>{
-      history.back();
-    });
+    // ====== Cancelar / Guardar ======
+    document.getElementById('cancelBtn').addEventListener('click', ()=>{ history.back(); });
 
-    // Guardar
     document.getElementById('saveBtn').addEventListener('click', async ()=>{
       const faltas = [];
 
