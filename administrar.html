@@ -69,7 +69,6 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      /* Antes estaba overflow:hidden y cortaba el menú de filtro */
       overflow:visible;
     }
 
@@ -89,11 +88,15 @@
       table-layout: fixed;
     }
     thead th{
-      color:#e6f0ff; font-weight:800; text-align:left; padding:12px; font-size:14px;
+      color:#e6f0ff; font-weight:800; text-align:left;
+      /* menos padding para acercar columnas */
+      padding:10px 8px; font-size:14px;
       border-bottom:2px solid rgba(255,255,255,.6);
     }
     tbody td{
-      background:rgba(255,255,255,.12); color:#fff; padding:12px; font-size:14px;
+      background:rgba(255,255,255,.12); color:#fff;
+      /* menos padding para acercar columnas */
+      padding:10px 8px; font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
       position: relative;
@@ -103,12 +106,14 @@
 
     .cell-ellipsis{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .w-id{ width:100px; }
-    .w-dir{ width:260px; }
-    .w-tel{ width:160px; }
-    .w-tipo{ width:240px; }
-    .w-det{ width:360px; }
-    .w-estado{ width:200px; }
+    /* anchos un poco más ajustados para acercar columnas */
+    .w-id{ width:92px; }
+    .w-dir{ width:220px; }
+    .w-tel{ width:150px; }
+    .w-tipo{ width:210px; }
+    .w-det{ width:320px; }
+    .w-estado{ width:180px; }
+    .w-accion{ width:130px; text-align:right; }
 
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
@@ -201,6 +206,8 @@
                   </div>
                 </span>
               </th>
+              <!-- Nueva columna de acción -->
+              <th class="w-accion"></th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -353,7 +360,7 @@
       if (!items.length){
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = 6;
+        td.colSpan = 7; /* +1 por la nueva columna Acción */
         td.style.textAlign = 'center';
         td.textContent = 'Sin resultados';
         tr.appendChild(td);
@@ -393,7 +400,21 @@
         span.textContent = estadoUpper;
         tdEst.appendChild(span);
 
-        tr.append(tdId, tdDir, tdTel, tdTipos, tdDet, tdEst);
+        // Nueva celda de acción: botón "Editar" sólo si estado === pendiente
+        const tdAcc = document.createElement('td');
+        tdAcc.className = 'w-accion';
+        if (normalizeEstado(it.estado_solicitud) === 'pendiente') {
+          const btn = document.createElement('button');
+          btn.className = 'back-btn';     // mismo estilo que "Volver atrás"
+          btn.textContent = 'Editar';
+          btn.addEventListener('click', ()=>{
+            const id = it.id ?? '';
+            location.href = `autorizaciones.html?id=${encodeURIComponent(id)}`;
+          });
+          tdAcc.appendChild(btn);
+        }
+
+        tr.append(tdId, tdDir, tdTel, tdTipos, tdDet, tdEst, tdAcc);
         tbody.appendChild(tr);
       }
 
@@ -458,7 +479,7 @@
       if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    // ==== Cargar datos del endpoint (robusto con distintas formas de respuesta) ====
+    // ==== Cargar datos del endpoint ====
     async function loadAll(){
       try{
         const url = `${ADMIN_LIST_ENDPOINT}?page=1&per_page=${pageSize}`;
@@ -493,4 +514,3 @@
   </script>
 </body>
 </html>
-
