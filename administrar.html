@@ -220,10 +220,10 @@
   </main>
 
   <script>
-    // ===== Config (nuevo flujo n8n para listar TODAS) =====
+    // ===== Endpoint de administración =====
     const ADMIN_LIST_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list';
 
-    // ===== Utilidades de sesión (igual a otras páginas) =====
+    // ===== Utilidades de sesión =====
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -308,10 +308,10 @@
     }
 
     // ===== Estado del UI =====
-    let allItems = [];      // todas las solicitudes (ordenadas desc)
+    let allItems = [];
     let page = 1;
     const pageSize = 10;
-    let filterState = '';   // '', 'pendiente', 'cancelado', 'pendiente de pago', 'rechazado'
+    let filterState = '';
 
     // ===== Filtro (flecha en cabecera) =====
     const filterBtn  = document.getElementById('filterBtn');
@@ -339,13 +339,11 @@
       });
     });
 
-    // ===== Render =====
     function getFiltered(){
       if (!filterState) return allItems;
       const tgt = normalizeEstado(filterState);
       return allItems.filter(x => normalizeEstado(x.estado_solicitud) === tgt);
     }
-
     function paginate(items, p, size){
       const start = (p-1)*size;
       return items.slice(start, start + size);
@@ -424,7 +422,6 @@
 
       if (page > 1) pager.appendChild(makeBtn('‹ Anterior', ()=>{ page--; render(); }));
 
-      // Números compactos
       if (pages <= 6){
         for(let i=1;i<=pages;i++){
           if (i>1) pager.appendChild(sep());
@@ -458,13 +455,12 @@
       if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    // ===== Carga de datos (todas las solicitudes) =====
+    // ===== Carga (servidor) =====
     async function loadAll(){
       try{
         const res = await fetch(ADMIN_LIST_ENDPOINT, { method:'GET', cache:'no-store' });
         if (!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-        // Ordenar por id desc (numérico si es posible)
         allItems = (Array.isArray(data) ? data : (data.items || []))
           .slice()
           .sort((a,b)=> Number(b.id||0) - Number(a.id||0));
@@ -479,3 +475,4 @@
   </script>
 </body>
 </html>
+
