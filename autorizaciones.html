@@ -162,7 +162,6 @@
 
   <script>
     // ===== Endpoints =====
-    // ⬅️ Cambiado a /solicitud-detail (la ruta real de tu Webhook1)
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
     const SAVE_ENDPOINT   = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
 
@@ -210,7 +209,6 @@
 
     async function loadDetalle(id){
       try{
-        // Llama SOLO al endpoint de detalle
         const r = await fetch(`${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`, {
           method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'
         });
@@ -233,13 +231,16 @@
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
+        // Cartola (sanitizando mime y b64)
         const cart = detalle.cartola;
         if (cart && cart.b64 && cart.mime){
-          const url = makeBlobUrlFromB64(cart.b64, cart.mime);
+          const mime = String(cart.mime).trim();
+          const b64  = String(cart.b64).replace(/[\r\n\s]+/g,'');
+          const url  = makeBlobUrlFromB64(b64, mime);
           document.getElementById('cartolaRow').style.display = '';
           const a = document.getElementById('v_cartola');
           a.href = url;
-          const ext = (cart.mime.split('/')[1] || 'bin');
+          const ext = (mime.split('/')[1] || 'bin');
           a.download = `cartola_${detalle.id}.${ext}`;
         } else {
           document.getElementById('cartolaRow').style.display = 'none';
@@ -251,9 +252,10 @@
     }
 
     function makeBlobUrlFromB64(b64, mime){
-      const raw = atob(b64); const len = raw.length; const arr = new Uint8Array(len);
+      const clean = String(b64 || '').replace(/[\r\n\s]+/g,'');
+      const raw = atob(clean); const len = raw.length; const arr = new Uint8Array(len);
       for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
-      return URL.createObjectURL(new Blob([arr], {type:mime||'application/octet-stream'}));
+      return URL.createObjectURL(new Blob([arr], {type:(mime||'application/octet-stream').trim()}));
     }
     function setVal(id, val){ document.getElementById(id).value = (val==null || val==='') ? '—' : String(val); }
     function formatPhone(v){
