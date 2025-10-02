@@ -12,7 +12,7 @@
       --blue-dark:#0a54c9;
       --text:#0b1220;
       --muted:#475569;
-      --outline:#1e40af;          /* color del botón "Usar cámara / subir foto" */
+      --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
       --danger:#b91c1c;
@@ -85,15 +85,17 @@
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:8px; display:none; margin:0 0 14px 0; font-weight:800; }
     .error.show{ display:block; }
 
-    .actions{ display:flex; gap:10px; justify-content:flex-end; }
+    .actions{
+      display:flex; gap:10px; justify-content:flex-end; align-items:center;
+      margin-top:14px;
+    }
     .btn{
       all:unset; background:#fff; border:2px solid var(--outline); color:#0b3a88;
       padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
     }
     .btn.primary{ background:#0b3a88; color:#fff; }
     .btn.small{ padding:8px 12px; border-radius:9px; }
-    /* Botón rojo para Rechazar */
-    .btn.danger{ background:#b91c1c; color:#fff; border-color:#991b1b; }
+    .btn.danger{ background:var(--danger); color:#fff; border-color:var(--danger); }
 
     .price-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 
@@ -106,11 +108,8 @@
 
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
 
-    /* Textos del recuadro de fotografía con el mismo color que el botón */
-    .uploader-text{
-      color:#0b3a88;
-      font-weight:800;
-    }
+    /* Textos del recuadro de fotografía con mismo color del botón */
+    .uploader-text{ color:#0b3a88; font-weight:800; }
 
     @media (max-width: 740px){
       .wrap{ padding:12px 10px; }
@@ -237,12 +236,11 @@
             <div class="uploader-text" style="margin-top:6px;">Formatos: JPG o PNG. Tamaño máx.: 5 MB.</div>
             <div id="fileName" class="uploader-text" style="margin-top:6px; display:none;"></div>
           </div>
-
-          <!-- NUEVO: botón Rechazar debajo de Fotografía -->
-          <button class="btn danger" id="btnReject" type="button" style="margin-top:10px;">Rechazar</button>
         </div>
 
+        <!-- Acciones: Rechazar (rojo), Cancelar, Guardar -->
         <div class="actions">
+          <button class="btn danger" id="btnReject">Rechazar</button>
           <button class="btn" id="btnCancel">Cancelar</button>
           <button class="btn primary" id="btnSave">Guardar</button>
         </div>
@@ -296,6 +294,25 @@
       }catch(e){}
       location.href = 'index.html';
     });
+
+    /* ===== Helpers ===== */
+    function getQueryId(){
+      const id = new URLSearchParams(location.search).get('id');
+      return id ? id.trim() : '';
+    }
+    function parseTipos(val){
+      if (Array.isArray(val)) return val.map(String);
+      if (typeof val === 'string') {
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')) {
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1')).filter(Boolean);
+        }
+        if (s) return [s];
+      }
+      return [];
+    }
 
     /* ===== Precio ===== */
     const rGratis = $('precio_gratis');
@@ -351,8 +368,7 @@
         fileName.textContent = '';
         return;
       }
-
-      fotografia = f; // queda guardada en memoria para enviar luego
+      fotografia = f;
       fileName.textContent = `Archivo seleccionado: ${f.name} (${Math.round(f.size/1024)} KB)`;
       fileName.style.display = '';
       msgForm.classList.remove('show');
@@ -366,10 +382,105 @@
       const comentario = ($('f_comentario').value || '').trim();
       if (!comentario) errs.push('Comentario de visita');
       if (!fotografia) errs.push('Fotografía');
-
       if (rOtro.checked){
         const digits = (fPrecio.value || '').replace(/\D/g,'');
         if (!digits) errs.push('Precio');
       }
+      if (errs.length){ showFormErrors(errs); return; }
+      showFormErrors([]);
+      alert('Guardar (demo)'); // aquí tu POST real
+    });
 
-      if (errs
+    // RECHAZAR: requiere comentario de visita
+    $('btnReject').addEventListener('click', ()=> {
+      const comentario = ($('f_comentario').value || '').trim();
+      if (!comentario){
+        msgForm.textContent = 'Es necesario completar "comentario visita"';
+        msgForm.classList.add('show');
+        return;
+      }
+      msgForm.classList.remove('show');
+      alert('Rechazar (demo)'); // aquí tu POST de rechazo
+    });
+
+    /* ===== Cargar detalle ===== */
+    let cartolaBlobUrl = '';
+    async function loadDetail(){
+      const id = getQueryId();
+      if (!id){ showError('Falta el parámetro "id".'); return; }
+
+      try{
+        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
+        const res = await fetch(url, {
+          method:'GET',
+          headers:{ 'Accept':'application/json' },
+          mode:'cors',
+          cache:'no-store'
+        });
+
+        const text = await res.text();
+        let payload;
+        try { payload = JSON.parse(text); } catch { payload = { status: res.status, raw: text }; }
+
+        if (!res.ok){
+          showError('No fue posible cargar el detalle de la solicitud.');
+          console.error('Detalle error:', payload);
+          return;
+        }
+
+        const data = (payload && payload.data) ? payload.data : payload;
+
+        $('f_id').value         = data.id ?? '';
+        $('f_email').value      = data.correo ?? '';
+        $('f_nombre').value     = data.nombre ?? '';
+        $('f_rut').value        = data.rut ?? '';
+        $('f_direccion').value  = data.direccion ?? '';
+        $('f_telefonos').value  = data.telefono ?? '';
+        $('f_tipos').value      = parseTipos(data.tipos).join(', ');
+        $('f_detalle').value    = data.detalle ?? '';
+
+        const hasCartola = data.cartola && data.cartola.b64 && data.cartola.mime;
+        const chipSin = $('chip_sin_cartola');
+        const chipCon = $('chip_con_cartola');
+
+        if (hasCartola){
+          chipSin.style.display = 'none';
+          chipCon.style.display = '';
+          try{
+            const byteStr = atob(data.cartola.b64);
+            const len = byteStr.length;
+            const bytes = new Uint8Array(len);
+            for (let i=0;i<len;i++) bytes[i] = byteStr.charCodeAt(i);
+            const blob = new Blob([bytes], { type: data.cartola.mime });
+            if (cartolaBlobUrl) URL.revokeObjectURL(cartolaBlobUrl);
+            cartolaBlobUrl = URL.createObjectURL(blob);
+            $('btnDescargar').onclick = ()=> {
+              const a = document.createElement('a');
+              a.href = cartolaBlobUrl;
+              const ext = data.cartola.mime === 'application/pdf' ? 'pdf' : 'png';
+              a.download = `cartola_${data.id}.${ext}`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            };
+          }catch(e){
+            console.error('No se pudo preparar descarga:', e);
+            chipCon.style.display = 'none';
+            chipSin.style.display = '';
+          }
+        } else {
+          chipCon.style.display = 'none';
+          chipSin.style.display = '';
+        }
+
+        updatePrecioState(); // estado inicial del campo precio
+      } catch (e){
+        console.error(e);
+        showError('No fue posible cargar el detalle de la solicitud.');
+      }
+    }
+
+    loadDetail();
+  </script>
+</body>
+</html>
