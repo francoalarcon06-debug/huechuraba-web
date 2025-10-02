@@ -266,15 +266,13 @@
   </main>
 
   <script>
-    // ====== Ajusta estos endpoints si corresponde ======
-    // Detalle de una solicitud por id (intenta primero un detalle dedicado; si falla, trae la lista y filtra)
+    // ====== Endpoints de producción (disparan el flujo en n8n) ======
     const DETAIL_ENDPOINT = {
       primary: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail',
       fallbackList: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list'
     };
-    // Guardado de la visita (FormData con: id, comentario, precio_tipo, monto, foto)
     const SAVE_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
-    // ===================================================
+    // ===============================================================
 
     // Sesión UI (igual estilo que otras páginas)
     function getEmailFromClient(){
@@ -317,7 +315,7 @@
     function showError(t){ msgOk.classList.remove('show'); msgError.textContent = t; msgError.classList.add('show'); }
     function showOk(t){ msgError.classList.remove('show'); msgOk.textContent = t; msgOk.classList.add('show'); }
 
-    // === Carga del detalle ===
+    // === Carga del detalle (dispara el flujo en n8n) ===
     const qs = new URLSearchParams(location.search);
     const SOL_ID = Number(qs.get('id') || 0);
 
@@ -343,23 +341,33 @@
 
     async function loadDetalle(id){
       try{
-        // 1) Intento endpoint de detalle
+        // 1) Llamada al webhook de detalle (GET ?id=...) -> activa el flujo
         let detalle = null;
         try{
           const u = `${DETAIL_ENDPOINT.primary}?id=${encodeURIComponent(id)}`;
-          const r = await fetch(u, {method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'});
+          const r = await fetch(u, {
+            method:'GET',
+            headers:{'Accept':'application/json'},
+            cache:'no-store',
+            mode:'cors'
+          });
           if (r.ok){
             const d = await r.json();
             if (d && (d.id || d.ID || (d.data && d.data.id))){
               detalle = d.data || d;
             }
           }
-        }catch(e){ /* pasa a fallback */ }
+        }catch(e){ /* fallback abajo */ }
 
         // 2) Fallback: traer lista y filtrar por id
         if (!detalle){
           const u2 = `${DETAIL_ENDPOINT.fallbackList}?page=1&per_page=200`;
-          const r2 = await fetch(u2, {method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'});
+          const r2 = await fetch(u2, {
+            method:'GET',
+            headers:{'Accept':'application/json'},
+            cache:'no-store',
+            mode:'cors'
+          });
           if (!r2.ok) throw new Error('HTTP '+r2.status);
           const data = await r2.json();
           let items = Array.isArray(data) ? data
@@ -464,7 +472,7 @@
         thumb.src = '';
         return;
       }
-      // Solo una foto (si el usuario intenta más, nos quedamos con la primera)
+      // Solo una foto
       if (fileInput.files.length > 1){
         const dt = new DataTransfer();
         dt.items.add(fileInput.files[0]);
@@ -526,9 +534,7 @@
 
         const res = await fetch(SAVE_ENDPOINT, { method:'POST', body: fd });
         if (!res.ok) throw new Error('HTTP '+res.status);
-        // Puedes leer JSON si tu webhook responde con data
         showOk('Visita guardada correctamente.');
-        // Opcional: redirige de vuelta a la lista
         // setTimeout(()=> location.href='administrar.html', 1200);
       }catch(e){
         console.error(e);
@@ -538,3 +544,4 @@
   </script>
 </body>
 </html>
+
