@@ -256,6 +256,7 @@
 
   <script>
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
+    const RECHAZAR_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/rechazar';
 
     const $ = (id)=> document.getElementById(id);
     const msgError = $('msgError');
@@ -395,8 +396,8 @@
       alert('Aprobar (demo)'); // aquí tu POST real de aprobación
     });
 
-    // RECHAZAR: requiere comentario de visita
-    $('btnReject').addEventListener('click', ()=> {
+    // === RECHAZAR: conecta con el webhook n8n ===
+    $('btnReject').addEventListener('click', async ()=> {
       const comentario = ($('f_comentario').value || '').trim();
       if (!comentario){
         msgForm.textContent = 'Es necesario completar "comentario visita"';
@@ -404,7 +405,36 @@
         return;
       }
       msgForm.classList.remove('show');
-      alert('Rechazar (demo)'); // aquí tu POST de rechazo
+
+      const id = getQueryId();
+      if (!id){ showError('Falta el parámetro "id".'); return; }
+
+      const btn = $('btnReject');
+      btn.disabled = true;
+
+      try{
+        const res = await fetch(RECHAZAR_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          mode: 'cors',
+          body: JSON.stringify({ id, comentario })
+        });
+
+        const data = await res.json().catch(()=> ({}));
+        if (!res.ok || data.ok === false){
+          throw new Error('No fue posible rechazar la solicitud.');
+        }
+
+        alert('Solicitud rechazada');
+        const email = getEmailFromClient();
+        const backUrl = email ? `administrar.html?email=${encodeURIComponent(email)}` : 'administrar.html';
+        window.location.href = backUrl;
+      }catch(e){
+        console.error(e);
+        showError('No fue posible rechazar la solicitud.');
+      }finally{
+        btn.disabled = false;
+      }
     });
 
     /* ===== Cargar detalle ===== */
