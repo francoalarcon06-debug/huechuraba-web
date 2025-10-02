@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -70,7 +71,8 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      overflow: visible; /* evita recortes del sticky */
+      /* evita recortes visuales del sticky en móviles */
+      overflow: visible; /* <= */
     }
 
     .table-footer{
@@ -86,7 +88,7 @@
     .table-scroll{
       width:100%;
       overflow-x:auto;
-      overflow-y:hidden;            /* evita cortes verticales en mobile */
+      overflow-y:visible;              /* <= evita corte vertical del sticky en mobile */
       -webkit-overflow-scrolling:touch;
     }
     .table-scroll:focus{ outline:none; }
@@ -100,7 +102,7 @@
     thead th{
       color:#e6f0ff; font-weight:800; text-align:left; padding:10px; font-size:14px;
       border-bottom:2px solid rgba(255,255,255,.6);
-      background:#0b6ef3; /* header opaco */
+      background:#0b6ef3; /* asegura header opaco */
     }
     tbody td{
       background:var(--cell-bg);
@@ -163,13 +165,12 @@
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
 
-    /* ===== Primera columna fija, opaca y sin “cortes” al lado derecho ===== */
+    /* ===== Primera columna fija y opaca, sin borde lateral ===== */
     thead th:first-child{
       position: sticky;
       left: 0;
       z-index: 3;
       background:#0b6ef3;
-      box-shadow: 6px 0 0 #0b6ef3; /* máscara para que no se vea el corte */
     }
     tbody td:first-child{
       position: sticky;
@@ -177,7 +178,7 @@
       z-index: 2;
       background: var(--cell-bg);
       border-right: none;
-      box-shadow: 6px 0 0 var(--cell-bg); /* máscara opaca: elimina la “línea” en móvil */
+      box-shadow: none;
     }
 
     @media (max-width: 680px){
@@ -188,7 +189,8 @@
       .edit-btn{ padding:5px 9px; font-size:12px; }
       .back-btn{ padding:7px 10px; }
       .table-card{ padding:14px; }
-      .table-scroll{ margin:0; padding:0 8px 6px; }
+      /* quita recortes en los bordes y da respiración al scroll */
+      .table-scroll{ margin:0; padding:0 8px 6px; } /* <= antes tenía margen negativo */
     }
   </style>
 </head>
