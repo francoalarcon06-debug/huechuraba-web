@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Huechuraba – Autorizaciones</title>
+  <link rel="icon" type="image/png" href="favicon.png.png" />
+  <style>
+    :root{
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
+      --text:#0b1220;
+      --muted:#475569;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
+      --hover-blue:#eaf2ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+      color:var(--text);
+      display:flex; flex-direction:column;
+      background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
+    }
+
+    header{ background:#fff; border-bottom:1px solid #e6eefc; }
+    .wrap{
+      max-width:1120px; margin:0 auto; padding:18px 20px;
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
+    }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
+
+    .userbox{ position:relative; }
+    .userbtn{
+      display:flex; align-items:center; gap:10px; background:#fff;
+      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow);
+    }
+    .userbtn img{ width:22px; height:22px; object-fit:contain; }
+    .chev{ font-size:13px; }
+    .dropdown{
+      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
+      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:260px; display:none;
+    }
+    .dropdown.open{ display:block; }
+    .dropdown .head{
+      padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff;
+      border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all;
+    }
+    .dropdown button{
+      all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
+      font-weight:700; color:#b91c1c;
+    }
+    .dropdown button:hover{ background:#fee2e2; }
+
+    main{
+      flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+      padding:26px 16px 70px;
+    }
+    .container{ max-width:900px; margin:0 auto; }
+    h1{ color:#fff; font-size:32px; margin:0 0 16px 0; }
+
+    .card{
+      background:#0b6ef3; border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,.12) inset, 0 10px 24px rgba(0,0,0,.10);
+      padding:18px;
+    }
+    .form{
+      background:#0b6ef3; border-radius:14px; padding:18px;
+    }
+    .section{
+      background:#0c5fe0; border:1px solid rgba(255,255,255,.25);
+      border-radius:12px; padding:16px; margin-bottom:16px;
+    }
+    .section h2{
+      color:#e6f0ff; font-size:18px; margin:0 0 8px 0;
+    }
+
+    label{ display:block; color:#e6f0ff; font-weight:800; margin:10px 0 6px; }
+    .hint{ color:#eaf2ffcc; font-size:12px; margin-top:4px; }
+
+    input[type="text"],
+    input[type="email"],
+    textarea{
+      width:100%; padding:12px 12px; border-radius:10px;
+      border:2px solid #0b3a88; outline:none; font-size:14px;
+      box-shadow: var(--shadow); background:#fff;
+    }
+    textarea{ min-height:110px; resize:vertical; }
+
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .row-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    .row-4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; }
+    @media (max-width: 860px){
+      .row, .row-3, .row-4{ grid-template-columns:1fr; }
+      .wrap{ grid-template-columns:1fr; }
+      .brand img{ height:64px; }
+    }
+
+    .readonly input,
+    .readonly textarea{
+      background:#f8fbff; color:#1f2937;
+    }
+
+    .radio-group{
+      display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+    }
+    .money-wrap{ display:flex; align-items:center; gap:10px; }
+    .money-prefix{ font-weight:900; color:#0b3a88; background:#fff; border:2px solid #0b3a88; padding:8px 10px; border-radius:10px; }
+    .money-input{ flex:1; }
+
+    .upload{
+      background:#eaf2ff; border:2px dashed #0b3a88; padding:14px; border-radius:12px;
+      display:flex; gap:12px; align-items:center; color:#0b3a88; font-weight:700;
+    }
+    .upload input{ display:none; }
+    .upload .btn{
+      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88;
+      padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
+    }
+    .thumb{ width:80px; height:80px; border-radius:10px; object-fit:cover; display:none; border:2px solid #0b3a88; }
+
+    .actions{
+      display:flex; gap:12px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;
+    }
+    .btn{
+      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88;
+      padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
+    }
+    .btn.primary{ background:#0b3a88; color:#fff; }
+
+    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
+    .error.show{ display:block; }
+
+    .ok{ color:#064e3b; background:#d1fae5; border:1px solid #10b981; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
+    .ok.show{ display:block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+      </div>
+
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span>Mi sesión</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" id="logoutBtn">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Autorizaciones</h1>
+
+      <div id="msgError" class="error"></div>
+      <div id="msgOk" class="ok"></div>
+
+      <!-- Datos de la solicitud (solo lectura) -->
+      <div class="card readonly" id="cardDatos">
+        <div class="section">
+          <h2>Datos de la solicitud</h2>
+          <div class="row-4">
+            <div>
+              <label>ID</label>
+              <input type="text" id="v_id" disabled />
+            </div>
+            <div>
+              <label>Correo</label>
+              <input type="text" id="v_correo" disabled />
+            </div>
+            <div>
+              <label>Nombre completo</label>
+              <input type="text" id="v_nombre" disabled />
+            </div>
+            <div>
+              <label>RUT</label>
+              <input type="text" id="v_rut" disabled />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Dirección</label>
+              <input type="text" id="v_direccion" disabled />
+            </div>
+            <div>
+              <label>Teléfonos</label>
+              <input type="text" id="v_telefonos" disabled />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Tipo</label>
+              <input type="text" id="v_tipo" disabled />
+            </div>
+            <div>
+              <label>Detalle</label>
+              <input type="text" id="v_detalle" disabled />
+            </div>
+          </div>
+
+          <div id="cartolaRow" style="display:none; margin-top:10px;">
+            <label>Cartola RSH</label>
+            <a id="v_cartola" href="#" target="_blank" class="btn">Ver cartola</a>
+            <div class="hint">Se muestra solo si el vecino adjuntó la cartola.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de visita (obligatorio) -->
+      <div class="form" style="margin-top:16px;">
+        <div class="section">
+          <h2>Comentario de visita</h2>
+          <label for="f_comentario">Comentario de visita</label>
+          <textarea id="f_comentario" maxlength="600" placeholder="Escriba su comentario (máx. 600 caracteres)"></textarea>
+          <div class="hint"><span id="charsLeft">600</span> caracteres restantes.</div>
+        </div>
+
+        <div class="section">
+          <h2>Precio</h2>
+          <div class="radio-group" role="radiogroup" aria-label="Precio">
+            <label><input type="radio" name="precio" value="gratis" id="p_gratis"> Gratis</label>
+            <label><input type="radio" name="precio" value="otro" id="p_otro"> Otro</label>
+          </div>
+
+          <div id="precioOtroWrap" class="money-wrap" style="display:none; margin-top:10px;">
+            <span class="money-prefix">$</span>
+            <input type="text" id="f_monto" class="money-input" inputmode="numeric" placeholder="0" />
+          </div>
+          <div class="hint">Si elige “Otro”, ingrese un valor en CLP. Se formatea automáticamente con puntos de miles.</div>
+        </div>
+
+        <div class="section">
+          <h2>Fotografía (obligatoria)</h2>
+          <div class="upload">
+            <img id="thumb" class="thumb" alt="Vista previa" />
+            <button type="button" id="pickBtn" class="btn">Usar cámara / subir foto</button>
+            <input id="fileInput" type="file" accept="image/*" capture="environment" />
+          </div>
+          <div class="hint">Solo se permite **una** foto. Volver a elegir reemplaza la anterior.</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="cancelBtn">Cancelar</button>
+          <button class="btn primary" id="saveBtn">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ====== Ajusta estos endpoints si corresponde ======
+    // Detalle de una solicitud por id (intenta primero un detalle dedicado; si falla, trae la lista y filtra)
+    const DETAIL_ENDPOINT = {
+      primary: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail',
+      fallbackList: 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-list'
+    };
+    // Guardado de la visita (FormData con: id, comentario, precio_tipo, monto, foto)
+    const SAVE_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
+    // ===================================================
+
+    // Sesión UI (igual estilo que otras páginas)
+    function getEmailFromClient(){
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e){}
+      return '';
+    }
+    (function(){
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+    })();
+
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      try{
+        localStorage.removeItem('email');
+        sessionStorage.removeItem('email');
+        localStorage.removeItem('user');
+      }catch(e){}
+      location.href = 'index.html';
+    });
+
+    // Mensajes
+    const msgError = document.getElementById('msgError');
+    const msgOk = document.getElementById('msgOk');
+    function showError(t){ msgOk.classList.remove('show'); msgError.textContent = t; msgError.classList.add('show'); }
+    function showOk(t){ msgError.classList.remove('show'); msgOk.textContent = t; msgOk.classList.add('show'); }
+
+    // === Carga del detalle ===
+    const qs = new URLSearchParams(location.search);
+    const SOL_ID = Number(qs.get('id') || 0);
+
+    if (!SOL_ID){
+      showError('Falta el parámetro "id" en la URL.');
+    } else {
+      loadDetalle(SOL_ID);
+    }
+
+    function normalizeTipos(val){
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string'){
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')){
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
+        }
+        return s ? [s] : [];
+      }
+      return [];
+    }
+
+    async function loadDetalle(id){
+      try{
+        // 1) Intento endpoint de detalle
+        let detalle = null;
+        try{
+          const u = `${DETAIL_ENDPOINT.primary}?id=${encodeURIComponent(id)}`;
+          const r = await fetch(u, {method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'});
+          if (r.ok){
+            const d = await r.json();
+            if (d && (d.id || d.ID || (d.data && d.data.id))){
+              detalle = d.data || d;
+            }
+          }
+        }catch(e){ /* pasa a fallback */ }
+
+        // 2) Fallback: traer lista y filtrar por id
+        if (!detalle){
+          const u2 = `${DETAIL_ENDPOINT.fallbackList}?page=1&per_page=200`;
+          const r2 = await fetch(u2, {method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'});
+          if (!r2.ok) throw new Error('HTTP '+r2.status);
+          const data = await r2.json();
+          let items = Array.isArray(data) ? data
+                    : Array.isArray(data.items) ? data.items
+                    : (data.data && Array.isArray(data.data.items)) ? data.data.items
+                    : [];
+          detalle = items.find(x => Number(x.id) === Number(id)) || null;
+        }
+
+        if (!detalle) throw new Error('No se encontró la solicitud.');
+
+        // Mapeo seguro de campos (usa '—' si no existe)
+        setVal('v_id', detalle.id ?? '—');
+        setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
+        setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
+        setVal('v_rut', detalle.rut ?? '—');
+        setVal('v_direccion', detalle.direccion ?? '—');
+        const tel = detalle.telefono ?? detalle.telefonos ?? '—';
+        setVal('v_telefonos', formatPhone(tel));
+        const tiposStr = normalizeTipos(detalle.tipos || []).join(', ') || '—';
+        setVal('v_tipo', tiposStr);
+        setVal('v_detalle', detalle.detalle ?? '—');
+
+        const cartolaUrl = detalle.cartola_url || detalle.cartola || '';
+        if (cartolaUrl){
+          document.getElementById('cartolaRow').style.display = '';
+          const a = document.getElementById('v_cartola');
+          a.href = cartolaUrl;
+        } else {
+          document.getElementById('cartolaRow').style.display = 'none';
+        }
+
+      }catch(err){
+        console.error(err);
+        showError('No fue posible cargar el detalle de la solicitud.');
+      }
+    }
+
+    function setVal(id, val){ document.getElementById(id).value = (val==null || val==='') ? '—' : String(val); }
+
+    function formatPhone(v){
+      if (!v) return '—';
+      const digits = String(v).replace(/\D/g,'');
+      if (digits.length === 11 && digits.startsWith('569')) {
+        const a = digits.slice(3,7), b = digits.slice(7,11);
+        return `+56 9 ${a} ${b}`;
+      }
+      if (digits.length === 9 && digits.startsWith('9')) {
+        const a = digits.slice(1,5), b = digits.slice(5,9);
+        return `+56 9 ${a} ${b}`;
+      }
+      return v;
+    }
+
+    // === Comentario contador ===
+    const comentarioEl = document.getElementById('f_comentario');
+    const charsLeftEl = document.getElementById('charsLeft');
+    comentarioEl.addEventListener('input', ()=>{
+      const max = Number(comentarioEl.getAttribute('maxlength')) || 600;
+      const left = Math.max(0, max - comentarioEl.value.length);
+      charsLeftEl.textContent = left;
+    });
+
+    // === Precio radios + monto CLP ===
+    const rGratis = document.getElementById('p_gratis');
+    const rOtro   = document.getElementById('p_otro');
+    const wrapMonto = document.getElementById('precioOtroWrap');
+    const montoEl = document.getElementById('f_monto');
+
+    function updatePrecioUI(){
+      if (rOtro.checked){
+        wrapMonto.style.display = '';
+        montoEl.focus();
+      } else {
+        wrapMonto.style.display = 'none';
+        montoEl.value = '';
+      }
+    }
+    rGratis.addEventListener('change', updatePrecioUI);
+    rOtro.addEventListener('change', updatePrecioUI);
+
+    // Formateo CLP en vivo (solo dígitos, con puntos de miles)
+    montoEl.addEventListener('input', ()=>{
+      const digits = montoEl.value.replace(/\D/g,'');
+      if (!digits){
+        montoEl.value = '';
+        return;
+      }
+      montoEl.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    });
+
+    // === Foto única (usar cámara) ===
+    const pickBtn = document.getElementById('pickBtn');
+    const fileInput = document.getElementById('fileInput');
+    const thumb = document.getElementById('thumb');
+
+    pickBtn.addEventListener('click', ()=> fileInput.click());
+
+    fileInput.addEventListener('change', ()=>{
+      if (!fileInput.files || fileInput.files.length === 0){
+        thumb.style.display = 'none';
+        thumb.src = '';
+        return;
+      }
+      // Solo una foto (si el usuario intenta más, nos quedamos con la primera)
+      if (fileInput.files.length > 1){
+        const dt = new DataTransfer();
+        dt.items.add(fileInput.files[0]);
+        fileInput.files = dt.files;
+      }
+      const f = fileInput.files[0];
+      if (!f.type.startsWith('image/')){
+        showError('El archivo debe ser una imagen.');
+        fileInput.value = '';
+        thumb.style.display='none';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e)=>{ thumb.src = e.target.result; thumb.style.display='block'; };
+      reader.readAsDataURL(f);
+    });
+
+    // Cancelar
+    document.getElementById('cancelBtn').addEventListener('click', ()=>{
+      history.back();
+    });
+
+    // Guardar
+    document.getElementById('saveBtn').addEventListener('click', async ()=>{
+      const faltas = [];
+
+      const comentario = comentarioEl.value.trim();
+      if (!comentario) faltas.push('Comentario de visita');
+
+      let precio_tipo = '';
+      let monto_raw = '';
+      if (rGratis.checked){
+        precio_tipo = 'gratis';
+      } else if (rOtro.checked){
+        precio_tipo = 'otro';
+        const m = (montoEl.value || '').replace(/\./g,'').trim();
+        if (!m) faltas.push('Monto (CLP)');
+        monto_raw = m;
+      } else {
+        faltas.push('Seleccionar precio (Gratis / Otro)');
+      }
+
+      if (!fileInput.files || fileInput.files.length === 0){
+        faltas.push('Fotografía');
+      }
+
+      if (faltas.length){
+        showError('Complete: ' + faltas.join(', ') + '.');
+        return;
+      }
+
+      try{
+        const fd = new FormData();
+        fd.append('id', String(SOL_ID));
+        fd.append('comentario', comentario);
+        fd.append('precio_tipo', precio_tipo);
+        if (precio_tipo === 'otro') fd.append('monto', monto_raw); // sin puntos
+        fd.append('foto', fileInput.files[0]); // UNA sola foto
+
+        const res = await fetch(SAVE_ENDPOINT, { method:'POST', body: fd });
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        // Puedes leer JSON si tu webhook responde con data
+        showOk('Visita guardada correctamente.');
+        // Opcional: redirige de vuelta a la lista
+        // setTimeout(()=> location.href='administrar.html', 1200);
+      }catch(e){
+        console.error(e);
+        showError('No fue posible guardar la visita. Intente nuevamente.');
+      }
+    });
+  </script>
+</body>
+</html>
