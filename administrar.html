@@ -15,6 +15,7 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
+      --cell-bg:#edf3ff; /* <- NUEVO: fondo opaco para celdas */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -97,9 +98,12 @@
     thead th{
       color:#e6f0ff; font-weight:800; text-align:left; padding:10px; font-size:14px;
       border-bottom:2px solid rgba(255,255,255,.6);
+      background:#0b6ef3; /* asegura header opaco */
     }
     tbody td{
-      background:rgba(255,255,255,.12); color:#fff; padding:10px; font-size:14px;
+      background:var(--cell-bg); /* <- ANTES era rgba(255,255,255,.12) */
+      color:#0b1220;             /* mejor contraste sobre fondo claro */
+      padding:10px; font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
       position: relative;
@@ -157,19 +161,21 @@
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
 
-    /* ===== NUEVO: fijar la primera columna al hacer scroll horizontal ===== */
+    /* ===== Primera columna fija y opaca, sin borde lateral ===== */
     thead th:first-child{
       position: sticky;
       left: 0;
-      z-index: 3;                 /* por encima de las celdas del body */
-      background: #0b6ef3;        /* mismo tono del card para que no parpadee */
+      z-index: 3;
+      background:#0b6ef3;
     }
     tbody td:first-child{
       position: sticky;
       left: 0;
-      z-index: 2;                 /* debajo del header pero encima del resto */
-      background: rgba(255,255,255,.12);  /* mismo fondo que la fila */
-      border-right: 2px solid rgba(255,255,255,.20); /* pequeño separador visual */
+      z-index: 2;
+      background: var(--cell-bg); /* opaco, mismo que el resto */
+      /* se elimina el separador que se veía en móvil */
+      border-right: none;
+      box-shadow: none;
     }
 
     @media (max-width: 680px){
@@ -435,13 +441,11 @@
         span.textContent = estadoUpper;
         wrap.appendChild(span);
 
-        // Botón "Editar" solo para estado pendiente
         if (normalizeEstado(it.estado_solicitud) === 'pendiente'){
           const b = document.createElement('button');
           b.className = 'back-btn edit-btn';
           b.textContent = 'Editar';
           b.addEventListener('click', ()=>{
-            // 👉 URL absoluta:
             window.location.href = `https://web.proyectosfranco.cl/autorizaciones.html?id=${encodeURIComponent(it.id)}`;
           });
           wrap.appendChild(b);
@@ -514,7 +518,6 @@
       if (page < pages) pager.appendChild(makeBtn('Siguiente ›', ()=>{ page++; render(); }));
     }
 
-    // ==== Cargar datos ====
     async function loadAll(){
       try{
         const url = `${ADMIN_LIST_ENDPOINT}?page=1&per_page=${pageSize}`;
@@ -549,4 +552,3 @@
   </script>
 </body>
 </html>
-
