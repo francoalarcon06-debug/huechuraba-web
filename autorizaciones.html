@@ -194,7 +194,7 @@
     if (!SOL_ID){ showError('Falta el parámetro "id" en la URL.'); } else { loadDetalle(SOL_ID); }
 
     function normalizeTipos(val){
-      if (Array.isArray(val)) return val;
+      if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string'){
         const s = val.trim();
         if (s.startsWith('{') && s.endsWith('}')){
@@ -209,61 +209,80 @@
 
     async function loadDetalle(id){
       try{
-        const r = await fetch(`${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`, {
-          method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'
-        });
+        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
+        const r = await fetch(url, { method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors' });
         if (!r.ok) throw new Error('HTTP '+r.status);
-        const d = await r.json();
+
+        let d;
+        try {
+          d = await r.json();
+        } catch(parseErr){
+          console.error('Error parseando JSON de detalle:', parseErr);
+          throw new Error('Respuesta no válida del servidor.');
+        }
+
         const detalle = d && (d.data || d);
+        if (!detalle || (detalle.id == null && detalle.ID == null)){
+          console.error('Detalle vacío o sin ID:', detalle);
+          throw new Error('No se encontró la solicitud.');
+        }
 
-        if (!detalle || (detalle.id == null && detalle.ID == null)) throw new Error('No se encontró la solicitud.');
-
+        // Rellenar campos seguros
         setVal('v_id', detalle.id ?? detalle.ID ?? '—');
         setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
         setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
         setVal('v_rut', detalle.rut ?? '—');
         setVal('v_direccion', detalle.direccion ?? '—');
 
-        const tel = detalle.telefono ?? detalle.telefonos ?? '—';
-        setVal('v_telefonos', formatPhone(tel));
+        const tel = detalle.telefono ?? detalle.telefonos ?? '';
+        setVal('v_telefonos', formatPhone(tel || '—'));
 
         const tiposStr = normalizeTipos(detalle.tipos || []).join(', ') || '—';
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
-        // Cartola segura
-        const cart = detalle.cartola;
-        if (cart && cart.b64 && cart.mime){
-          const url = makeBlobUrlFromB64(cart.b64, cart.mime);
-          if (url){
-            document.getElementById('cartolaRow').style.display = '';
-            const a = document.getElementById('v_cartola');
-            a.href = url;
-            const ext = (String(cart.mime).split('/')[1] || 'bin');
-            a.download = `cartola_${detalle.id}.${ext}`;
+        // Cartola: que no bote toda la carga si algo falla
+        try {
+          const cart = detalle.cartola;
+          if (cart && cart.b64 && cart.mime){
+            const urlBlob = makeBlobUrlFromB64(cart.b64, cart.mime);
+            if (urlBlob){
+              document.getElementById('cartolaRow').style.display = '';
+              const a = document.getElementById('v_cartola');
+              a.href = urlBlob;
+              const ext = (String(cart.mime).trim().split('/')[1] || 'bin');
+              a.download = `cartola_${detalle.id}.${ext}`;
+            } else {
+              document.getElementById('cartolaRow').style.display = 'none';
+            }
           } else {
             document.getElementById('cartolaRow').style.display = 'none';
           }
-        } else {
+        } catch(cartErr){
+          console.error('Error preparando cartola:', cartErr);
           document.getElementById('cartolaRow').style.display = 'none';
         }
+
+        // Si llegamos aquí, no mostramos error
+        msgError.classList.remove('show');
+
       }catch(err){
-        console.error(err);
+        console.error('Fallo en loadDetalle:', err);
         showError('No fue posible cargar el detalle de la solicitud.');
       }
     }
 
-    // Versión robusta: limpia base64 y asegura el mime
+    // Limpia base64 (quita CR/LF/espacios/tab) y recorta MIME
     function makeBlobUrlFromB64(b64, mime){
       try {
-        const clean = String(b64 || '').replace(/[^A-Za-z0-9+/=]/g, ''); // quita CR/LF, tabs, espacios, etc.
+        const clean = String(b64 || '').replace(/[^A-Za-z0-9+/=]/g, ''); // elimina \n, \r, espacios, etc.
         const raw = atob(clean);
         const len = raw.length; const arr = new Uint8Array(len);
         for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
         const type = String(mime || 'application/octet-stream').trim();
         return URL.createObjectURL(new Blob([arr], {type}));
       } catch(e){
-        console.error('Error creando blob de cartola:', e);
+        console.error('Error creando blob desde base64:', e);
         return null;
       }
     }
