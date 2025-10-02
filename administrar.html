@@ -73,8 +73,7 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      /* antes: overflow:hidden; -> cortaba el menú */
-      overflow: visible; /* permite que el dropdown se vea completo */
+      overflow: visible;
       position: relative;
     }
 
@@ -141,9 +140,10 @@
       position:absolute; right:0; top:calc(100% + 8px);
       background:#fff; border:1px solid #dbe4ff; border-radius:12px;
       box-shadow: var(--shadow); min-width:240px; display:none;
-      z-index: 9999; /* que quede por sobre todo */
-      max-height: 320px; /* si hay muchas opciones, que scrollee */
-      overflow: auto;
+      z-index: 9999;
+      max-height: 320px;
+      overflow-y: auto;     /* ← solo scroll vertical */
+      overflow-x: hidden;   /* ← sin barra horizontal */
     }
     #stateMenu.open{ display:block; }
     #stateMenu button{
@@ -252,13 +252,11 @@
       document.getElementById('emailFull').textContent = email || '—';
     })();
 
-    // Botón volver
     document.getElementById('backBtn').addEventListener('click', ()=>{
       const email = getEmailFromClient();
       location.href = email ? `municipal.html?email=${encodeURIComponent(email)}` : `municipal.html`;
     });
 
-    // Cerrar sesión -> limpiar y llevar a login (index.html)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
@@ -276,19 +274,6 @@
     const msgError = document.getElementById('msgError');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    function fmtDate(v){
-      if (v === null || v === undefined || v === '') return '—';
-      const d = new Date(Number(v));
-      try {
-        return new Intl.DateTimeFormat('es-CL', {
-          dateStyle:'medium',
-          timeStyle:'short',
-          timeZone:'UTC'
-        }).format(d);
-      } catch {
-        return d.toUTCString();
-      }
-    }
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -355,12 +340,6 @@
     function paginate(items, p, size){
       const start = (p-1)*size;
       return items.slice(start, start + size);
-    }
-
-    function hasValue(x){
-      if (x === null || x === undefined) return false;
-      if (typeof x === 'string' && x.trim() === '') return false;
-      return true;
     }
 
     function render(){
@@ -481,7 +460,6 @@
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
         const items = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
-        // Ordenar por id desc por si acaso
         items.sort((a,b)=> Number(b.id||0) - Number(a.id||0));
         allItems = items;
         render();
