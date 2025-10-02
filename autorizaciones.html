@@ -92,6 +92,8 @@
     }
     .btn.primary{ background:#0b3a88; color:#fff; }
     .btn.small{ padding:8px 12px; border-radius:9px; }
+    /* Botón rojo para Rechazar */
+    .btn.danger{ background:#b91c1c; color:#fff; border-color:#991b1b; }
 
     .price-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 
@@ -104,9 +106,9 @@
 
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
 
-    /* NUEVO: textos del recuadro de fotografía con el mismo color que el botón */
+    /* Textos del recuadro de fotografía con el mismo color que el botón */
     .uploader-text{
-      color:#0b3a88;           /* coincide con el texto del botón */
+      color:#0b3a88;
       font-weight:800;
     }
 
@@ -235,6 +237,9 @@
             <div class="uploader-text" style="margin-top:6px;">Formatos: JPG o PNG. Tamaño máx.: 5 MB.</div>
             <div id="fileName" class="uploader-text" style="margin-top:6px; display:none;"></div>
           </div>
+
+          <!-- NUEVO: botón Rechazar debajo de Fotografía -->
+          <button class="btn danger" id="btnReject" type="button" style="margin-top:10px;">Rechazar</button>
         </div>
 
         <div class="actions">
@@ -316,7 +321,6 @@
     rGratis.addEventListener('change', updatePrecioState);
     rOtro.addEventListener('change', updatePrecioState);
 
-    // Formateo en tiempo real a CLP (manteniendo dígitos)
     fPrecio.addEventListener('input', () => {
       const digits = fPrecio.value.replace(/\D/g,'');
       fPrecio.value = formatCLP(digits);
@@ -368,92 +372,4 @@
         if (!digits) errs.push('Precio');
       }
 
-      if (errs.length){ showFormErrors(errs); return; }
-      showFormErrors([]);
-      alert('Guardar (demo)'); // aquí va tu POST real
-    });
-
-    /* ===== Cargar detalle ===== */
-    let cartolaBlobUrl = '';
-    async function loadDetail(){
-      const id = new URLSearchParams(location.search).get('id')?.trim() || '';
-      if (!id){ showError('Falta el parámetro "id".'); return; }
-
-      try{
-        const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
-        const res = await fetch(url, {
-          method:'GET',
-          headers:{ 'Accept':'application/json' },
-          mode:'cors',
-          cache:'no-store'
-        });
-
-        const text = await res.text();
-        let payload;
-        try { payload = JSON.parse(text); } catch { payload = { status: res.status, raw: text }; }
-
-        if (!res.ok){
-          showError('No fue posible cargar el detalle de la solicitud.');
-          console.error('Detalle error:', payload);
-          return;
-        }
-
-        const data = (payload && payload.data) ? payload.data : payload;
-
-        $('f_id').value         = data.id ?? '';
-        $('f_email').value      = data.correo ?? '';
-        $('f_nombre').value     = data.nombre ?? '';
-        $('f_rut').value        = data.rut ?? '';
-        $('f_direccion').value  = data.direccion ?? '';
-        $('f_telefonos').value  = data.telefono ?? '';
-        const tiposArr = Array.isArray(data.tipos) ? data.tipos.map(String)
-          : (String(data.tipos||'').trim().replace(/^\{|\}$/g,'').split(',').map(s=>s.replace(/^"(.*)"$/,'$1')).filter(Boolean));
-        $('f_tipos').value      = tiposArr.join(', ');
-        $('f_detalle').value    = data.detalle ?? '';
-
-        const hasCartola = data.cartola && data.cartola.b64 && data.cartola.mime;
-        const chipSin = $('chip_sin_cartola');
-        const chipCon = $('chip_con_cartola');
-
-        if (hasCartola){
-          chipSin.style.display = 'none';
-          chipCon.style.display = '';
-
-          try{
-            const byteStr = atob(data.cartola.b64);
-            const len = byteStr.length;
-            const bytes = new Uint8Array(len);
-            for (let i=0;i<len;i++) bytes[i] = byteStr.charCodeAt(i);
-            const blob = new Blob([bytes], { type: data.cartola.mime });
-            if (cartolaBlobUrl) URL.revokeObjectURL(cartolaBlobUrl);
-            cartolaBlobUrl = URL.createObjectURL(blob);
-            $('btnDescargar').onclick = ()=> {
-              const a = document.createElement('a');
-              a.href = cartolaBlobUrl;
-              const ext = data.cartola.mime === 'application/pdf' ? 'pdf' : 'png';
-              a.download = `cartola_${data.id}.${ext}`;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-            };
-          }catch(e){
-            console.error('No se pudo preparar descarga:', e);
-            chipCon.style.display = 'none';
-            chipSin.style.display = '';
-          }
-        } else {
-          chipCon.style.display = 'none';
-          chipSin.style.display = '';
-        }
-
-        updatePrecioState(); // aplica estado inicial del campo precio
-      } catch (e){
-        console.error(e);
-        showError('No fue posible cargar el detalle de la solicitud.');
-      }
-    }
-
-    loadDetail();
-  </script>
-</body>
-</html>
+      if (errs
