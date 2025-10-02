@@ -69,6 +69,10 @@
       display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px;
       background:var(--danger-bg); color:var(--danger); font-weight:900; border:1px solid #fecaca;
     }
+    .chip-link{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px;
+      background:#f8fbff; color:#0b3a88; font-weight:900; border:1px solid #dbe4ff; text-decoration:none;
+    }
 
     /* Uploader caja */
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
@@ -138,6 +142,18 @@
           </div>
         </div>
 
+        <!-- Estado de cartola (arriba del comentario) -->
+        <div class="section" id="cartolaSection" style="display:none">
+          <div id="warn_sin_cartola" class="chip-warn" style="display:none;">
+            <span>⚠️</span>
+            <span>Solicitud subida sin cartola</span>
+          </div>
+
+          <a id="cartola_link" class="chip-link" href="#" download style="display:none">
+            ⬇️ Descargar archivo de respaldo
+          </a>
+        </div>
+
         <!-- Comentario -->
         <div class="section">
           <label for="f_comentario">Comentario de visita</label>
@@ -159,15 +175,11 @@
         <div class="section">
           <label>Fotografía (obligatoria)</label>
 
-          <!-- AVISO si no hay cartola -->
-          <div id="warn_sin_cartola" class="chip-warn" style="display:none;margin-bottom:10px;">
-            <span>⚠️</span>
-            <span>Solicitud dubida sin cartola</span>
-          </div>
-
           <div class="uploader">
             <button class="btn" id="btnUpload" type="button">Usar cámara / subir foto</button>
-            <!-- Aquí mantienes la lógica que ya tengas para subir archivo -->
+            <!-- input real (oculto) para cámara/galería -->
+            <input id="fileInput" type="file" accept="image/png" capture="environment" style="display:none" />
+            <div id="fileHint" class="price-note" style="margin-top:8px;">Solo PNG, máx. 5 MB.</div>
           </div>
         </div>
 
@@ -209,6 +221,18 @@
       }
       return [];
     }
+    function b64ToBlob(b64Data, contentType='application/octet-stream'){
+      const byteCharacters = atob(b64Data);
+      const byteArrays = [];
+      const sliceSize = 1024;
+      for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return new Blob(byteArrays, { type: contentType });
+    }
 
     // ===== Precio UI =====
     const rGratis = $('precio_gratis');
@@ -230,7 +254,6 @@
       const pos = fPrecio.selectionStart;
       const old = fPrecio.value;
       fPrecio.value = formatCLP(fPrecio.value);
-      // intenta mantener el caret de forma simple
       const diff = fPrecio.value.length - old.length;
       fPrecio.setSelectionRange(pos+diff, pos+diff);
     });
@@ -238,8 +261,30 @@
     // ===== Navegación =====
     $('btnCancel').addEventListener('click', ()=> history.back());
     $('btnSave').addEventListener('click', ()=> {
-      // Aquí dejas tu lógica actual de guardado (no se cambia nada más)
+      // Tu lógica de guardado existente (no se modifica)
       alert('Guardar (demo)');
+    });
+
+    // ===== Uploader (PNG máx 5MB) =====
+    const fileInput = $('fileInput');
+    $('btnUpload').addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', ()=>{
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+
+      if (f.type !== 'image/png'){
+        showError('Solo se permiten imágenes PNG.');
+        fileInput.value = '';
+        return;
+      }
+      if (f.size > 5 * 1024 * 1024){
+        showError('El archivo supera los 5 MB.');
+        fileInput.value = '';
+        return;
+      }
+      // Aquí mantienes tu flujo de envío si ya existe en tu proyecto.
+      // Por ahora solo mostramos nombre OK.
+      $('fileHint').textContent = `Seleccionado: ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`;
     });
 
     // ===== Carga de datos =====
@@ -256,7 +301,6 @@
           cache:'no-store'
         });
 
-        // si el server devolviera text/plain por CORS, intenta parsear
         const text = await res.text();
         let payload;
         try { payload = JSON.parse(text); } catch { payload = { status: res.status, raw: text }; }
@@ -280,9 +324,34 @@
         $('f_tipos').value      = tiposArr.join(', ');
         $('f_detalle').value    = data.detalle ?? '';
 
-        // Mostrar aviso si viene sin cartola
+        // Mostrar estado/descarga arriba del comentario
+        const cartolaSec = $('cartolaSection');
+        const warn = $('warn_sin_cartola');
+        const link = $('cartola_link');
+        cartolaSec.style.display = '';
+
         const hasCartola = data.cartola && data.cartola.b64 && data.cartola.mime;
-        $('warn_sin_cartola').style.display = hasCartola ? 'none' : '';
+        if (!hasCartola){
+          warn.style.display = '';
+          link.style.display = 'none';
+        } else {
+          warn.style.display = 'none';
+          link.style.display = '';
+
+          const mime = String(data.cartola.mime || '').trim();
+          const b64  = data.cartola.b64 || '';
+          // Solo permitir mostrar descarga si es PNG o PDF (como pediste)
+          if (mime === 'image/png' || mime === 'application/pdf'){
+            const blob = b64ToBlob(b64, mime);
+            const urlObj = URL.createObjectURL(blob);
+            link.href = urlObj;
+            link.download = `cartola_${data.id}.${mime === 'image/png' ? 'png' : 'pdf'}`;
+          } else {
+            // Si llega otro tipo, lo tratamos como “sin cartola”
+            warn.style.display = '';
+            link.style.display = 'none';
+          }
+        }
 
       } catch (e){
         console.error(e);
@@ -294,4 +363,5 @@
   </script>
 </body>
 </html>
+
 
