@@ -85,10 +85,13 @@
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:8px; display:none; margin:0 0 14px 0; font-weight:800; }
     .error.show{ display:block; }
 
+    /* Acciones: ahora separadas (izq: Rechazar | der: Cancelar + Aprobar) */
     .actions{
-      display:flex; gap:10px; justify-content:flex-end; align-items:center;
-      margin-top:14px;
+      display:flex; justify-content:space-between; align-items:center;
+      gap:10px; margin-top:14px;
     }
+    .actions .left, .actions .right{ display:flex; gap:10px; align-items:center; }
+
     .btn{
       all:unset; background:#fff; border:2px solid var(--outline); color:#0b3a88;
       padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
@@ -96,6 +99,7 @@
     .btn.primary{ background:#0b3a88; color:#fff; }
     .btn.small{ padding:8px 12px; border-radius:9px; }
     .btn.danger{ background:var(--danger); color:#fff; border-color:var(--danger); }
+    .btn.success{ background:#10b981; color:#fff; border-color:#059669; }
 
     .price-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 
@@ -107,8 +111,6 @@
     .chip-ok .btn{ border-color:var(--ok); color:var(--ok); background:#fff; }
 
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
-
-    /* Textos del recuadro de fotografía con mismo color del botón */
     .uploader-text{ color:#0b3a88; font-weight:800; }
 
     @media (max-width: 740px){
@@ -194,7 +196,7 @@
           </div>
         </div>
 
-        <!-- Cartola (arriba del comentario) -->
+        <!-- Cartola -->
         <div class="section" id="cartolaSection">
           <div id="chip_sin_cartola" class="chip-warn" style="display:none;">
             <span>⚠️</span>
@@ -219,8 +221,6 @@
           <div class="price-wrap">
             <label class="muted"><input type="radio" name="precioTipo" id="precio_gratis" value="gratis" checked /> Gratis</label>
             <label class="muted"><input type="radio" name="precioTipo" id="precio_otro" value="otro" /> Otro</label>
-
-            <!-- MOSTRAR SÓLO CON “Otro” | placeholder $400.000 | teclado numérico -->
             <input id="f_precio" type="text" inputmode="numeric" pattern="[0-9]*"
                    placeholder="$ 400.000" aria-label="Precio en CLP"
                    style="max-width:220px; display:none" />
@@ -238,11 +238,15 @@
           </div>
         </div>
 
-        <!-- Acciones: Rechazar (rojo), Cancelar, Guardar -->
+        <!-- Acciones -->
         <div class="actions">
-          <button class="btn danger" id="btnReject">Rechazar</button>
-          <button class="btn" id="btnCancel">Cancelar</button>
-          <button class="btn primary" id="btnSave">Guardar</button>
+          <div class="left">
+            <button class="btn danger" id="btnReject">Rechazar</button>
+          </div>
+          <div class="right">
+            <button class="btn" id="btnCancel">Cancelar</button>
+            <button class="btn success" id="btnSave">Aprobar</button>
+          </div>
         </div>
 
         <div id="msgForm" class="error" style="margin-top:12px;"></div>
@@ -343,7 +347,7 @@
       fPrecio.value = formatCLP(digits);
     });
 
-    /* ===== Uploader (JPG/PNG, <=5MB) ===== */
+    /* ===== Uploader ===== */
     const fileInput = $('fileInput');
     const fileName  = $('fileName');
     let fotografia = null;
@@ -388,7 +392,7 @@
       }
       if (errs.length){ showFormErrors(errs); return; }
       showFormErrors([]);
-      alert('Guardar (demo)'); // aquí tu POST real
+      alert('Aprobar (demo)'); // aquí tu POST real de aprobación
     });
 
     // RECHAZAR: requiere comentario de visita
@@ -473,7 +477,7 @@
           chipSin.style.display = '';
         }
 
-        updatePrecioState(); // estado inicial del campo precio
+        updatePrecioState();
       } catch (e){
         console.error(e);
         showError('No fue posible cargar el detalle de la solicitud.');
