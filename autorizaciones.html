@@ -15,9 +15,8 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
-      --danger:#7f1d1d;
-      --danger-border:#fecaca;
-      --danger-text:#ffe3e3;
+      --danger:#b91c1c;
+      --danger-bg:#fee2e2;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -29,74 +28,54 @@
       background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
     }
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
-    .wrap{
-      max-width:1120px; margin:0 auto; padding:18px 20px;
-      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
-    }
-    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .wrap{ max-width:1120px; margin:0 auto; padding:18px 16px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand{ display:grid; grid-template-columns:auto 1fr; column-gap:14px; align-items:center; }
     .brand img{ height:78px; width:auto; object-fit:contain; }
-    .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
-
-    main{
-      flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-      padding:26px 16px 70px;
-    }
-    .container{ max-width:1000px; margin:0 auto; }
-    h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
+    main{ flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:28px 16px 80px; }
+    .container{ max-width:980px; margin:0 auto; }
+    h1{ color:#fff; margin:0 0 18px 0; }
 
     .card{
-      background:#0b6ef3; padding:18px; border-radius:14px;
-      box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      margin-bottom:18px;
+      background:#0b6ef3; border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
+      padding:18px;
     }
-    .grid{
-      display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;
-    }
-    .field{ display:grid; gap:6px; }
-    .label{ color:#e6f0ff; font-weight:800; font-size:14px; }
-    input, textarea{
-      width:100%; padding:10px 12px; border-radius:10px; border:none;
-      background:rgba(255,255,255,.92);
-      box-shadow: var(--shadow);
-      font-size:14px;
+    .section{ background:rgba(255,255,255,.12); border-radius:12px; padding:14px; margin-bottom:16px; }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+    label{ display:block; font-weight:800; color:#e6f0ff; margin-bottom:6px; font-size:14px; }
+    input[type="text"], input[type="email"], input[type="number"], .pill-input, textarea{
+      width:100%; padding:10px 12px; border-radius:10px; border:none; outline:2px solid transparent;
+      background:#fff; font-size:14px;
     }
     textarea{ min-height:120px; resize:vertical; }
-    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-    .row-3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+    .muted{ color:#e6f0ff; opacity:.85; font-weight:700; font-size:14px; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .row-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    .full{ grid-column:1 / -1; }
 
-    .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
-    .btn{
-      all:unset; cursor:pointer; padding:10px 14px; border-radius:10px; font-weight:800;
-      background:#fff; border:2px solid #0b3a88; color:#0b3a88; box-shadow:var(--shadow);
-    }
-    .btn-primary{ background:#0b3a88; color:#fff; }
-
-    .error{
-      color:var(--danger-text); background:var(--danger); border:1px solid var(--danger-border);
-      padding:10px 12px; border-radius:8px; margin:0 0 12px 0; display:none; white-space:pre-wrap;
-    }
+    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:8px; display:none; margin:0 0 14px 0; font-weight:800; }
     .error.show{ display:block; }
 
-    .debug{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      background:#083344; color:#e2e8f0; border:1px solid #075985; padding:10px; border-radius:10px;
-      overflow:auto; max-height:240px; display:none;
+    .actions{ display:flex; gap:10px; justify-content:flex-end; }
+    .btn{
+      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88;
+      padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
+    }
+    .btn.primary{ background:#0b3a88; color:#fff; }
+
+    /* Precio */
+    .price-wrap{ display:flex; align-items:center; gap:18px; }
+    .price-note{ color:#e6f0ff; font-weight:700; font-size:12px; margin-top:6px; }
+    .chip-warn{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px;
+      background:var(--danger-bg); color:var(--danger); font-weight:900; border:1px solid #fecaca;
     }
 
-    .cartola{
-      background:rgba(255,255,255,.12); padding:12px; border-radius:10px; color:#fff;
-      display:grid; gap:10px;
-    }
-    .cartola img{ max-width:320px; border-radius:12px; box-shadow:var(--shadow); background:#fff; }
-    .cartola .hint{ color:#e6f0ff; font-size:13px; }
-    .link{
-      all:unset; cursor:pointer; color:#fff; background:#0b3a88; padding:8px 12px; border-radius:10px; font-weight:800;
-      border:2px solid #0b3a88; display:inline-block;
-    }
+    /* Uploader caja */
+    .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
+    .uploader .btn{ padding:8px 12px; }
 
-    @media (max-width: 760px){
-      .grid, .row, .row-3{ grid-template-columns: 1fr; }
-      h1{ font-size:26px; }
+    @media (max-width: 740px){
+      .grid, .row, .row-3{ grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -105,10 +84,8 @@
     <div class="wrap">
       <div class="brand">
         <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
-        <div></div>
-        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+        <div style="color:#0b3a88;font-weight:800">Plataforma para levantar solicitudes de Retiro de Escombros.</div>
       </div>
-      <div></div>
     </div>
   </header>
 
@@ -116,117 +93,109 @@
     <div class="container">
       <h1>Autorizaciones</h1>
 
-      <div id="msgError" class="error">No fue posible cargar el detalle de la solicitud.</div>
-      <pre id="msgDebug" class="debug"></pre>
+      <div id="msgError" class="error"></div>
 
       <div class="card">
-        <div class="grid">
-          <div class="field">
-            <label class="label">ID</label>
-            <input id="f_id" disabled />
-          </div>
-          <div class="field">
-            <label class="label">Correo</label>
-            <input id="f_correo" disabled />
-          </div>
 
-          <div class="field">
-            <label class="label">Nombre completo</label>
-            <input id="f_nombre" disabled />
-          </div>
-          <div class="field">
-            <label class="label">RUT</label>
-            <input id="f_rut" disabled />
-          </div>
+        <!-- Datos -->
+        <div class="section">
+          <div class="grid">
+            <div>
+              <label for="f_id">ID</label>
+              <input id="f_id" type="text" readonly />
+            </div>
+            <div>
+              <label for="f_email">Correo</label>
+              <input id="f_email" type="email" readonly />
+            </div>
 
-          <div class="field">
-            <label class="label">Dirección</label>
-            <input id="f_direccion" disabled />
-          </div>
-          <div class="field">
-            <label class="label">Teléfonos</label>
-            <input id="f_telefonos" disabled />
-          </div>
+            <div>
+              <label for="f_nombre">Nombre completo</label>
+              <input id="f_nombre" type="text" readonly />
+            </div>
+            <div>
+              <label for="f_rut">RUT</label>
+              <input id="f_rut" type="text" readonly />
+            </div>
 
-          <div class="field">
-            <label class="label">Tipo</label>
-            <input id="f_tipos" disabled />
-          </div>
-          <div class="field">
-            <label class="label">Detalle</label>
-            <input id="f_detalle" disabled />
+            <div>
+              <label for="f_direccion">Dirección</label>
+              <input id="f_direccion" type="text" readonly />
+            </div>
+            <div>
+              <label for="f_telefonos">Teléfonos</label>
+              <input id="f_telefonos" type="text" readonly />
+            </div>
+
+            <div>
+              <label for="f_tipos">Tipo</label>
+              <input id="f_tipos" type="text" readonly />
+            </div>
+            <div>
+              <label for="f_detalle">Detalle</label>
+              <input id="f_detalle" type="text" readonly />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="cartolaBox" class="card cartola" style="display:none">
-        <div class="label" style="color:#e6f0ff">Cartola RSH</div>
-        <div id="cartolaPreview"></div>
-        <div class="hint">Si el archivo es imagen se previsualiza. Si es PDF u otro tipo, verás un botón para descargar.</div>
-      </div>
-
-      <div class="card">
-        <div class="field">
-          <label class="label">Comentario de visita</label>
+        <!-- Comentario -->
+        <div class="section">
+          <label for="f_comentario">Comentario de visita</label>
           <textarea id="f_comentario" placeholder="Escriba su comentario (máx. 600 caracteres)"></textarea>
         </div>
 
-        <div class="row-3" style="margin-top:10px">
-          <div class="field">
-            <label class="label">Precio</label>
-            <div>
-              <label><input type="radio" name="precio" value="gratis" checked /> Gratis</label>
-              &nbsp;&nbsp;
-              <label><input type="radio" name="precio" value="otro" /> Otro</label>
-            </div>
+        <!-- Precio -->
+        <div class="section">
+          <label>Precio</label>
+          <div class="price-wrap">
+            <label class="muted"><input type="radio" name="precioTipo" id="precio_gratis" value="gratis" checked /> Gratis</label>
+            <label class="muted"><input type="radio" name="precioTipo" id="precio_otro" value="otro" /> Otro</label>
+            <input id="f_precio" type="text" placeholder="$ 0" aria-label="Precio en CLP" disabled style="max-width:220px" />
           </div>
-          <div></div><div></div>
+          <div class="price-note">Si elige “Otro”, ingrese un valor en CLP. Se formatea automáticamente con puntos de miles.</div>
         </div>
 
-        <div class="field" style="margin-top:10px">
-          <label class="label">Fotografía (obligatoria)</label>
-          <button class="btn" disabled>Usar cámara / subir foto</button>
-          <div class="hint" style="color:#e6f0ff">Solo se permite una foto. Volver a elegir reemplaza la anterior.</div>
+        <!-- Fotografía -->
+        <div class="section">
+          <label>Fotografía (obligatoria)</label>
+
+          <!-- AVISO si no hay cartola -->
+          <div id="warn_sin_cartola" class="chip-warn" style="display:none;margin-bottom:10px;">
+            <span>⚠️</span>
+            <span>Solicitud dubida sin cartola</span>
+          </div>
+
+          <div class="uploader">
+            <button class="btn" id="btnUpload" type="button">Usar cámara / subir foto</button>
+            <!-- Aquí mantienes la lógica que ya tengas para subir archivo -->
+          </div>
         </div>
 
         <div class="actions">
-          <button id="btnCancel" class="btn">Cancelar</button>
-          <button id="btnSave" class="btn btn-primary">Guardar</button>
+          <button class="btn" id="btnCancel">Cancelar</button>
+          <button class="btn primary" id="btnSave">Guardar</button>
         </div>
       </div>
     </div>
   </main>
 
   <script>
-    // ====== CONFIG ======
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
 
-    // ====== UTILS ======
-    const qs = new URLSearchParams(location.search);
-    const id = Number(qs.get('id') || 0) || 0;
+    const $ = (id)=> document.getElementById(id);
+    const msgError = $('msgError');
+    function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
 
-    function showError(msg, debug) {
-      const e = document.getElementById('msgError');
-      e.textContent = msg || 'Ocurrió un error.';
-      e.classList.add('show');
-
-      const dbg = document.getElementById('msgDebug');
-      if (debug) {
-        dbg.style.display = 'block';
-        try { dbg.textContent = typeof debug === 'string' ? debug : JSON.stringify(debug, null, 2); }
-        catch { dbg.textContent = String(debug); }
-      } else {
-        dbg.style.display = 'none';
-        dbg.textContent = '';
-      }
+    // ===== Helpers =====
+    function getQueryId(){
+      const id = new URLSearchParams(location.search).get('id');
+      return id ? id.trim() : '';
     }
-    function hideError() {
-      document.getElementById('msgError').classList.remove('show');
-      const dbg = document.getElementById('msgDebug');
-      dbg.style.display = 'none';
-      dbg.textContent = '';
+    function formatCLP(num){
+      const digits = String(num).replace(/\D/g,'');
+      if (!digits) return '';
+      return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
-
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -240,118 +209,89 @@
       }
       return [];
     }
-    function displayTipos(arr){
-      if (!arr || !arr.length) return '—';
-      const clean = arr.map(t => String(t).replace(/^"(.*)"$/,'$1').replace(/^'(.*)'$/,'$1'));
-      if (clean.length <= 2) return clean.join(', ');
-      return clean.slice(0,2).join(', ') + ', ...';
-    }
-    function formatPhone(v){
-      if (!v) return '—';
-      const digits = String(v).replace(/\D/g,'');
-      if (digits.length === 11 && digits.startsWith('569')) {
-        const a = digits.slice(3,7);
-        const b = digits.slice(7,11);
-        return `+56 9 ${a} ${b}`;
-      }
-      if (digits.length === 9 && digits.startsWith('9')) {
-        const a = digits.slice(1,5);
-        const b = digits.slice(5,9);
-        return `+56 9 ${a} ${b}`;
-      }
-      return v;
-    }
 
-    function renderCartola(cartola){
-      const wrap = document.getElementById('cartolaBox');
-      const prev = document.getElementById('cartolaPreview');
-      prev.innerHTML = '';
-      if (!cartola || !cartola.mime || !cartola.b64) {
-        wrap.style.display = 'none';
-        return;
-      }
-      wrap.style.display = 'grid';
-      const mime = String(cartola.mime).trim().toLowerCase();
-      const dataUrl = `data:${mime};base64,${cartola.b64}`;
-      if (mime.startsWith('image/')) {
-        const img = new Image();
-        img.src = dataUrl;
-        img.alt = 'Cartola RSH';
-        prev.appendChild(img);
+    // ===== Precio UI =====
+    const rGratis = $('precio_gratis');
+    const rOtro   = $('precio_otro');
+    const fPrecio = $('f_precio');
+
+    function updatePrecioState(){
+      if (rOtro.checked){
+        fPrecio.disabled = false;
+        fPrecio.focus();
       } else {
-        const a = document.createElement('a');
-        a.className = 'link';
-        a.href = dataUrl;
-        a.download = 'cartola_rsh';
-        a.textContent = 'Descargar cartola';
-        prev.appendChild(a);
+        fPrecio.value = '';
+        fPrecio.disabled = true;
       }
     }
+    rGratis.addEventListener('change', updatePrecioState);
+    rOtro.addEventListener('change', updatePrecioState);
+    fPrecio.addEventListener('input', (e)=>{
+      const pos = fPrecio.selectionStart;
+      const old = fPrecio.value;
+      fPrecio.value = formatCLP(fPrecio.value);
+      // intenta mantener el caret de forma simple
+      const diff = fPrecio.value.length - old.length;
+      fPrecio.setSelectionRange(pos+diff, pos+diff);
+    });
 
-    // ====== CARGA INICIAL ======
-    async function loadDetail() {
-      if (!id) {
-        showError('Parámetro "id" inválido.');
-        return;
-      }
-      hideError();
+    // ===== Navegación =====
+    $('btnCancel').addEventListener('click', ()=> history.back());
+    $('btnSave').addEventListener('click', ()=> {
+      // Aquí dejas tu lógica actual de guardado (no se cambia nada más)
+      alert('Guardar (demo)');
+    });
+
+    // ===== Carga de datos =====
+    async function loadDetail(){
+      const id = getQueryId();
+      if (!id){ showError('Falta el parámetro "id".'); return; }
 
       try{
         const url = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
         const res = await fetch(url, {
           method:'GET',
-          headers: { 'Accept':'application/json' },
+          headers:{ 'Accept':'application/json' },
           mode:'cors',
           cache:'no-store'
         });
 
-        // Si n8n devuelve un 200/400/404/500 con JSON -> seguimos leyendo igual
+        // si el server devolviera text/plain por CORS, intenta parsear
         const text = await res.text();
         let payload;
-        try { payload = JSON.parse(text); }
-        catch { payload = { status: res.status, raw: text }; }
+        try { payload = JSON.parse(text); } catch { payload = { status: res.status, raw: text }; }
 
-        if (!res.ok) {
-          showError('No fue posible cargar el detalle de la solicitud.', payload);
+        if (!res.ok){
+          showError('No fue posible cargar el detalle de la solicitud.');
+          console.error('Detalle error:', payload);
           return;
         }
 
-        // Esperamos formato { status: 200, data: {...} }
-        const status = Number(payload?.status ?? res.status);
-        if (status !== 200 || !payload?.data) {
-          showError('Respuesta inválida desde el servidor.', payload);
-          return;
-        }
+        // Esperamos { status: 200, data: {...} }
+        const data = (payload && payload.data) ? payload.data : payload;
 
-        const d = payload.data;
+        $('f_id').value         = data.id ?? '';
+        $('f_email').value      = data.correo ?? '';
+        $('f_nombre').value     = data.nombre ?? '';
+        $('f_rut').value        = data.rut ?? '';
+        $('f_direccion').value  = data.direccion ?? '';
+        $('f_telefonos').value  = data.telefono ?? '';
+        const tiposArr = parseTipos(data.tipos);
+        $('f_tipos').value      = tiposArr.join(', ');
+        $('f_detalle').value    = data.detalle ?? '';
 
-        // Pinta campos
-        document.getElementById('f_id').value         = d.id ?? '';
-        document.getElementById('f_correo').value     = d.correo || '';
-        document.getElementById('f_nombre').value     = d.nombre || '';
-        document.getElementById('f_rut').value        = d.rut || '';
-        document.getElementById('f_direccion').value  = d.direccion || '';
-        document.getElementById('f_telefonos').value  = formatPhone(d.telefono || '');
-        document.getElementById('f_tipos').value      = displayTipos(parseTipos(d.tipos));
-        document.getElementById('f_detalle').value    = d.detalle || '';
+        // Mostrar aviso si viene sin cartola
+        const hasCartola = data.cartola && data.cartola.b64 && data.cartola.mime;
+        $('warn_sin_cartola').style.display = hasCartola ? 'none' : '';
 
-        renderCartola(d.cartola);
-      }catch(err){
-        console.error(err);
-        showError('Error de red al consultar el detalle.', String(err));
+      } catch (e){
+        console.error(e);
+        showError('No fue posible cargar el detalle de la solicitud.');
       }
     }
 
-    // ====== BOTONES ======
-    document.getElementById('btnCancel').addEventListener('click', ()=>{
-      history.back();
-    });
-    document.getElementById('btnSave').addEventListener('click', ()=>{
-      alert('Guardar: pendiente de implementar 👍');
-    });
-
-    // run
     loadDetail();
   </script>
 </body>
 </html>
+
