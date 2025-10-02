@@ -254,7 +254,7 @@
             <button type="button" id="pickBtn" class="btn">Usar cámara / subir foto</button>
             <input id="fileInput" type="file" accept="image/*" capture="environment" />
           </div>
-          <div class="hint">Solo se permite **una** foto. Volver a elegir reemplaza la anterior.</div>
+          <div class="hint">Solo se permite <strong>una</strong> foto. Volver a elegir reemplaza la anterior.</div>
         </div>
 
         <div class="actions">
@@ -266,12 +266,10 @@
   </main>
 
   <script>
-    // ====== Endpoints ======
-    // Webhook de detalle exclusivo para autorizaciones (evita disparar el de la lista)
+    // ===== Endpoints =====
+    // Usamos el path exclusivo para evitar disparar el flujo de la lista:
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/autorizaciones-detail';
-    // Guardado de la visita (FormData con: id, comentario, precio_tipo, monto, foto)
-    const SAVE_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
-    // =======================
+    const SAVE_ENDPOINT   = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/guardar-visita';
 
     // Sesión UI
     function getEmailFromClient(){
@@ -340,35 +338,43 @@
 
     async function loadDetalle(id){
       try{
-        // Llamamos SOLO al endpoint de detalle para no disparar el webhook de lista
+        // SOLO llama al endpoint de detalle (sin fallback a la lista)
         const u = `${DETAIL_ENDPOINT}?id=${encodeURIComponent(id)}`;
         const r = await fetch(u, {method:'GET', headers:{'Accept':'application/json'}, cache:'no-store', mode:'cors'});
         if (!r.ok) throw new Error('HTTP '+r.status);
         const d = await r.json();
+
+        // La respuesta del webhook viene como { status, data }
         const detalle = d && (d.data || d);
 
-        if (!detalle || (!detalle.id && !detalle.ID)){
+        if (!detalle || (detalle.id == null && detalle.ID == null)){
           throw new Error('No se encontró la solicitud.');
         }
 
-        // Mapeo seguro de campos (usa '—' si no existe)
+        // Mapeo seguro
         setVal('v_id', detalle.id ?? detalle.ID ?? '—');
         setVal('v_correo', detalle.correo ?? detalle.email ?? '—');
         setVal('v_nombre', detalle.nombre ?? detalle.nombre_completo ?? '—');
         setVal('v_rut', detalle.rut ?? '—');
         setVal('v_direccion', detalle.direccion ?? '—');
+
         const tel = detalle.telefono ?? detalle.telefonos ?? '—';
         setVal('v_telefonos', formatPhone(tel));
+
         const tiposStr = normalizeTipos(detalle.tipos || []).join(', ') || '—';
         setVal('v_tipo', tiposStr);
         setVal('v_detalle', detalle.detalle ?? '—');
 
-        // Cartola: si el backend devuelve URL/mime/base64 puedes adaptarlo aquí
-        const cartolaUrl = detalle.cartola_url || detalle.cartola || '';
-        if (cartolaUrl){
+        // Cartola: el webhook de detalle entrega { cartola: { mime, b64 } } si existe
+        const cart = detalle.cartola;
+        if (cart && cart.b64 && cart.mime){
+          const url = makeBlobUrlFromB64(cart.b64, cart.mime);
           document.getElementById('cartolaRow').style.display = '';
           const a = document.getElementById('v_cartola');
-          a.href = cartolaUrl;
+          a.href = url;
+          // nombre sugerido
+          const ext = cart.mime.split('/')[1] || 'bin';
+          a.download = `cartola_${detalle.id}.${ext}`;
         } else {
           document.getElementById('cartolaRow').style.display = 'none';
         }
@@ -377,6 +383,15 @@
         console.error(err);
         showError('No fue posible cargar el detalle de la solicitud.');
       }
+    }
+
+    function makeBlobUrlFromB64(b64, mime){
+      const raw = atob(b64);
+      const len = raw.length;
+      const arr = new Uint8Array(len);
+      for (let i=0;i<len;i++) arr[i] = raw.charCodeAt(i);
+      const blob = new Blob([arr], {type: mime || 'application/octet-stream'});
+      return URL.createObjectURL(blob);
     }
 
     function setVal(id, val){ document.getElementById(id).value = (val==null || val==='') ? '—' : String(val); }
@@ -404,7 +419,7 @@
       charsLeftEl.textContent = left;
     });
 
-    // === Precio radios + monto CLP ===
+    // === Precio radios + CLP ===
     const rGratis = document.getElementById('p_gratis');
     const rOtro   = document.getElementById('p_otro');
     const wrapMonto = document.getElementById('precioOtroWrap');
@@ -422,17 +437,13 @@
     rGratis.addEventListener('change', updatePrecioUI);
     rOtro.addEventListener('change', updatePrecioUI);
 
-    // Formateo CLP en vivo (solo dígitos, con puntos de miles)
     montoEl.addEventListener('input', ()=>{
       const digits = montoEl.value.replace(/\D/g,'');
-      if (!digits){
-        montoEl.value = '';
-        return;
-      }
+      if (!digits){ montoEl.value = ''; return; }
       montoEl.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     });
 
-    // === Foto única (usar cámara) ===
+    // === Foto única ===
     const pickBtn = document.getElementById('pickBtn');
     const fileInput = document.getElementById('fileInput');
     const thumb = document.getElementById('thumb');
@@ -445,7 +456,6 @@
         thumb.src = '';
         return;
       }
-      // Solo una foto (si el usuario intenta más, nos quedamos con la primera)
       if (fileInput.files.length > 1){
         const dt = new DataTransfer();
         dt.items.add(fileInput.files[0]);
@@ -502,13 +512,12 @@
         fd.append('id', String(SOL_ID));
         fd.append('comentario', comentario);
         fd.append('precio_tipo', precio_tipo);
-        if (precio_tipo === 'otro') fd.append('monto', monto_raw); // sin puntos
-        fd.append('foto', fileInput.files[0]); // UNA sola foto
+        if (precio_tipo === 'otro') fd.append('monto', monto_raw);
+        fd.append('foto', fileInput.files[0]);
 
         const res = await fetch(SAVE_ENDPOINT, { method:'POST', body: fd });
         if (!res.ok) throw new Error('HTTP '+res.status);
         showOk('Visita guardada correctamente.');
-        // setTimeout(()=> location.href='administrar.html', 1200);
       }catch(e){
         console.error(e);
         showError('No fue posible guardar la visita. Intente nuevamente.');
@@ -517,3 +526,4 @@
   </script>
 </body>
 </html>
+
