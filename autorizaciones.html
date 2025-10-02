@@ -97,7 +97,6 @@
 
     /* Precio */
     .price-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-    .price-note{ color:#e6f0ff; font-weight:700; font-size:13px; margin-top:6px; }
 
     /* Chips */
     .chip-warn, .chip-ok{
@@ -110,7 +109,7 @@
     /* Uploader caja */
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
 
-    /* Responsive limpio en móvil: una sola columna y paddings cómodos */
+    /* Responsive en móvil */
     @media (max-width: 740px){
       .wrap{ padding:12px 10px; }
       .brand img{ height:48px; }
@@ -119,7 +118,7 @@
       h1{ font-size:20px; }
       .card{ padding:14px; }
       .section{ padding:10px; }
-      input, textarea, .btn{ font-size:16px; } /* mantiene tamaño consistente */
+      input, textarea, .btn{ font-size:16px; }
     }
   </style>
 </head>
@@ -219,18 +218,23 @@
           <div class="price-wrap">
             <label class="muted"><input type="radio" name="precioTipo" id="precio_gratis" value="gratis" checked /> Gratis</label>
             <label class="muted"><input type="radio" name="precioTipo" id="precio_otro" value="otro" /> Otro</label>
-            <input id="f_precio" type="text" placeholder="$ 0" aria-label="Precio en CLP" disabled style="max-width:220px" />
+
+            <!-- Sólo números, teclado numérico, oculto si 'Gratis' -->
+            <input id="f_precio" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1"
+                   placeholder="$ 0" aria-label="Precio en CLP"
+                   style="max-width:220px; display:none" />
           </div>
-          <div class="price-note">Si elige “Otro”, ingrese un valor en CLP. Se formatea automáticamente con puntos de miles.</div>
         </div>
 
         <!-- Fotografía -->
         <div class="section">
           <label>Fotografía (obligatoria)</label>
           <div class="uploader">
-            <input id="fileInput" type="file" accept="image/png" capture="environment" style="display:none" />
+            <!-- Cámara / galería / PC; JPG y PNG; 5MB -->
+            <input id="fileInput" type="file" accept="image/*" capture="environment" style="display:none" />
             <button class="btn" id="btnUpload" type="button">Usar cámara / subir foto</button>
-            <div class="price-note">Solo PNG, máx. 5 MB.</div>
+            <div class="muted" style="margin-top:6px;">Formatos: JPG o PNG. Tamaño máx.: 5 MB.</div>
+            <div id="fileName" class="muted" style="margin-top:6px; display:none;"></div>
           </div>
         </div>
 
@@ -238,6 +242,9 @@
           <button class="btn" id="btnCancel">Cancelar</button>
           <button class="btn primary" id="btnSave">Guardar</button>
         </div>
+
+        <!-- Mensajes de validación al pie -->
+        <div id="msgForm" class="error" style="margin-top:12px;"></div>
       </div>
     </div>
   </main>
@@ -247,7 +254,13 @@
 
     const $ = (id)=> document.getElementById(id);
     const msgError = $('msgError');
+    const msgForm  = $('msgForm');
     function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
+    function showFormErrors(list){
+      if (!list || !list.length){ msgForm.classList.remove('show'); msgForm.textContent=''; return; }
+      msgForm.textContent = 'Falta completar: ' + list.join(', ') + '.';
+      msgForm.classList.add('show');
+    }
 
     /* ====== Encabezado (Mi sesión) ====== */
     function getEmailFromClient(){
@@ -286,11 +299,6 @@
       const id = new URLSearchParams(location.search).get('id');
       return id ? id.trim() : '';
     }
-    function formatCLP(num){
-      const digits = String(num).replace(/\D/g,'');
-      if (!digits) return '';
-      return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
     function parseTipos(val){
       if (Array.isArray(val)) return val.map(String);
       if (typeof val === 'string') {
@@ -312,38 +320,79 @@
 
     function updatePrecioState(){
       if (rOtro.checked){
+        fPrecio.style.display = '';
         fPrecio.disabled = false;
         fPrecio.focus();
       } else {
         fPrecio.value = '';
+        fPrecio.style.display = 'none';
         fPrecio.disabled = true;
       }
     }
     rGratis.addEventListener('change', updatePrecioState);
     rOtro.addEventListener('change', updatePrecioState);
-    fPrecio.addEventListener('input', ()=>{
-      const pos = fPrecio.selectionStart, old = fPrecio.value;
-      fPrecio.value = formatCLP(fPrecio.value);
-      const diff = fPrecio.value.length - old.length;
-      fPrecio.setSelectionRange(pos+diff, pos+diff);
+
+    // ===== Uploader: cámara / galería / PC | JPG o PNG <= 5MB =====
+    const fileInput = $('fileInput');
+    const fileName  = $('fileName');
+    let fotografia = null; // <-- aquí guardamos la foto elegida (se subirá a BD más adelante)
+
+    $('btnUpload').addEventListener('click', ()=> fileInput.click());
+
+    function isValidImage(file){
+      if (!file) return false;
+      const okType = ['image/jpeg','image/png'].includes(file.type);
+      const okSize = file.size <= 5 * 1024 * 1024;
+      return okType && okSize;
+    }
+    fileInput.addEventListener('change', ()=>{
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+
+      if (!isValidImage(f)){
+        showError('El archivo debe ser JPG o PNG y no superar 5 MB.');
+        fileInput.value = '';
+        fotografia = null;
+        fileName.style.display = 'none';
+        fileName.textContent = '';
+        return;
+      }
+
+      // guardamos la foto seleccionada
+      fotografia = f;
+      fileName.textContent = `Archivo seleccionado: ${f.name} (${Math.round(f.size/1024)} KB)`;
+      fileName.style.display = '';
+      msgForm.classList.remove('show');
     });
 
     // ===== Navegación =====
     $('btnCancel').addEventListener('click', ()=> history.back());
-    $('btnSave').addEventListener('click', ()=> {
-      // Tu lógica de guardado (se mantiene fuera de este cambio)
-      alert('Guardar (demo)');
-    });
 
-    // ===== Upload: cámara / galería | PNG <= 5MB =====
-    const fileInput = $('fileInput');
-    $('btnUpload').addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', ()=>{
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) return;
-      if (f.type !== 'image/png'){ showError('Solo se aceptan imágenes PNG.'); fileInput.value=''; return; }
-      if (f.size > 5 * 1024 * 1024){ showError('El archivo excede 5 MB.'); fileInput.value=''; return; }
-      // Aquí dejarías tu flujo para enviar la imagen al backend.
+    $('btnSave').addEventListener('click', ()=> {
+      const errs = [];
+
+      // Comentario obligatorio
+      const comentario = ($('f_comentario').value || '').trim();
+      if (!comentario) errs.push('Comentario de visita');
+
+      // Foto obligatoria (la nueva fotografía)
+      if (!fotografia) errs.push('Fotografía');
+
+      // Precio: si “Otro” -> obligatorio y numérico entero
+      if (rOtro.checked){
+        const val = (fPrecio.value || '').trim();
+        if (!val) errs.push('Precio');
+        else if (!/^\d+$/.test(val)) errs.push('Precio (sólo números)');
+      }
+
+      if (errs.length){
+        showFormErrors(errs);
+        return;
+      }
+
+      // Limpia errores y aquí enviarías los datos (incluida 'fotografia') a tu backend
+      showFormErrors([]);
+      alert('Guardar (demo)'); // ← reemplazar luego por tu fetch/POST
     });
 
     // ===== Carga de datos =====
@@ -393,7 +442,7 @@
           chipSin.style.display = 'none';
           chipCon.style.display = '';
 
-          // crear Blob a partir de base64
+          // preparar descarga desde base64
           try{
             const byteStr = atob(data.cartola.b64);
             const len = byteStr.length;
@@ -420,6 +469,10 @@
           chipCon.style.display = 'none';
           chipSin.style.display = '';
         }
+
+        // Precio: estado inicial (oculto si gratis)
+        updatePrecioState();
+
       } catch (e){
         console.error(e);
         showError('No fue posible cargar el detalle de la solicitud.');
@@ -430,3 +483,4 @@
   </script>
 </body>
 </html>
+
