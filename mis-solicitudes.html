@@ -405,7 +405,10 @@ function createPayButton(id){
       await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/pago-realizado', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: String(id), email })
+        body: JSON.stringify({
+          id: String(id),
+          email: email || ''
+        })
       });
     } catch (e) {
       console.warn('Pago: error al llamar al webhook', e);
