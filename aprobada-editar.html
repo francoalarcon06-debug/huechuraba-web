@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huechuraba – Autorizaciones</title>
+  <link rel="icon" type="image/png" href="favicon.png.png" />
+  <style>
+    :root{
+      --blue:#0b6ef3; --blue-dark:#0a54c9; --outline:#1e40af; --white:#fff;
+      --muted:#475569; --shadow:0 8px 28px rgba(2,6,23,.10);
+      --field-bg:#eef6ff; --field-border:#b6d3ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+      color:#0b1220; background:#fff; display:flex; flex-direction:column;
+    }
+
+    /* Header */
+    header{ background:#fff; border-bottom:1px solid #e6eefc; }
+    .wrap{ max-width:1120px; margin:0 auto; padding:18px 20px; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; }
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    .brand img{ height:78px; width:auto; object-fit:contain; }
+    .brand .subtitle{ grid-column:1 / -1; margin:6px 0 0 0; color:var(--muted); font-size:15px; font-weight:600; }
+
+    .userbox{ position:relative; }
+    .userbtn{ display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--outline); padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:800; color:var(--outline); box-shadow:var(--shadow); }
+    .userbtn img{ width:22px; height:22px; object-fit:contain; }
+    .dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #dbe4ff; border-radius:12px; box-shadow:var(--shadow); min-width:260px; display:none; overflow:hidden; }
+    .dropdown.open{ display:block; }
+    .dropdown .head{ padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff; border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all; }
+    .dropdown button{ all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer; font-weight:800; color:#b91c1c; }
+    .dropdown button:hover{ background:#fee2e2; }
+
+    /* Main */
+    main{ flex:1; background:linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:34px 16px 90px; }
+    .container{ max-width:1120px; margin:0 auto; }
+    h1{ color:#fff; font-size:30px; margin:0 0 18px; }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.06));
+      border-radius:16px; padding:18px; box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 10px 24px rgba(0,0,0,.10);
+    }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
+    .field{ display:flex; flex-direction:column; gap:8px; }
+    .label{ color:#e6f0ff; font-weight:800; font-size:13px; }
+    .input{
+      height:42px; border-radius:10px; border:2px solid var(--field-border);
+      background:var(--field-bg); padding:10px 12px; font-size:15px; outline:none;
+    }
+    .input[readonly]{ opacity:.9; }
+    .textarea{ min-height:42px; height:42px; resize:vertical; }
+
+    /* Foto */
+    .photo-block{ margin-top:18px; }
+    .photo-title{ color:#e6f0ff; font-weight:900; margin:0 0 8px; }
+    .photo-box{
+      border:2px dashed rgba(255,255,255,.55); background:rgba(255,255,255,.2);
+      border-radius:14px; padding:14px; display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;
+    }
+    .btn{
+      all:unset; display:inline-flex; align-items:center; justify-content:center;
+      background:#fff; border:2px solid var(--outline); color:var(--outline);
+      padding:10px 14px; border-radius:12px; font-weight:800; box-shadow:var(--shadow); cursor:pointer;
+    }
+    .note{ color:#083470; font-weight:800; opacity:.9; }
+
+    .preview{ display:flex; align-items:center; gap:12px; }
+    .thumb{ width:92px; height:92px; border-radius:10px; object-fit:cover; background:#fff; border:2px solid var(--field-border); display:none; }
+
+    .row-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:18px; }
+    .back-btn{ all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:8px 12px; border-radius:10px; font-weight:800; box-shadow:var(--shadow); cursor:pointer; }
+
+    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin-top:10px; }
+    .error.show{ display:block; }
+
+    @media (max-width:860px){
+      .grid{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+      </div>
+
+      <div class="userbox">
+        <button class="userbtn" id="userBtn"><img src="cuenta.png" alt="Cuenta" /><span>Mi sesión</span><span>▾</span></button>
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" id="logoutBtn">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Autorizaciones</h1>
+
+      <div class="card">
+        <div class="grid">
+          <div class="field">
+            <label class="label">ID</label>
+            <input id="f-id" class="input" readonly />
+          </div>
+          <div class="field">
+            <label class="label">Correo</label>
+            <input id="f-correo" class="input" readonly />
+          </div>
+
+          <div class="field">
+            <label class="label">Nombre completo</label>
+            <input id="f-nombre" class="input" />
+          </div>
+          <div class="field">
+            <label class="label">RUT</label>
+            <input id="f-rut" class="input" />
+          </div>
+
+          <div class="field">
+            <label class="label">Dirección</label>
+            <input id="f-direccion" class="input" />
+          </div>
+          <div class="field">
+            <label class="label">Teléfonos</label>
+            <input id="f-telefonos" class="input" />
+          </div>
+
+          <div class="field">
+            <label class="label">Tipo</label>
+            <input id="f-tipo" class="input" />
+          </div>
+          <div class="field">
+            <label class="label">Detalle</label>
+            <textarea id="f-detalle" class="input textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="photo-block">
+          <p class="photo-title">Fotografía (obligatoria)</p>
+          <div class="photo-box">
+            <button id="btnFile" class="btn">Usar cámara / subir foto</button>
+            <div class="preview">
+              <img id="thumb" class="thumb" alt="Vista previa" />
+              <div class="note">Formatos: JPG o PNG. Tamaño máx.: 5 MB.</div>
+            </div>
+            <input id="file" type="file" accept="image/*" capture="environment" hidden />
+          </div>
+          <div id="msgError" class="error"></div>
+        </div>
+
+        <div class="row-actions">
+          <button class="back-btn" id="backBtn">← Volver atrás</button>
+          <!-- Aquí después podemos agregar “Guardar cambios” o “Enviar” si lo necesitas -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ===== Config =====
+    const DETAIL_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail";
+
+    // ===== Helpers =====
+    const $ = (s, el=document)=> el.querySelector(s);
+    const qs = new URLSearchParams(location.search);
+    const id = qs.get("id") || "";
+    const email = (localStorage.getItem("email") || sessionStorage.getItem("email") || qs.get("email") || "").trim();
+
+    $("#emailFull").textContent = email || "—";
+
+    $("#userBtn").addEventListener("click", e => {
+      e.stopPropagation(); $("#userMenu").classList.toggle("open");
+    });
+    document.addEventListener("click", () => $("#userMenu").classList.remove("open"));
+    $("#logoutBtn").addEventListener("click", () => {
+      try { localStorage.removeItem("email"); sessionStorage.removeItem("email"); localStorage.removeItem("user"); } catch(e){}
+      location.href = "index.html";
+    });
+
+    $("#backBtn").addEventListener("click", () => {
+      const u = new URL("aprobadas.html", location.href);
+      if (email) u.searchParams.set("email", email);
+      location.href = u.toString();
+    });
+
+    // ===== Carga de datos =====
+    function parseTipos(val){
+      if (Array.isArray(val)) return val.join(", ");
+      if (typeof val === "string"){
+        const s = val.trim();
+        if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("(") && s.endsWith(")"))){
+          const inner = s.slice(1, -1);
+          return inner ? inner.split(",").map(x => x.trim().replace(/^"(.*)"$/, "$1")).join(", ") : "";
+        }
+        return s;
+      }
+      return "";
+    }
+
+    async function loadDetail(){
+      if (!id){
+        showError("Falta el parámetro id.");
+        return;
+      }
+      try{
+        const url = new URL(DETAIL_URL);
+        url.searchParams.set("id", id);
+        if (email) url.searchParams.set("email", email);
+        const res = await fetch(url, {cache:"no-store"});
+        if (!res.ok) throw new Error("HTTP "+res.status);
+        const data = await res.json();
+        // Acepta objeto directo o {item} o {data}
+        const item = data?.item || data?.data || data;
+
+        $("#f-id").value         = item.id ?? item.numero_solicitud ?? "";
+        $("#f-correo").value     = item.correo || item.email || "";
+        $("#f-nombre").value     = item.nombre || item.nombre_completo || "";
+        $("#f-rut").value        = item.rut || "";
+        $("#f-direccion").value  = item.direccion || "";
+        $("#f-telefonos").value  = item.telefono || item.telefonos || "";
+        $("#f-tipo").value       = parseTipos(item.tipos);
+        $("#f-detalle").value    = item.detalle || "";
+      }catch(e){
+        showError("No fue posible cargar la solicitud.");
+        console.error(e);
+      }
+    }
+
+    // ===== Foto: selector + preview + validación =====
+    const inputFile = $("#file");
+    const btnFile   = $("#btnFile");
+    const thumb     = $("#thumb");
+    const msgError  = $("#msgError");
+    const MAX_MB = 5;
+
+    function showError(t){ msgError.textContent = t; msgError.classList.add("show"); }
+    function clearError(){ msgError.textContent = ""; msgError.classList.remove("show"); }
+
+    btnFile.addEventListener("click", ()=> inputFile.click());
+    inputFile.addEventListener("change", ()=>{
+      clearError();
+      const f = inputFile.files?.[0];
+      if (!f) return;
+
+      const okType = /image\/(jpeg|png)/i.test(f.type);
+      const okSize = f.size <= MAX_MB * 1024 * 1024;
+      if (!okType){ showError("Solo se permiten imágenes JPG o PNG."); inputFile.value=""; thumb.style.display="none"; return; }
+      if (!okSize){ showError("La imagen supera los 5 MB."); inputFile.value=""; thumb.style.display="none"; return; }
+
+      const reader = new FileReader();
+      reader.onload = e => { thumb.src = e.target.result; thumb.style.display="block"; };
+      reader.readAsDataURL(f);
+    });
+
+    // Go!
+    loadDetail();
+  </script>
+</body>
+</html>
