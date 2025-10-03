@@ -394,21 +394,18 @@
       return items.slice(start, start + size);
     }
 
-    function createPayButton(id){
+function createPayButton(id){
   const b = document.createElement('button');
   b.className = 'pay-btn';
   b.textContent = 'Pagar';
   b.addEventListener('click', async () => {
     try {
       const email = getEmailFromClient();
-      const body = new URLSearchParams({ id: String(id) });
-      if (email) body.append('email', email);
-
-      // 🔗 Llamada al webhook en n8n
+      // 🔗 Llamada al webhook en n8n con JSON
       await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/pago-realizado', {
         method: 'POST',
-        headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-        body
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: String(id), email })
       });
     } catch (e) {
       console.warn('Pago: error al llamar al webhook', e);
@@ -419,8 +416,6 @@
   });
   return b;
 }
-
-
     function normalizeEstado(str){
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
     }
