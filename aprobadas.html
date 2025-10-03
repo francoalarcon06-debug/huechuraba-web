@@ -18,19 +18,23 @@
       margin:0;
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
       color:#0b1220;
-      background:linear-gradient(180deg,#eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
+      background:#fff;             /* ← blanco (el azul lo pone <main>) */
+      display:flex; flex-direction:column; /* ← para que main ocupe todo el alto restante */
     }
 
-    /* ===== Header idéntico al de tus páginas ===== */
+    /* ===== Header igual a tus páginas ===== */
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
     .wrap{
       max-width:1120px; margin:0 auto; padding:18px 20px;
       display:grid; grid-template-columns:1fr auto; align-items:center; gap:18px;
     }
-    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
+    /* Ya NO es un <a>; quitamos link y subrayado */
+    .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; text-decoration:none }
     .brand img{ height:78px; width:auto; object-fit:contain; }
     .brand .subtitle{
       grid-column:1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600;
+      text-decoration:none;     /* ← sin subrayado */
+      pointer-events:none;      /* ← no es clickeable */
     }
 
     .userbox{ position:relative; }
@@ -51,7 +55,11 @@
     .dropdown button:hover{ background:#fee2e2; }
 
     /* ===== Main y tabla ===== */
-    main{ background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:26px 16px 70px; }
+    main{
+      background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+      padding:26px 16px 70px;
+      flex:1;                      /* ← ocupa todo el alto restante (cubre pantalla completa) */
+    }
     .container{ max-width:1600px; margin:0 auto; }
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
@@ -96,14 +104,14 @@
   </style>
 </head>
 <body>
-  <!-- ===== Header (logo + frase debajo, sin textos extra) ===== -->
+  <!-- ===== Header (logo + frase debajo, sin link ni subrayado) ===== -->
   <header>
     <div class="wrap">
-      <a class="brand" href="municipal.html">
+      <div class="brand">
         <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
         <div></div>
         <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
-      </a>
+      </div>
 
       <div class="userbox">
         <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
@@ -235,8 +243,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
