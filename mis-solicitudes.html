@@ -94,11 +94,9 @@
       color:#e6f0ff; font-weight:800; text-align:left; padding:12px; font-size:14px;
       border-bottom:2px solid rgba(255,255,255,.6);
     }
-    /* +++ Aumento de alto de fila para que no se corte +++ */
+    /* ——— Fila con padding base de la versión estable ——— */
     tbody td{
-      background:rgba(255,255,255,.12); color:#fff;
-      padding:14px 12px 18px;              /* antes: 12px; ahora más alto */
-      font-size:14px;
+      background:rgba(255,255,255,.12); color:#fff; padding:12px; font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
       position: relative;
@@ -121,10 +119,10 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    /* ancho ajustado para alinear kebab a la derecha del estado */
-    .w-date{ width:180px; }
+    /* Anchos de la versión que no se cortaba */
+    .w-date{ width:210px; }
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:220px; }
+    .w-estado{ width:160px; }
     th.w-estado, td.w-estado { padding-left: 0; }
 
     .actions-cell{ text-align:center; }
@@ -143,7 +141,7 @@
       cursor:pointer; font-weight:800; box-shadow: var(--shadow); margin-left:8px;
     }
 
-    /* Colores de estado pedidos */
+    /* Colores de estado */
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.AUTORIZADO{ color:#065f46; }
@@ -163,7 +161,7 @@
     td.w-estado .kebab-btn{ margin-left:auto; }
 
     .row-menu{
-      position:absolute; right:8px; top:48px;   /* un poco más abajo por el nuevo alto */
+      position:absolute; right:8px; top:44px;   /* vuelve al offset estable */
       background:#fff; border:1px solid #dbe4ff; border-radius:10px; box-shadow: var(--shadow);
       overflow:hidden; min-width:160px; z-index:10;
     }
@@ -314,7 +312,7 @@
       }
     });
 
-    // Cerrar sesión -> limpiar y llevar a login (index.html)
+    // Cerrar sesión
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
@@ -408,7 +406,7 @@
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
     }
 
-    // Reglas pedidas para acciones por estado
+    // Acciones por estado
     function getActionsForState(estadoNorm){
       switch(estadoNorm){
         case 'cancelado':
@@ -465,7 +463,7 @@
         }
       });
 
-      /* >>> Se elimina el botón "Pagar" del menú <<< */
+      /* Se elimina el botón "Pagar" del menú */
       menu.append(btnCancel);
 
       kebab.addEventListener('click', (e)=>{
@@ -480,7 +478,6 @@
     }
     // -----------------------------------
 
-    // Helper robusto para detectar presencia real de datos
     function hasValue(x){
       if (x === null || x === undefined) return false;
       if (typeof x === 'string' && x.trim() === '') return false;
@@ -678,17 +675,14 @@
         const res = await fetch(url, { method: 'GET', cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // Headers expuestos por CORS desde n8n (Content-Type/Disposition)
         const mime = res.headers.get('Content-Type') || 'application/octet-stream';
         const cd   = res.headers.get('Content-Disposition') || '';
 
-        // Nombre de archivo
         let fname  = filenameFallback || 'archivo';
         const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
         if (m) {
           fname = decodeURIComponent((m[1] || m[2] || m[3] || '').trim());
         } else {
-          // Deriva extensión desde el MIME si no viene Content-Disposition
           const extFromMime = (mt) => {
             const map = {
               'application/pdf': 'pdf',
@@ -719,7 +713,6 @@
 
     function downloadCartola(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
-      // sin extensión fija; la agrega downloadFromEndpoint según Content-Type
       return downloadFromEndpoint(url, `cartola_rsh_${id}`);
     }
     // ================================================================
@@ -751,6 +744,7 @@
   </script>
 </body>
 </html>
+
 
 
 
