@@ -4,9 +4,260 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Solicitudes Aprobadas</title>
+  <link rel="icon" type="image/png" href="favicon.png.png" />
+  <style>
+    :root{
+      --white:#ffffff;
+      --blue:#0b6ef3;
+      --blue-dark:#0a54c9;
+      --text:#0b1220;
+      --muted:#475569;
+      --outline:#1e40af;
+      --shadow:0 8px 28px rgba(2,6,23,.10);
+      --card:#0d5fe0;            /* azul más claro para filas */
+      --card-2:#0b56ce;          /* variante para hover */
+      --danger:#b91c1c;
+      --ok:#10b981;              /* verde COMPLETADO */
+      --warn:#f59e0b;            /* opcional PENDIENTE */
+      --bg1:#0b6ef3;
+      --bg2:#0959cb;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial;
+      color:var(--white);
+      background: linear-gradient(180deg, var(--bg1), var(--bg2)) fixed;
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:28px 18px 56px}
+    header{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;color:var(--white);text-decoration:none
+    }
+    .brand img{height:44px;width:auto}
+    h1{margin:0;font-size:28px}
+    .card{
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 18px;
+      backdrop-filter: blur(4px);
+    }
+    .table-wrap{overflow:auto;border-radius:14px;border:1px solid rgba(255,255,255,.12)}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead th{
+      text-align:left;
+      font-size:14px;
+      font-weight:700;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.25);
+      white-space:nowrap;
+    }
+    tbody td{
+      padding:14px 16px;
+      vertical-align:middle;
+      color:#f8fbff;               /* texto blanco en filas */
+    }
+    tbody tr{
+      background: var(--card);
+    }
+    tbody tr + tr{
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    tbody tr:hover{background: var(--card-2)}
+    .col-id{width:110px;white-space:nowrap}
+    .col-estado{white-space:nowrap;text-align:left}
+    .estado{
+      font-weight:800;letter-spacing:.3px
+    }
+    .estado-pendiente{color:var(--white)}           /* mantenemos blanco; botón Editar aparece */
+    .estado-completado{color:var(--ok)}             /* verde */
+    .estado-otros{color:#e5e7eb}
+    .types{max-width:220px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+    .detalle{max-width:420px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      height:36px;padding:0 14px;border-radius:10px;
+      background:#ffffff;color:#0b3a86;border:1px solid rgba(0,0,0,.06);
+      font-weight:700;text-decoration:none;cursor:pointer;user-select:none;
+    }
+    .btn:hover{filter:brightness(.98)}
+    .btn:active{transform:translateY(1px)}
+    .btn[disabled]{opacity:.45;pointer-events:none}
+    .toolbar{display:flex;align-items:center;gap:10px;margin-top:14px}
+    .btn-back{
+      background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff
+    }
+    .btn-back:hover{background:rgba(255,255,255,.08)}
+    .muted{color:#dbeafe}
+    .right{ text-align:right }
+    .center{ text-align:center }
+    @media (max-width:720px){
+      h1{font-size:22px}
+    }
+  </style>
 </head>
 <body>
-  <h1>Solicitudes Aprobadas</h1>
-  <p>Aquí se mostrarán las solicitudes aprobadas.</p>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="municipal.html">
+        <img src="logo-huechuraba.png" alt="Huechuraba" />
+        <h1>Solicitudes Aprobadas</h1>
+      </a>
+      <div class="muted" id="userEmail"></div>
+    </header>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th class="col-id">N° Solicitud</th>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>Tipo</th>
+              <th>Detalle</th>
+              <th class="col-estado">Estado de retiro</th>
+              <th class="right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <!-- filas dinámicas -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn btn-back" id="backBtn">← Volver atrás</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Config ===
+    const API_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes"; // endpoint general
+    const DETAIL_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail";
+
+    // === Utils ===
+    const $ = (s, el=document) => el.querySelector(s);
+    const elTbody = $("#tbody");
+    const elEmail = $("#userEmail");
+
+    function getParam(name){
+      const u = new URLSearchParams(location.search);
+      return u.get(name) || "";
+    }
+    const email = getParam("email");
+    if (email) elEmail.textContent = email;
+
+    function fmtPhone(s){
+      return s || "";
+    }
+    function joinTipos(t){
+      if (!t) return "";
+      if (Array.isArray(t)) return t.join(", ");
+      return String(t);
+    }
+    function rowEstadoRetiro(estado){
+      const e = (estado || "").toString().trim().toUpperCase();
+      if (e === "PENDIENTE") return {text:"PENDIENTE", cls:"estado estado-pendiente", showEdit:true};
+      if (e === "COMPLETADO") return {text:"COMPLETADO", cls:"estado estado-completado", showEdit:false};
+      return {text:e || "—", cls:"estado estado-otros", showEdit:false};
+    }
+
+    function createRow(s){
+      const tr = document.createElement("tr");
+
+      const tipos = joinTipos(s.tipos);
+      const retiro = rowEstadoRetiro(s.estado_retiro_escombros);
+
+      tr.innerHTML = `
+        <td class="col-id"><strong>${s.id ?? s.id_solicitud ?? ""}</strong></td>
+        <td>${s.nombre || ""}</td>
+        <td>${fmtPhone(s.telefono)}</td>
+        <td>${s.direccion || ""}</td>
+        <td class="types" title="${tipos}">${tipos || "—"}</td>
+        <td class="detalle" title="${s.detalle || ""}">${s.detalle || "—"}</td>
+        <td class="col-estado"><span class="${retiro.cls}">${retiro.text}</span></td>
+        <td class="right">
+          ${retiro.showEdit ? `<button class="btn btn-edit" data-id="${s.id ?? s.id_solicitud ?? ""}">Editar</button>` : ``}
+        </td>
+      `;
+      return tr;
+    }
+
+    async function fetchSolicitudes(){
+      const url = new URL(API_URL);
+      if (email) url.searchParams.set("email", email);
+      // Traemos todas y filtramos por aprobadas en el cliente para ser compatibles con tu backend actual
+      const res = await fetch(url.toString(), { credentials:"omit" });
+      if (!res.ok) throw new Error("No se pudo cargar la lista");
+      return await res.json();
+    }
+
+    function toArray(payload){
+      // Acepta {items:[...]} o directamente [...]
+      if (Array.isArray(payload)) return payload;
+      if (payload && Array.isArray(payload.items)) return payload.items;
+      if (payload && Array.isArray(payload.data)) return payload.data;
+      return [];
+    }
+
+    async function load(){
+      try{
+        const data = await fetchSolicitudes();
+        const all = toArray(data);
+
+        // Solo APROBADAS
+        const aprobadas = all.filter(x => String(x.estado_solicitud || "").toUpperCase() === "APROBADO");
+
+        // Orden opcional: más recientes primero por id
+        aprobadas.sort((a,b)=> (b.id ?? 0) - (a.id ?? 0));
+
+        if (!aprobadas.length){
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="8" class="center muted">No hay solicitudes aprobadas aún.</td>`;
+          elTbody.appendChild(tr);
+          return;
+        }
+
+        aprobadas.forEach(s => elTbody.appendChild(createRow(s)));
+
+        // Delegación para botones Editar
+        elTbody.addEventListener("click", (ev)=>{
+          const btn = ev.target.closest(".btn-edit");
+          if(!btn) return;
+          const id = btn.getAttribute("data-id");
+          if(!id) return;
+          const url = new URL(DETAIL_URL);
+          url.searchParams.set("id", id);
+          if (email) url.searchParams.set("email", email);
+          location.href = url.toString();
+        });
+
+      }catch(err){
+        console.error(err);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="8" class="center">Ocurrió un error al cargar las solicitudes.</td>`;
+        elTbody.appendChild(tr);
+      }
+    }
+
+    // Volver atrás
+    document.getElementById("backBtn").addEventListener("click", ()=>{
+      const target = new URL("municipal.html", location.href);
+      if (email) target.searchParams.set("email", email);
+      location.href = target.toString();
+    });
+
+    load();
+  </script>
 </body>
 </html>
+
