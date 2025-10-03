@@ -89,6 +89,7 @@
     .state.RECHAZADO{ color:#b91c1c; }
     .state.PENDIENTE_DE_PAGO{ color:#92400e; }  /* compat. vieja */
     .state.PAGO_PENDIENTE{ color:#92400e; }      /* NUEVO estado */
+    .state.CANCELADO{ color:#111827; }           /* negro */
 
     .estado-wrap{ display:inline-flex; align-items:center; gap:10px; }
     .edit-btn{ padding:6px 10px; }
@@ -97,18 +98,18 @@
     .filter-btn{ all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px; }
     .filter-btn:hover{ background:rgba(255,255,255,.12); }
 
-    /* Menú: por defecto hidden; cuando se abre lo posicionamos con JS en fixed sobre la tabla */
+    /* Menú flotante para evitar scroll horizontal al abrirlo */
     .filter-menu{
-      position:fixed;              /* clave para que NO lo recorte la tabla */
-      top:-9999px; left:-9999px;   /* fuera de pantalla hasta que lo ubiquemos */
+      position:fixed;
+      top:-9999px; left:-9999px;
       background:#fff;
       border:1px solid #dbe4ff; border-radius:10px;
       box-shadow:var(--shadow);
       overflow:auto;
       min-width:220px;
-      max-height: calc(100vh - 40px);  /* si es muy largo, que scrollee él, no la tabla */
+      max-height: calc(100vh - 40px);
       display:none;
-      z-index:1000;                /* sobre la tabla */
+      z-index:1000;
     }
     .filter-menu.open{ display:block; }
 
@@ -191,7 +192,6 @@
                       <button data-state="">Todos</button>
                       <button data-state="pendiente">Pendiente</button>
                       <button data-state="cancelado">Cancelado</button>
-                      <!-- CAMBIO: etiqueta y valor a "pago pendiente" -->
                       <button data-state="pago pendiente">Pago pendiente</button>
                       <button data-state="rechazado">Rechazado</button>
                     </div>
@@ -306,11 +306,9 @@
     const filterMenu = document.getElementById('filterMenu');
     const activeFilter = document.getElementById('activeFilter');
 
-    // Abre/cierra el menú y lo POSICIONA sobre la tabla (no se corta)
+    // menú flotante posicionado: evita el scroll horizontal de la tabla
     function openFilterMenu(){
-      // ubicamos el menú respecto al botón (en viewport)
       const rect = filterBtn.getBoundingClientRect();
-      // pego justo debajo, con un margen
       const top  = rect.bottom + 6 + window.scrollY;
       const left = rect.left + window.scrollX;
       filterMenu.style.top  = `${top}px`;
@@ -529,4 +527,5 @@
   </script>
 </body>
 </html>
+
 
