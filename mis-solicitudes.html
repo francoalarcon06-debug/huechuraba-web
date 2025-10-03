@@ -405,7 +405,7 @@
       if (email) body.append('email', email);
 
       // 🔗 Llamada al webhook en n8n
-      await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-pagar', {
+      await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/pago-realizado', {
         method: 'POST',
         headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
         body
