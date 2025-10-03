@@ -415,7 +415,8 @@
     /* ===== Botones ===== */
     $('btnCancel').addEventListener('click', ()=> history.back());
 
-    $('btnSave').addEventListener('click', ()=> {
+    // APROBAR → dispara el flujo n8n /webhook/huechuraba/aprobar
+    $('btnSave').addEventListener('click', async ()=> {
       const errs = [];
       const comentario = ($('f_comentario').value || '').trim();
       if (!comentario) errs.push('Comentario de visita');
@@ -426,8 +427,39 @@
       }
       if (errs.length){ showFormErrors(errs); return; }
       showFormErrors([]);
-      // (lógica de aprobar permanece igual; placeholder)
-      showNotice('ok', 'Validación ok (demo de aprobar).');
+
+      try{
+        showNotice('ok','Enviando aprobación...');
+        const id = getQueryId();
+        const precioDigits = rOtro.checked ? (fPrecio.value || '').replace(/\D/g,'') : '0';
+
+        const fd = new FormData();
+        fd.append('id', id);
+        fd.append('comentario', comentario);
+        fd.append('precio', precioDigits);
+        // El Webhook en n8n espera el binario con el nombre de campo "foto"
+        fd.append('foto', fotografia, fotografia.name || 'foto.jpg');
+
+        const res = await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/aprobar', {
+          method: 'POST',
+          body: fd
+        });
+
+        const data = await res.json().catch(()=> ({}));
+        if (!res.ok || data.ok === false){
+          throw new Error('Respuesta no OK');
+        }
+
+        showNotice('ok', data.message || 'Solicitud autorizada');
+        setTimeout(()=>{
+          const email = getEmailFromClient();
+          const back = email ? `administrar.html?email=${encodeURIComponent(email)}` : 'administrar.html';
+          window.location.href = back;
+        }, 900);
+      }catch(e){
+        console.error(e);
+        showNotice('error','No fue posible aprobar la solicitud.');
+      }
     });
 
     // RECHAZAR: requiere comentario de visita
@@ -546,3 +578,5 @@
   </script>
 </body>
 </html>
+
+
