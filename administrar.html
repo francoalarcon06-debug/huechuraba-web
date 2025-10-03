@@ -15,7 +15,7 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
-      --cell-bg:#edf3ff; /* fondo opaco para celdas */
+      --cell-bg:#edf3ff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -25,45 +25,25 @@
       color:var(--text);
       display:flex; flex-direction:column;
       background: linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 44%, #cfe3ff 45%, #b9d6ff 100%);
-      overflow-x:hidden;               /* evita ensanchar el viewport en móvil */
+      overflow-x:hidden;
     }
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
-    .wrap{
-      max-width:1120px; margin:0 auto; padding:18px 20px;
-      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px;
-    }
+    .wrap{ max-width:1120px; margin:0 auto; padding:18px 20px; display:grid; grid-template-columns: 1fr auto; align-items:center; gap:18px; }
     .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; }
     .brand img{ height:78px; width:auto; object-fit:contain; }
     .brand .subtitle{ grid-column: 1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600; }
 
     .userbox{ position:relative; }
-    .userbtn{
-      display:flex; align-items:center; gap:10px; background:#fff;
-      border:2px solid var(--outline); padding:10px 14px; border-radius:12px;
-      cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow);
-    }
+    .userbtn{ display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--outline); padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; color:#1e40af; box-shadow: var(--shadow); }
     .userbtn img{ width:22px; height:22px; object-fit:contain; }
     .chev{ font-size:13px; }
-    .dropdown{
-      position:absolute; right:0; top:calc(100% + 8px); background:#fff;
-      border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow);
-      overflow:hidden; min-width:260px; display:none;
-    }
+    .dropdown{ position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #dbe4ff; border-radius:12px; box-shadow: var(--shadow); overflow:hidden; min-width:260px; display:none; }
     .dropdown.open{ display:block; }
-    .dropdown .head{
-      padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff;
-      border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all;
-    }
-    .dropdown button{
-      all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer;
-      font-weight:700; color:#b91c1c;
-    }
+    .dropdown .head{ padding:12px 14px; font-size:14px; color:#0b3a88; background:#f8fbff; border-bottom:1px solid #e6eefc; font-weight:700; word-break:break-all; }
+    .dropdown button{ all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer; font-weight:700; color:#b91c1c; }
     .dropdown button:hover{ background:#fee2e2; }
 
-    main{
-      flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-      padding:26px 16px 70px;
-    }
+    main{ flex:1; background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%); padding:26px 16px 70px; }
 
     .container{ max-width:1600px; margin:0 auto; }
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
@@ -71,37 +51,18 @@
     .table-card{
       background:#0b6ef3; padding:18px; border-radius:14px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
-      overflow:hidden;                 /* IMPORTANTE: no dejar que la tabla ensanche el viewport */
+      overflow:hidden;
     }
 
-    .table-footer{
-      display:flex; justify-content:flex-start; align-items:center; gap:12px;
-      padding: 12px 0 0 0;
-    }
-    .back-btn{
-      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88;
-      padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
-    }
+    .table-footer{ display:flex; justify-content:flex-start; align-items:center; gap:12px; padding: 12px 0 0 0; }
+    .back-btn{ all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; box-shadow: var(--shadow); }
     .back-btn:hover{ transform: translateY(-1px); }
 
-    .table-scroll{
-      width:100%;
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-    }
+    .table-scroll{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
     .table-scroll:focus{ outline:none; }
 
-    table{
-      width:100%;
-      min-width: 980px;
-      border-collapse:separate; border-spacing:0;
-      table-layout: fixed;
-    }
-    thead th{
-      color:#e6f0ff; font-weight:800; text-align:left; padding:10px; font-size:14px;
-      border-bottom:2px solid rgba(255,255,255,.6);
-      background:#0b6ef3; /* asegura header opaco */
-    }
+    table{ width:100%; min-width: 980px; border-collapse:separate; border-spacing:0; table-layout: fixed; }
+    thead th{ color:#e6f0ff; font-weight:800; text-align:left; padding:10px; font-size:14px; border-bottom:2px solid rgba(255,255,255,.6); background:#0b6ef3; }
     tbody td{
       background:var(--cell-bg);
       color:#0b1220;
@@ -126,69 +87,58 @@
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.RECHAZADO{ color:#b91c1c; }
-    .state.PENDIENTE_DE_PAGO{ color:#92400e; }
-    .state.CANCELADO{ color:#b91c1c; }
+    .state.PENDIENTE_DE_PAGO{ color:#92400e; }  /* compat. vieja */
+    .state.PAGO_PENDIENTE{ color:#92400e; }      /* NUEVO estado */
 
     .estado-wrap{ display:inline-flex; align-items:center; gap:10px; }
     .edit-btn{ padding:6px 10px; }
 
     .filter-wrap{ display:inline-flex; align-items:center; gap:6px; position:relative; }
-    .filter-btn{
-      all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px;
-    }
+    .filter-btn{ all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px; }
     .filter-btn:hover{ background:rgba(255,255,255,.12); }
+
+    /* Menú: por defecto hidden; cuando se abre lo posicionamos con JS en fixed sobre la tabla */
     .filter-menu{
-      position:absolute; top:120%; right:0; background:#fff; border:1px solid #dbe4ff; border-radius:10px;
-      box-shadow:var(--shadow); overflow:hidden; min-width:220px; display:none; z-index:10;
+      position:fixed;              /* clave para que NO lo recorte la tabla */
+      top:-9999px; left:-9999px;   /* fuera de pantalla hasta que lo ubiquemos */
+      background:#fff;
+      border:1px solid #dbe4ff; border-radius:10px;
+      box-shadow:var(--shadow);
+      overflow:auto;
+      min-width:220px;
+      max-height: calc(100vh - 40px);  /* si es muy largo, que scrollee él, no la tabla */
+      display:none;
+      z-index:1000;                /* sobre la tabla */
     }
     .filter-menu.open{ display:block; }
-    .filter-menu button{
-      all:unset; display:block; width:100%; padding:10px 12px; cursor:pointer; font-weight:800; color:#0b3a88;
-    }
+
+    .filter-menu button{ all:unset; display:block; width:100%; padding:10px 12px; cursor:pointer; font-weight:800; color:#0b3a88; }
     .filter-menu button:hover{ background:#f1f5ff; }
-    .active-filter{
-      background:#fff; color:#0b3a88; border-radius:999px; padding:2px 8px; font-weight:800; margin-left:6px;
-    }
+    .active-filter{ background:#fff; color:#0b3a88; border-radius:999px; padding:2px 8px; font-weight:800; margin-left:6px; }
 
     .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
-    .pager button{
-      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
-    }
-    .pager .num{
-      background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;
-    }
+    .pager button{ all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800; }
+    .pager .num{ background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
     .pager .num.current{ background:#0b3a88; color:#fff; }
     .pager .sep{ color:#e6f0ff; font-weight:900; user-select:none; }
 
     .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
     .error.show{ display:block; }
 
-    /* ===== Primera columna fija y opaca ===== */
-    thead th:first-child{
-      position: sticky;
-      left: 0;
-      z-index: 3;
-      background:#0b6ef3;
-    }
-    tbody td:first-child{
-      position: sticky;
-      left: 0;
-      z-index: 2;
-      background: var(--cell-bg);
-      border-right: none;
-      box-shadow: none;
-    }
+    /* Primera columna fija */
+    thead th:first-child{ position: sticky; left: 0; z-index: 3; background:#0b6ef3; }
+    tbody td:first-child{ position: sticky; left: 0; z-index: 2; background: var(--cell-bg); border-right: none; box-shadow: none; }
 
     @media (max-width: 680px){
       .wrap{ padding:14px 12px; }
-      .brand img{ height:64px; max-width:48vw; } /* asegura que el header nunca desborde */
+      .brand img{ height:64px; max-width:48vw; }
       h1{ font-size:26px; }
       thead th{ font-size:13px; padding:8px; white-space:nowrap; }
       tbody td{ padding:9px 8px; font-size:13px; }
       .edit-btn{ padding:5px 9px; font-size:12px; }
       .back-btn{ padding:7px 10px; }
       .table-card{ padding:14px; }
-      .table-scroll{ margin:0; padding:0 8px 6px; } /* respiración para el scroll y sin recortes */
+      .table-scroll{ margin:0; padding:0 8px 6px; }
     }
   </style>
 </head>
@@ -241,7 +191,8 @@
                       <button data-state="">Todos</button>
                       <button data-state="pendiente">Pendiente</button>
                       <button data-state="cancelado">Cancelado</button>
-                      <button data-state="pendiente de pago">Pendiente de pago</button>
+                      <!-- CAMBIO: etiqueta y valor a "pago pendiente" -->
+                      <button data-state="pago pendiente">Pago pendiente</button>
                       <button data-state="rechazado">Rechazado</button>
                     </div>
                   </span>
@@ -355,11 +306,35 @@
     const filterMenu = document.getElementById('filterMenu');
     const activeFilter = document.getElementById('activeFilter');
 
+    // Abre/cierra el menú y lo POSICIONA sobre la tabla (no se corta)
+    function openFilterMenu(){
+      // ubicamos el menú respecto al botón (en viewport)
+      const rect = filterBtn.getBoundingClientRect();
+      // pego justo debajo, con un margen
+      const top  = rect.bottom + 6 + window.scrollY;
+      const left = rect.left + window.scrollX;
+      filterMenu.style.top  = `${top}px`;
+      filterMenu.style.left = `${left}px`;
+      filterMenu.classList.add('open');
+    }
+    function closeFilterMenu(){
+      filterMenu.classList.remove('open');
+      filterMenu.style.top = '-9999px';
+      filterMenu.style.left = '-9999px';
+    }
+
     filterBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
-      filterMenu.classList.toggle('open');
+      if (filterMenu.classList.contains('open')) {
+        closeFilterMenu();
+      } else {
+        openFilterMenu();
+      }
     });
-    document.addEventListener('click', ()=> filterMenu.classList.remove('open'));
+    document.addEventListener('click', closeFilterMenu);
+    window.addEventListener('scroll', ()=>{ if (filterMenu.classList.contains('open')) openFilterMenu(); }, {passive:true});
+    window.addEventListener('resize', ()=>{ if (filterMenu.classList.contains('open')) openFilterMenu(); });
+
     filterMenu.querySelectorAll('button').forEach(b=>{
       b.addEventListener('click', ()=>{
         filterState = (b.dataset.state || '').trim();
@@ -371,7 +346,7 @@
           activeFilter.textContent = '';
           activeFilter.style.display = 'none';
         }
-        filterMenu.classList.remove('open');
+        closeFilterMenu();
         render();
       });
     });
@@ -554,3 +529,4 @@
   </script>
 </body>
 </html>
+
