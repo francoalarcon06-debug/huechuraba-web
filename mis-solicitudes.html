@@ -118,10 +118,10 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
-    /* Ajuste: menos espacio para fecha y más para estado */
+    /* ancho ajustado para alinear kebab a la derecha del estado */
     .w-date{ width:180px; }
     th.w-date, td.w-date { padding-left: 14px; }
-    .w-estado{ width:220px; } /* más ancho para alojar texto + kebab */
+    .w-estado{ width:220px; }
     th.w-estado, td.w-estado { padding-left: 0; }
 
     .actions-cell{ text-align:center; }
@@ -140,7 +140,7 @@
       cursor:pointer; font-weight:800; box-shadow: var(--shadow); margin-left:8px;
     }
 
-    /* Colores de estado (como en admin) */
+    /* Colores de estado pedidos */
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.AUTORIZADO{ color:#065f46; }
@@ -151,12 +151,11 @@
 
     .kebab-btn{
       all:unset; display:inline-grid; place-items:center;
-      width:32px; height:32px;
+      width:32px; height:32px; margin-left:12px;
       border-radius:8px; background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
       font-weight:900;
     }
-
-    /* Alineación del estado + kebab en una misma línea, kebab a la derecha */
+    /* Alinear el kebab a la derecha, sin importar el largo del estado */
     td.w-estado{ display:flex; align-items:center; gap:10px; }
     td.w-estado .kebab-btn{ margin-left:auto; }
 
@@ -312,7 +311,7 @@
       }
     });
 
-    // Cerrar sesión
+    // Cerrar sesión -> limpiar y llevar a login (index.html)
     document.getElementById('logoutBtn').addEventListener('click', ()=>{
       try{
         localStorage.removeItem('email');
@@ -369,7 +368,7 @@
       if (!v) return '—';
       const digits = String(v).replace(/\D/g,'');
       if (digits.length === 11 && digits.startsWith('569')) {
-        const a = digits slice(3,7);
+        const a = digits.slice(3,7);
         const b = digits.slice(7,11);
         return `+56 9 ${a} ${b}`;
       }
@@ -406,7 +405,7 @@
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
     }
 
-    // === reglas de acciones por estado ===
+    // Reglas pedidas para acciones por estado
     function getActionsForState(estadoNorm){
       switch(estadoNorm){
         case 'cancelado':
@@ -559,7 +558,6 @@
         tdEst.appendChild(span);
 
         const estNorm = normalizeEstado(estadoRaw);
-
         if (estNorm === 'pago pendiente' || estNorm === 'pendiente de pago') {
           tdEst.appendChild(createPayButton(it.id));
           span.classList.add('PENDIENTE_DE_PAGO');
@@ -610,14 +608,10 @@
           pager.appendChild(num(i));
         }
       } else {
-        pager.appendChild(num(1));
-        pager.appendChild(sep());
-        pager.appendChild(num(2));
-        pager.appendChild(sep());
-        pager.appendChild(num(3));
-        pager.appendChild(sep());
-        pager.appendChild(num(4));
-        pager.appendChild(sep());
+        pager.appendChild(num(1)); pager.appendChild(sep());
+        pager.appendChild(num(2)); pager.appendChild(sep());
+        pager.appendChild(num(3)); pager.appendChild(sep());
+        pager.appendChild(num(4)); pager.appendChild(sep());
         const dots = document.createElement('span'); dots.textContent='...'; dots.className='sep'; pager.appendChild(dots);
         pager.appendChild(sep());
         pager.appendChild(num(pages));
@@ -688,14 +682,17 @@
         const res = await fetch(url, { method: 'GET', cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
+        // Headers expuestos por CORS desde n8n (Content-Type/Disposition)
         const mime = res.headers.get('Content-Type') || 'application/octet-stream';
         const cd   = res.headers.get('Content-Disposition') || '';
 
+        // Nombre de archivo
         let fname  = filenameFallback || 'archivo';
         const m = cd.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i);
         if (m) {
           fname = decodeURIComponent((m[1] || m[2] || m[3] || '').trim());
         } else {
+          // Deriva extensión desde el MIME si no viene Content-Disposition
           const extFromMime = (mt) => {
             const map = {
               'application/pdf': 'pdf',
@@ -726,6 +723,7 @@
 
     function downloadCartola(id){
       const url = `https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-file?id=${encodeURIComponent(id)}&field=cartola_rsh&t=${Date.now()}`;
+      // sin extensión fija; la agrega downloadFromEndpoint según Content-Type
       return downloadFromEndpoint(url, `cartola_rsh_${id}`);
     }
     // ================================================================
@@ -757,6 +755,7 @@
   </script>
 </body>
 </html>
+
 
 
 
