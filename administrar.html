@@ -15,8 +15,7 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
-      /* ← único cambio: azul claro para las filas */
-      --cell-bg: rgba(80,160,255,.22);
+      --cell-bg: rgba(80,160,255,.22); /* azul claro para distinguir las filas */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -66,7 +65,7 @@
     thead th{ color:#e6f0ff; font-weight:800; text-align:left; padding:10px; font-size:14px; border-bottom:2px solid rgba(255,255,255,.6); background:#0b6ef3; }
     tbody td{
       background:var(--cell-bg);
-      color:#0b1220;
+      color:#ffffff; /* ← texto blanco en las filas */
       padding:10px; font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
@@ -99,7 +98,7 @@
     .filter-btn{ all:unset; cursor:pointer; color:#e6f0ff; font-weight:900; padding:2px 6px; border-radius:6px; }
     .filter-btn:hover{ background:rgba(255,255,255,.12); }
 
-    /* Menú flotante para evitar scroll horizontal al abrirlo */
+    /* Menú flotante */
     .filter-menu{
       position:fixed;
       top:-9999px; left:-9999px;
@@ -505,7 +504,7 @@
         });
         if (!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-
+        
         let items = [];
         if (Array.isArray(data)) {
           items = data;
