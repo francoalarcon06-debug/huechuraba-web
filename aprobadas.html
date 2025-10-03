@@ -151,9 +151,8 @@
   </main>
 
   <script>
-    // ===== Endpoints (usa el webhook nuevo) =====
-    const LIST_URL   = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-aprobadas";
-    const DETAIL_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail";
+    // ===== Endpoints =====
+    const LIST_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-aprobadas";
 
     // ===== Helpers UI =====
     const $ = (s, el=document)=> el.querySelector(s);
@@ -180,7 +179,6 @@
       if (Array.isArray(val)) return val;
       if (typeof val === 'string'){
         const s = val.trim();
-        // ejemplos: {Cachureos,Escombros}  ó  (Cachureos,Escombros)
         if ((s.startsWith('{') && s.endsWith('}')) || (s.startsWith('(') && s.endsWith(')'))){
           const inner = s.slice(1,-1);
           if (!inner) return [];
@@ -228,7 +226,6 @@
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
 
-        // El webhook ya devuelve SOLO aprobadas
         const items = Array.isArray(data) ? data : (data.items || data.data || []);
         if (!items.length){
           const tr = document.createElement('tr');
@@ -241,11 +238,13 @@
           .sort((a,b)=> (Number(b.numero_solicitud??0)) - (Number(a.numero_solicitud??0)))
           .forEach(it => tbody.appendChild(row(it)));
 
+        // >>> Cambio: Editar abre aprobada-editar.html
         tbody.addEventListener("click",(ev)=>{
           const b = ev.target.closest(".edit"); if(!b) return;
           const id = b.getAttribute("data-id"); if(!id) return;
-          const u = new URL(DETAIL_URL);
-          u.searchParams.set("id", id); if (email) u.searchParams.set("email", email);
+          const u = new URL("aprobada-editar.html", location.href);
+          u.searchParams.set("id", id);
+          if (email) u.searchParams.set("email", email);
           location.href = u.toString();
         });
       }catch(e){
@@ -257,3 +256,4 @@
   </script>
 </body>
 </html>
+
