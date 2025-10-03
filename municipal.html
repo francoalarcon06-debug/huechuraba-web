@@ -184,9 +184,7 @@
     }
 
     function irAAdministrar(){ window.location.href = withEmailIfAny('administrar.html'); }
-    function irAAprobadas(){ 
-      window.location.href = withEmailIfAny('https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-aprobadas'); 
-    }
+    function irAAprobadas(){ window.location.href = withEmailIfAny('aprobadas.html'); }
 
     function logout(){
       localStorage.removeItem('email');
