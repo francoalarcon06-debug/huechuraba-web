@@ -177,9 +177,9 @@
         <div class="row-actions">
           <button class="back-btn" id="backBtn">← Volver atrás</button>
 
-          <!-- NUEVO: Confirmar (verde) deshabilitado hasta subir una imagen -->
+          <!-- Confirmar siempre verde; el mensaje aparece solo si no hay foto al hacer click -->
           <div class="confirm-wrap">
-            <button id="confirmBtn" class="confirm-btn" disabled>Confirmar</button>
+            <button id="confirmBtn" class="confirm-btn">Confirmar</button>
             <div id="confirmHint" class="confirm-hint">Para confirmar, primero sube una fotografía.</div>
           </div>
         </div>
@@ -268,10 +268,10 @@
     function showError(t){ msgError.textContent = t; msgError.classList.add("show"); }
     function clearError(){ msgError.textContent = ""; msgError.classList.remove("show"); }
 
-    function updateConfirmState(){
+    // Oculta el aviso si ya hay foto válida
+    function hideHintIfHasFile(){
       const hasFile = inputFile.files && inputFile.files.length > 0;
-      confirmBtn.disabled = !hasFile;
-      confirmHint.classList.toggle("show", !hasFile);
+      if (hasFile) confirmHint.classList.remove("show");
     }
 
     btnFile.addEventListener("click", ()=> inputFile.click());
@@ -279,29 +279,32 @@
     inputFile.addEventListener("change", ()=>{
       clearError();
       const f = inputFile.files?.[0];
-      if (!f){ thumb.style.display="none"; updateConfirmState(); return; }
+      if (!f){ thumb.style.display="none"; return; }
 
       const okType = /image\/(jpeg|png)/i.test(f.type);
       const okSize = f.size <= MAX_MB * 1024 * 1024;
-      if (!okType){ showError("Solo se permiten imágenes JPG o PNG."); inputFile.value=""; thumb.style.display="none"; updateConfirmState(); return; }
-      if (!okSize){ showError("La imagen supera los 5 MB."); inputFile.value=""; thumb.style.display="none"; updateConfirmState(); return; }
+      if (!okType){ showError("Solo se permiten imágenes JPG o PNG."); inputFile.value=""; thumb.style.display="none"; return; }
+      if (!okSize){ showError("La imagen supera los 5 MB."); inputFile.value=""; thumb.style.display="none"; return; }
 
       const reader = new FileReader();
-      reader.onload = e => { thumb.src = e.target.result; thumb.style.display="block"; updateConfirmState(); };
+      reader.onload = e => { thumb.src = e.target.result; thumb.style.display="block"; hideHintIfHasFile(); };
       reader.readAsDataURL(f);
     });
 
-    // Puedes conectar este click a tu flujo n8n cuando corresponda:
+    // Click en confirmar: solo muestra el aviso si no hay foto
     confirmBtn.addEventListener("click", ()=>{
-      if (confirmBtn.disabled) return;
+      const hasFile = inputFile.files && inputFile.files.length > 0;
+      if (!hasFile){
+        confirmHint.classList.add("show");
+        confirmHint.scrollIntoView({behavior:"smooth", block:"nearest"});
+        return;
+      }
       // Aquí harías el POST/llamada que necesites.
       alert("¡Solicitud confirmada! (con foto adjunta)");
     });
 
     // Estado inicial
-    updateConfirmState();
     loadDetail();
   </script>
 </body>
 </html>
-
