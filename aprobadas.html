@@ -18,23 +18,20 @@
       margin:0;
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
       color:#0b1220;
-      background:#fff;             /* ← blanco (el azul lo pone <main>) */
-      display:flex; flex-direction:column; /* ← para que main ocupe todo el alto restante */
+      background:#fff;
+      display:flex; flex-direction:column;
     }
 
-    /* ===== Header igual a tus páginas ===== */
     header{ background:#fff; border-bottom:1px solid #e6eefc; }
     .wrap{
       max-width:1120px; margin:0 auto; padding:18px 20px;
       display:grid; grid-template-columns:1fr auto; align-items:center; gap:18px;
     }
-    /* Ya NO es un <a>; quitamos link y subrayado */
     .brand{ display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:16px; text-decoration:none }
     .brand img{ height:78px; width:auto; object-fit:contain; }
     .brand .subtitle{
       grid-column:1 / -1; margin:6px 0 0 0; color:#475569; font-size:15px; font-weight:600;
-      text-decoration:none;     /* ← sin subrayado */
-      pointer-events:none;      /* ← no es clickeable */
+      text-decoration:none; pointer-events:none;
     }
 
     .userbox{ position:relative; }
@@ -54,11 +51,10 @@
     .dropdown button{ all:unset; display:block; width:100%; padding:12px 14px; cursor:pointer; font-weight:800; color:#b91c1c; }
     .dropdown button:hover{ background:#fee2e2; }
 
-    /* ===== Main y tabla ===== */
     main{
       background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
       padding:26px 16px 70px;
-      flex:1;                      /* ← ocupa todo el alto restante (cubre pantalla completa) */
+      flex:1;
     }
     .container{ max-width:1600px; margin:0 auto; }
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
@@ -104,7 +100,6 @@
   </style>
 </head>
 <body>
-  <!-- ===== Header (logo + frase debajo, sin link ni subrayado) ===== -->
   <header>
     <div class="wrap">
       <div class="brand">
@@ -127,7 +122,6 @@
     </div>
   </header>
 
-  <!-- ===== Contenido ===== -->
   <main>
     <div class="container">
       <h1>Solicitudes aprobadas</h1>
@@ -157,11 +151,11 @@
   </main>
 
   <script>
-    // Endpoints
-    const LIST_URL   = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes";
+    // ===== Endpoints (usa el webhook nuevo) =====
+    const LIST_URL   = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-aprobadas";
     const DETAIL_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail";
 
-    // Utils
+    // ===== Helpers UI =====
     const $ = (s, el=document)=> el.querySelector(s);
     const email = (()=> {
       const qs = new URLSearchParams(location.search).get("email");
@@ -169,41 +163,59 @@
     })();
     $("#emailFull").textContent = email || "—";
 
-    // Dropdown
     $("#userBtn").addEventListener("click",(e)=>{ e.stopPropagation(); $("#userMenu").classList.toggle("open"); });
     document.addEventListener("click",()=> $("#userMenu").classList.remove("open"));
     $("#logoutBtn").addEventListener("click",()=>{
       try{ localStorage.removeItem("email"); sessionStorage.removeItem("email"); localStorage.removeItem("user"); }catch(e){}
       location.href = "index.html";
     });
-
-    // Volver atrás
     $("#backBtn").addEventListener("click",()=>{
       const u = new URL("municipal.html", location.href);
       if (email) u.searchParams.set("email", email);
       location.href = u.toString();
     });
 
-    // Tabla (solo aprobadas)
-    const tbody = $("#tbody");
-    const joinTipos = v => Array.isArray(v) ? v.join(", ") : (v||"");
+    // ===== Formateos =====
+    function parseTipos(val){
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string'){
+        const s = val.trim();
+        // ejemplos: {Cachureos,Escombros}  ó  (Cachureos,Escombros)
+        if ((s.startsWith('{') && s.endsWith('}')) || (s.startsWith('(') && s.endsWith(')'))){
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x=> x.trim().replace(/^"(.*)"$/,'$1'));
+        }
+        if (s) return [s];
+      }
+      return [];
+    }
+    const displayTipos = (v)=> {
+      const arr = parseTipos(v);
+      if (!arr.length) return '—';
+      return arr.length <= 2 ? arr.join(', ') : arr.slice(0,2).join(', ')+', ...';
+    };
+
     const retiroInfo = s => {
       const e = String(s||"").trim().toUpperCase();
       return { text:e||"—", cls: e==="COMPLETADO" ? "estado estado-completado" : "estado", canEdit: e==="PENDIENTE" };
     };
 
+    // ===== Render =====
+    const tbody = $("#tbody");
+
     function row(it){
       const r = retiroInfo(it.estado_retiro_escombros);
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><strong>${it.id ?? it.id_solicitud ?? ""}</strong></td>
+        <td><strong>${it.numero_solicitud ?? it.id ?? ""}</strong></td>
         <td class="ellipsis" title="${it.nombre||""}">${it.nombre||"—"}</td>
         <td>${it.telefono||"—"}</td>
         <td class="ellipsis" title="${it.direccion||""}">${it.direccion||"—"}</td>
-        <td class="ellipsis" title="${joinTipos(it.tipos)}">${joinTipos(it.tipos) || "—"}</td>
+        <td class="ellipsis" title="${displayTipos(it.tipos)}">${displayTipos(it.tipos)}</td>
         <td class="ellipsis" title="${it.detalle||""}">${it.detalle||"—"}</td>
         <td><span class="${r.cls}">${r.text}</span></td>
-        <td class="actions">${r.canEdit ? `<button class="btn edit" data-id="${it.id ?? it.id_solicitud}">Editar</button>` : ""}</td>
+        <td class="actions">${r.canEdit ? `<button class="btn edit" data-id="${it.numero_solicitud ?? it.id}">Editar</button>` : ""}</td>
       `;
       return tr;
     }
@@ -213,19 +225,21 @@
         const url = new URL(LIST_URL);
         if (email) url.searchParams.set("email", email);
         const res = await fetch(url, {cache:"no-store"});
+        if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-        const list = Array.isArray(data) ? data : (data.items || data.data || []);
-        const aprobadas = (list||[])
-          .filter(x => String(x.estado_solicitud||"").toUpperCase()==="APROBADO")
-          .sort((a,b)=> (b.id??0)-(a.id??0));
 
-        if (!aprobadas.length){
-          const tr = document.createElement("tr");
+        // El webhook ya devuelve SOLO aprobadas
+        const items = Array.isArray(data) ? data : (data.items || data.data || []);
+        if (!items.length){
+          const tr = document.createElement('tr');
           tr.innerHTML = `<td colspan="8" style="text-align:center;opacity:.9">No hay solicitudes aprobadas.</td>`;
           tbody.appendChild(tr);
           return;
         }
-        aprobadas.forEach(it => tbody.appendChild(row(it)));
+
+        items
+          .sort((a,b)=> (Number(b.numero_solicitud??0)) - (Number(a.numero_solicitud??0)))
+          .forEach(it => tbody.appendChild(row(it)));
 
         tbody.addEventListener("click",(ev)=>{
           const b = ev.target.closest(".edit"); if(!b) return;
@@ -235,7 +249,7 @@
           location.href = u.toString();
         });
       }catch(e){
-        const tr = document.createElement("tr");
+        const tr = document.createElement('tr');
         tr.innerHTML = `<td colspan="8" style="text-align:center">Error al cargar las solicitudes.</td>`;
         tbody.appendChild(tr);
       }
@@ -243,3 +257,4 @@
   </script>
 </body>
 </html>
+
