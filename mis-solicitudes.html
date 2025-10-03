@@ -395,14 +395,31 @@
     }
 
     function createPayButton(id){
-      const b = document.createElement('button');
-      b.className = 'pay-btn';
-      b.textContent = 'Pagar';
-      b.addEventListener('click', () => {
-        location.href = `pago.html?id=${encodeURIComponent(id)}`;
+  const b = document.createElement('button');
+  b.className = 'pay-btn';
+  b.textContent = 'Pagar';
+  b.addEventListener('click', async () => {
+    try {
+      const email = getEmailFromClient();
+      const body = new URLSearchParams({ id: String(id) });
+      if (email) body.append('email', email);
+
+      // 🔗 Llamada al webhook en n8n
+      await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-pagar', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+        body
       });
-      return b;
+    } catch (e) {
+      console.warn('Pago: error al llamar al webhook', e);
+    } finally {
+      // 🔗 Redirige al pago.html
+      location.href = `pago.html?id=${encodeURIComponent(id)}`;
     }
+  });
+  return b;
+}
+
 
     function normalizeEstado(str){
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
