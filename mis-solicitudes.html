@@ -94,9 +94,10 @@
       color:#e6f0ff; font-weight:800; text-align:left; padding:12px; font-size:14px;
       border-bottom:2px solid rgba(255,255,255,.6);
     }
+    /* +++ Aumento de alto de fila para que no se corte +++ */
     tbody td{
       background:rgba(255,255,255,.12); color:#fff;
-      padding:14px 12px 18px;
+      padding:14px 12px 18px;              /* antes: 12px; ahora más alto */
       font-size:14px;
       border-bottom:6px solid #0b6ef3;
       vertical-align: top;
@@ -120,6 +121,7 @@
     .w-file{ width:120px; }
     th.w-file, td.w-file { padding-left: 14px; }
 
+    /* ancho ajustado para alinear kebab a la derecha del estado */
     .w-date{ width:180px; }
     th.w-date, td.w-date { padding-left: 14px; }
     .w-estado{ width:220px; }
@@ -141,6 +143,7 @@
       cursor:pointer; font-weight:800; box-shadow: var(--shadow); margin-left:8px;
     }
 
+    /* Colores de estado pedidos */
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.AUTORIZADO{ color:#065f46; }
@@ -148,37 +151,258 @@
     .state.PENDIENTE_DE_PAGO{ color:#ca8a04; }
     .state.PAGO_PENDIENTE{ color:#ca8a04; }
     .state.CANCELADO{ color:#dc2626; }
+
+    .kebab-btn{
+      all:unset; display:inline-grid; place-items:center;
+      width:32px; height:32px; margin-left:12px;
+      border-radius:8px; background:#fff; color:#0b3a88; cursor:pointer; box-shadow: var(--shadow);
+      font-weight:900;
+    }
+    /* Alinear el kebab a la derecha, sin importar el largo del estado */
+    td.w-estado{ display:flex; align-items:center; gap:10px; }
+    td.w-estado .kebab-btn{ margin-left:auto; }
+
+    .row-menu{
+      position:absolute; right:8px; top:48px;   /* un poco más abajo por el nuevo alto */
+      background:#fff; border:1px solid #dbe4ff; border-radius:10px; box-shadow: var(--shadow);
+      overflow:hidden; min-width:160px; z-index:10;
+    }
+    .row-menu[hidden]{ display:none; }
+    .row-menu button{
+      all:unset; display:block; width:100%; padding:10px 12px; cursor:pointer; font-weight:800; color:#0b3a88;
+    }
+    .row-menu button:hover{ background:#f1f5ff; }
+    .row-menu button[aria-disabled="true"]{
+      opacity:.45; cursor:not-allowed; filter:grayscale(0.2);
+    }
+
+    .pager{ display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:12px 4px 0; flex-wrap: wrap; }
+    .pager button{
+      all:unset; background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:800;
+    }
+    .pager .num{
+      background:#fff; border:2px solid #0b3a88; color:#0b3a88; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;
+    }
+    .pager .num.current{ background:#0b3a88; color:#fff; }
+    .pager .sep{ color:#e6f0ff; font-weight:900; user-select:none; }
+
+    .drawer{
+      position:fixed; top:0; right:0; height:100%; width:min(540px, 92vw); background:#fff;
+      box-shadow:-18px 0 44px rgba(0,0,0,.25); transform:translateX(100%); transition:transform .25s ease;
+      display:flex; flex-direction:column; z-index:40;
+    }
+    .drawer.open{ transform:translateX(0); }
+    .drawer-head{
+      display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #e6eefc;
+    }
+    .drawer-title{ font-weight:900; color:#0b3a88; }
+    .drawer-close{ all:unset; font-weight:900; color:#b91c1c; cursor:pointer; }
+    .drawer-body{ padding:16px; overflow:auto; }
+    .field{
+      margin-bottom:12px; background:#f6f9ff; border:1px solid #dbe4ff; border-radius:12px; padding:10px 12px;
+    }
+    .field b{ color:#0b3a88; display:block; margin-bottom:4px; }
+    .muted{ color:#6b7280; }
+
+    .backdrop{
+      position:fixed; inset:0; background:rgba(2,6,23,.45);
+      opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:30;
+    }
+    .backdrop.show{ opacity:1; pointer-events:auto; }
+
+    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0; }
+    .error.show{ display:block; }
   </style>
 </head>
 <body>
-  <!-- ... resto del HTML exactamente igual ... -->
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo-huechuraba.svg.svg" alt="Huechuraba – Puede más" />
+        <div></div>
+        <p class="subtitle">Plataforma para <strong>levantar solicitudes de Retiro de Escombros.</strong></p>
+      </div>
+
+      <div class="userbox">
+        <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <img src="cuenta.png" alt="Cuenta" />
+          <span>Mi sesión</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="dropdown" id="userMenu" role="menu">
+          <div class="head" id="emailFull">—</div>
+          <button type="button" id="logoutBtn">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Solicitudes</h1>
+
+      <div id="msgError" class="error"></div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th class="w-actions"></th>
+              <th class="w-id">N° Solicitud</th>
+              <th class="w-dir">Dirección</th>
+              <th class="w-tel">Teléfono</th>
+              <th class="w-tipo">Tipo</th>
+              <th class="w-det">Detalle</th>
+              <th class="w-file">Cartola RSH</th>
+              <th class="w-date">Última actualización</th>
+              <th class="w-estado">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+
+        <div class="pager" id="pager"></div>
+
+        <div class="table-footer">
+          <button class="back-btn" id="backBtn">← Volver atrás</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <div class="drawer-title">Detalle de solicitud</div>
+      <button class="drawer-close" id="drawerClose">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+  <div class="backdrop" id="drawerBackdrop" aria-hidden="true"></div>
 
   <script>
     const CANCEL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/solicitud-cancelar';
 
-    // ... resto de funciones ...
+    function getEmailFromClient(){
+      const ls = (localStorage.getItem('email') || '').trim();
+      if (ls) return ls;
+      const ss = (sessionStorage.getItem('email') || '').trim();
+      if (ss) return ss;
+      const qs = new URLSearchParams(location.search).get('email');
+      if (qs && qs.trim()) return decodeURIComponent(qs.trim());
+      try {
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u && u.correo) return String(u.correo).trim();
+        }
+      } catch(e){}
+      return '';
+    }
+    (function(){
+      const email = getEmailFromClient();
+      document.getElementById('emailFull').textContent = email || '—';
+    })();
 
-    // 🔹 función corregida
+    // Botón volver
+    document.getElementById('backBtn').addEventListener('click', ()=>{
+      const email = getEmailFromClient();
+      if (email) {
+        location.href = `verify.html?email=${encodeURIComponent(email)}`;
+      } else {
+        location.href = `verify.html`;
+      }
+    });
+
+    // Cerrar sesión -> limpiar y llevar a login (index.html)
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      try{
+        localStorage.removeItem('email');
+        sessionStorage.removeItem('email');
+        localStorage.removeItem('user');
+      }catch(e){}
+      location.href = 'index.html';
+    });
+
+    const btn = document.getElementById('userBtn');
+    const menu = document.getElementById('userMenu');
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', ()=> menu.classList.remove('open'));
+
+    const msgError = document.getElementById('msgError');
+    function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
+
+    function fmtDate(v){
+      if (v === null || v === undefined || v === '') return '—';
+      const d = new Date(Number(v));
+      try {
+        return new Intl.DateTimeFormat('es-CL', {
+          dateStyle:'medium',
+          timeStyle:'short',
+          timeZone:'UTC'
+        }).format(d);
+      } catch {
+        return d.toUTCString();
+      }
+    }
+
+    function parseTipos(val){
+      if (Array.isArray(val)) return val.map(String);
+      if (typeof val === 'string') {
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')) {
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
+        }
+        if (s) return [s];
+      }
+      return [];
+    }
+
+    function displayTipos(arr){
+      if (!arr || !arr.length) return '—';
+      const clean = arr.map(t => String(t).replace(/^"(.*)"$/,'$1').replace(/^'(.*)'$/,'$1'));
+      if (clean.length <= 2) return clean.join(', ');
+      return clean.slice(0,2).join(', ') + ', ...';
+    }
+
+    function formatPhone(v){
+      if (!v) return '—';
+      const digits = String(v).replace(/\D/g,'');
+      if (digits.length === 11 && digits.startsWith('569')) {
+        const a = digits.slice(3,7);
+        const b = digits.slice(7,11);
+        return `+56 9 ${a} ${b}`;
+      }
+      if (digits.length === 9 && digits.startsWith('9')) {
+        const a = digits.slice(1,5);
+        const b = digits.slice(5,9);
+        return `+56 9 ${a} ${b}`;
+      }
+      return v;
+    }
+
+    const stateClass = (s) => (s||'').toUpperCase().replaceAll(' ', '_');
+
+    let allItems = [];
+    let page = 1;
+    const pageSize = 10;
+
+    function paginate(items, p, size){
+      const start = (p-1)*size;
+      return items.slice(start, start + size);
+    }
+
     function createPayButton(id){
       const b = document.createElement('button');
       b.className = 'pay-btn';
       b.textContent = 'Pagar';
-      b.addEventListener('click', async () => {
-        try {
-          await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/pago-realizado', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
-          });
-        } catch (e) {
-          console.error('Error al activar workflow:', e);
-        } finally {
-          location.href = `pago.html?id=${encodeURIComponent(id)}`;
-        }
+      b.addEventListener('click', () => {
+        location.href = `pago.html?id=${encodeURIComponent(id)}`;
       });
       return b;
     }
-
 
     function normalizeEstado(str){
       return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
@@ -527,10 +751,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
