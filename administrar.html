@@ -15,8 +15,8 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --hover-blue:#eaf2ff;
-      /* ← aquí el cambio */
-      --cell-bg:rgba(11,110,243,.18);
+      /* ← único cambio: azul claro para las filas */
+      --cell-bg: rgba(80,160,255,.22);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -88,9 +88,9 @@
     .state{ font-weight:900; letter-spacing:.4px; }
     .state.PENDIENTE{ color:#111827; }
     .state.RECHAZADO{ color:#b91c1c; }
-    .state.PENDIENTE_DE_PAGO{ color:#ca8a04; }  /* amarillo oscuro */
-    .state.PAGO_PENDIENTE{ color:#ca8a04; }      /* amarillo oscuro */
-    .state.CANCELADO{ color:#111827; }           /* negro */
+    .state.PENDIENTE_DE_PAGO{ color:#ca8a04; }
+    .state.PAGO_PENDIENTE{ color:#ca8a04; }
+    .state.CANCELADO{ color:#111827; }
 
     .estado-wrap{ display:inline-flex; align-items:center; gap:10px; }
     .edit-btn{ padding:6px 10px; }
@@ -528,6 +528,7 @@
   </script>
 </body>
 </html>
+
 
 
 
