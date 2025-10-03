@@ -13,11 +13,8 @@
       --outline:#1e40af;
       --shadow:0 8px 28px rgba(2,6,23,.10);
       --text:#0b1220;
-      --muted:#64748b;
-      --ok:#065f46;
-      --ok-strong:#047857;
-      --danger:#b91c1c;
-      --card:#0b6ef3;
+      --ok:#10b981;
+      --ok-dark:#059669;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -45,67 +42,59 @@
     h1{ color:#fff; font-size:34px; margin:0 0 16px 0; }
 
     .card{
-      background:var(--card);
-      border-radius:14px;
-      padding:18px;
+      background:#0b6ef3; border-radius:14px; padding:18px;
       box-shadow:0 16px 40px rgba(0,0,0,.12) inset, 0 12px 28px rgba(0,0,0,.10);
     }
-
     .form{
       background:rgba(255,255,255,.10);
       border:1px solid rgba(255,255,255,.25);
       border-radius:14px;
       padding:18px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:16px;
+      display:grid; grid-template-columns: 1fr 1fr; gap:16px;
     }
-    @media (max-width: 820px){
-      .form{ grid-template-columns:1fr; }
-    }
-    .field{
-      display:grid; gap:8px;
-    }
-    .label{
-      font-weight:800; color:#e6f0ff; letter-spacing:.2px;
-    }
+    @media (max-width: 820px){ .form{ grid-template-columns:1fr; } }
+    .field{ display:grid; gap:8px; }
+    .label{ font-weight:800; color:#e6f0ff; letter-spacing:.2px; }
     .input{
-      background:#ffffff;
-      border:2px solid #dbe4ff;
-      border-radius:10px;
-      padding:10px 12px;
-      color:#0b3a88;
-      font-weight:600;
-      outline:none;
-      box-shadow: var(--shadow);
+      background:#ffffff; border:2px solid #dbe4ff; border-radius:10px;
+      padding:10px 12px; color:#0b3a88; font-weight:600; outline:none; box-shadow: var(--shadow);
     }
-    .input[readonly]{ color:#0b3a88; }
+    .muted{ color:#dbeafe; font-weight:700; margin:0 0 10px 0; }
 
-    .muted{ color:#dbeafe; font-weight:700; }
-
-    .actions{
-      display:flex; justify-content:center; margin-top:20px;
-    }
+    .actions{ display:flex; justify-content:center; margin-top:20px; }
     .pay-btn{
-      all:unset;
-      background:#10b981;              /* verde */
-      border:2px solid #059669;
-      color:#ffffff;
-      padding:12px 24px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:900;
-      box-shadow: var(--shadow);
-      transition: transform .05s ease;
+      all:unset; background:var(--ok); border:2px solid var(--ok-dark); color:#fff;
+      padding:12px 24px; border-radius:12px; cursor:pointer; font-weight:900; box-shadow: var(--shadow);
     }
     .pay-btn:hover{ transform: translateY(-1px); }
-    .pay-btn:active{ transform: translateY(0); }
 
     .error{
       color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca;
       padding:8px 10px; border-radius:8px; display:none; margin:12px 0 0 0;
     }
     .error.show{ display:block; }
+
+    /* ====== Vista de éxito (como la de "Solicitud creada") ====== */
+    .success-wrap{
+      min-height:420px; display:flex; align-items:center; justify-content:center;
+    }
+    .success-card{
+      width:min(680px, 92vw); background:#fff; border-radius:16px; padding:34px 24px;
+      box-shadow:0 8px 28px rgba(2,6,23,.10);
+      text-align:center;
+    }
+    .check{
+      width:74px; height:74px; border-radius:50%;
+      display:inline-grid; place-items:center;
+      background:rgba(16,185,129,.14); border:3px solid rgba(16,185,129,.6);
+      color:var(--ok-dark); font-size:38px; font-weight:900; margin:0 auto 12px;
+    }
+    .big{ font-size:24px; font-weight:900; color:#0b1220; margin:10px 0 4px; }
+    .back-btn{
+      all:unset; margin-top:12px; display:inline-block;
+      background:#0b6ef3; border:2px solid #084bbb; color:#fff;
+      padding:10px 16px; border-radius:12px; font-weight:800; cursor:pointer; box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
@@ -125,8 +114,9 @@
 
       <div id="msgError" class="error"></div>
 
-      <div class="card">
-        <p class="muted" id="infoTitle">Cargando datos de la solicitud…</p>
+      <!-- Vista DATOS + BOTÓN PAGAR -->
+      <section id="view-form" class="card">
+        <p class="muted">Revisa que tus datos estén correctos antes de pagar.</p>
 
         <div class="form" id="form" hidden>
           <div class="field">
@@ -169,7 +159,18 @@
         <div class="actions">
           <button class="pay-btn" id="btnPagar">Pagar</button>
         </div>
-      </div>
+      </section>
+
+      <!-- Vista ÉXITO -->
+      <section id="view-success" class="success-wrap" hidden>
+        <div class="success-card">
+          <div class="check">✓</div>
+          <div class="big">¡Pago realizado correctamente!</div>
+          <div style="margin-top:14px;">
+            <a id="backProfile" class="back-btn" href="verify.html">Volver a mi perfil</a>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -199,6 +200,26 @@
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
 
+    function parseTipos(val){
+      if (Array.isArray(val)) return val.map(String);
+      if (typeof val === 'string') {
+        const s = val.trim();
+        if (s.startsWith('{') && s.endsWith('}')) {
+          const inner = s.slice(1,-1);
+          if (!inner) return [];
+          return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
+        }
+        if (s) return [s];
+      }
+      return [];
+    }
+
+    function setBackProfileHref(){
+      const email = getEmailFromClient();
+      const link = document.getElementById('backProfile');
+      link.href = email ? `verify.html?email=${encodeURIComponent(email)}` : `verify.html`;
+    }
+
     async function loadById(id){
       const email = getEmailFromClient();
       if (!id){ showError('Falta el parámetro id en la URL.'); return; }
@@ -217,41 +238,28 @@
 
         if (!it){ showError('No se encontró la solicitud indicada.'); return; }
 
-        document.getElementById('infoTitle').textContent = 'Revisa que tus datos estén correctos antes de pagar.';
         document.getElementById('form').hidden = false;
 
         const set = (el, val)=> el.value = (val ?? '—');
 
         set(document.getElementById('f_id'), it.id);
-        set(document.getElementById('f_correo'), it.correo || getEmailFromClient());
+        set(document.getElementById('f_correo'), it.correo || email);
         set(document.getElementById('f_nombre'), it.nombre);
         set(document.getElementById('f_rut'), it.rut);
         set(document.getElementById('f_direccion'), it.direccion);
         set(document.getElementById('f_telefonos'), it.telefono);
-
-        // tipos puede venir como string "{...}" o array
-        function parseTipos(val){
-          if (Array.isArray(val)) return val.map(String);
-          if (typeof val === 'string') {
-            const s = val.trim();
-            if (s.startsWith('{') && s.endsWith('}')) {
-              const inner = s.slice(1,-1);
-              if (!inner) return [];
-              return inner.split(',').map(x => x.replace(/^"(.*)"$/,'$1'));
-            }
-            if (s) return [s];
-          }
-          return [];
-        }
         const tipos = parseTipos(it.tipos);
         set(document.getElementById('f_tipo'), tipos.length ? tipos.join(', ') : '—');
         set(document.getElementById('f_detalle'), it.detalle);
 
+        // Botón pagar -> mostrar éxito
         document.getElementById('btnPagar').addEventListener('click', ()=>{
-          console.log('Ir a pagar ID:', it.id);
-          // Aquí conectaremos el flujo real de pago
+          // Aquí más adelante llamaremos al backend de pago.
+          // Por ahora solo cambiamos a la vista de éxito.
+          document.getElementById('view-form').hidden = true;
+          setBackProfileHref();
+          document.getElementById('view-success').hidden = false;
         });
-
       }catch(e){
         console.error(e);
         showError('No fue posible cargar los datos para el pago.');
@@ -262,3 +270,4 @@
   </script>
 </body>
 </html>
+
