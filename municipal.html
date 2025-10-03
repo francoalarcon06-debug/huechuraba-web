@@ -79,7 +79,6 @@
     .tile img{ width:120px; height:120px; object-fit:contain; filter: brightness(0) contrast(1); margin-bottom:18px; }
     .tile .label{ color:#000; letter-spacing:.6px; font-weight:800; font-size:13px; text-transform:uppercase; text-align:center; }
 
-    /* Tablet y móvil: 1 columna, menos padding, elementos más compactos */
     @media (max-width: 780px){
       .wrap{ padding:14px 12px; gap:12px; }
       .brand img{ height:64px; }
@@ -92,7 +91,6 @@
       .tile .label{ font-size:12.5px; }
     }
 
-    /* Teléfonos estrechos: ocupar casi todo el ancho */
     @media (max-width: 430px){
       .wrap{ padding:12px 10px; }
       .brand{ column-gap:10px; }
@@ -146,6 +144,9 @@
   </main>
 
   <script>
+    // === CONFIG ===
+    const WEBHOOK_APROBADAS_URL = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitudes-aprobadas';
+
     function getEmailFromClient(){
       const ls = (localStorage.getItem('email') || '').trim();
       if (ls) return ls;
@@ -180,11 +181,24 @@
 
     function withEmailIfAny(base){
       const email = getEmailFromClient();
-      return email ? (base + '?email=' + encodeURIComponent(email)) : base;
+      return email ? (base + (base.includes('?') ? '&' : '?') + 'email=' + encodeURIComponent(email)) : base;
     }
 
     function irAAdministrar(){ window.location.href = withEmailIfAny('administrar.html'); }
-    function irAAprobadas(){ window.location.href = withEmailIfAny('aprobadas.html'); }
+
+    // <<< ACTUALIZADO >>> dispara webhook y luego navega a aprobadas.html
+    async function irAAprobadas(){
+      const url = withEmailIfAny(WEBHOOK_APROBADAS_URL);
+      try {
+        // Disparamos el webhook (no bloqueamos por CORS ni esperamos JSON)
+        await Promise.race([
+          fetch(url, { mode: 'no-cors', cache: 'no-store' }),
+          new Promise(res => setTimeout(res, 350)) // pequeño “fire-and-go”
+        ]);
+      } catch(e) { /* ignoramos errores de red */ }
+      // Entramos a la página que pinta la tabla
+      window.location.href = withEmailIfAny('aprobadas.html');
+    }
 
     function logout(){
       localStorage.removeItem('email');
