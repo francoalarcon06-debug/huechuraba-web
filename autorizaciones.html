@@ -82,15 +82,17 @@
     textarea{ min-height:120px; resize:vertical; }
     .muted{ color:#e6f0ff; opacity:.9; font-weight:700; }
 
-    .error{ color:#ffe3e3; background:#7f1d1d; border:1px solid #fecaca; padding:10px 12px; border-radius:8px; display:none; margin:0 0 14px 0; font-weight:800; }
-    .error.show{ display:block; }
+    /* (mantengo estas clases, pero ya no se usan visualmente arriba) */
+    .error{ display:none; }
 
-    /* Acciones: ahora separadas (izq: Rechazar | der: Cancelar + Aprobar) */
+    /* Acciones */
     .actions{
-      display:flex; justify-content:space-between; align-items:center;
+      display:flex; justify-content:space-between; align-items:flex-start;
       gap:10px; margin-top:14px;
     }
     .actions .left, .actions .right{ display:flex; gap:10px; align-items:center; }
+    /* Para poder mostrar el aviso DEBAJO del botón Rechazar */
+    .actions .left{ flex-direction:column; align-items:flex-start; gap:8px; }
 
     .btn{
       all:unset; background:#fff; border:2px solid var(--outline); color:#0b3a88;
@@ -112,6 +114,22 @@
 
     .uploader{ border:2px dashed #dbe4ff; background:#f8fbff; padding:12px; border-radius:12px; }
     .uploader-text{ color:#0b3a88; font-weight:800; }
+
+    /* Aviso debajo del botón Rechazar */
+    .alert{
+      display:none;
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      font-weight:800;
+      box-shadow: var(--shadow);
+    }
+    .alert.error{
+      background:#7f1d1d; color:#ffe3e3; border:1px solid #fecaca;
+    }
+    .alert.ok{
+      background:#065f46; color:#ecfdf5; border:1px solid #34d399;
+    }
 
     @media (max-width: 740px){
       .wrap{ padding:12px 10px; }
@@ -151,6 +169,7 @@
     <div class="container">
       <h1>Autorizaciones</h1>
 
+      <!-- (se conserva por compatibilidad pero ya no se muestra arriba) -->
       <div id="msgError" class="error"></div>
 
       <div class="card">
@@ -242,6 +261,8 @@
         <div class="actions">
           <div class="left">
             <button class="btn danger" id="btnReject">Rechazar</button>
+            <!-- 🔔 TODAS las notificaciones van aquí -->
+            <div id="notify" class="alert" role="status" aria-live="polite"></div>
           </div>
           <div class="right">
             <button class="btn" id="btnCancel">Cancelar</button>
@@ -249,6 +270,7 @@
           </div>
         </div>
 
+        <!-- (se conserva, pero ya no se usa; las notificaciones bajaron) -->
         <div id="msgForm" class="error" style="margin-top:12px;"></div>
       </div>
     </div>
@@ -256,16 +278,27 @@
 
   <script>
     const DETAIL_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail';
-    const RECHAZAR_ENDPOINT = 'https://n8n.proyectosfranco.cl/webhook/huechuraba/rechazar';
 
     const $ = (id)=> document.getElementById(id);
-    const msgError = $('msgError');
-    const msgForm  = $('msgForm');
-    function showError(t){ msgError.textContent = t; msgError.classList.add('show'); setTimeout(()=>msgError.classList.remove('show'), 4000); }
+
+    /* ===== Avisos debajo de Rechazar ===== */
+    const notifyEl = $('notify');
+    function showNotice(type, text){
+      notifyEl.textContent = text;
+      notifyEl.className = 'alert ' + (type === 'ok' ? 'ok' : 'error');
+      notifyEl.style.display = 'block';
+    }
+    function hideNotice(){
+      notifyEl.style.display = 'none';
+      notifyEl.textContent = '';
+      notifyEl.className = 'alert';
+    }
+
+    /* Compatibilidad con funciones existentes: redirigen al aviso local */
+    function showError(t){ showNotice('error', t); }
     function showFormErrors(list){
-      if (!list || !list.length){ msgForm.classList.remove('show'); msgForm.textContent=''; return; }
-      msgForm.textContent = 'Falta completar: ' + list.join(', ') + '.';
-      msgForm.classList.add('show');
+      if (!list || !list.length) { hideNotice(); return; }
+      showNotice('error', 'Falta completar: ' + list.join(', ') + '.');
     }
 
     /* Encabezado (Mi sesión) */
@@ -376,7 +409,7 @@
       fotografia = f;
       fileName.textContent = `Archivo seleccionado: ${f.name} (${Math.round(f.size/1024)} KB)`;
       fileName.style.display = '';
-      msgForm.classList.remove('show');
+      hideNotice();
     });
 
     /* ===== Botones ===== */
@@ -393,47 +426,41 @@
       }
       if (errs.length){ showFormErrors(errs); return; }
       showFormErrors([]);
-      alert('Aprobar (demo)'); // aquí tu POST real de aprobación
+      // (lógica de aprobar permanece igual; placeholder)
+      showNotice('ok', 'Validación ok (demo de aprobar).');
     });
 
-    // === RECHAZAR: conecta con el webhook n8n ===
+    // RECHAZAR: requiere comentario de visita
     $('btnReject').addEventListener('click', async ()=> {
       const comentario = ($('f_comentario').value || '').trim();
       if (!comentario){
-        msgForm.textContent = 'Es necesario completar "comentario visita"';
-        msgForm.classList.add('show');
+        showNotice('error', 'Es necesario completar "Comentario de visita".');
         return;
       }
-      msgForm.classList.remove('show');
-
-      const id = getQueryId();
-      if (!id){ showError('Falta el parámetro "id".'); return; }
-
-      const btn = $('btnReject');
-      btn.disabled = true;
+      showNotice('ok', 'Enviando rechazo...');
 
       try{
-        const res = await fetch(RECHAZAR_ENDPOINT, {
+        const id = getQueryId();
+        const res = await fetch('https://n8n.proyectosfranco.cl/webhook/huechuraba/rechazar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          mode: 'cors',
           body: JSON.stringify({ id, comentario })
         });
 
         const data = await res.json().catch(()=> ({}));
         if (!res.ok || data.ok === false){
-          throw new Error('No fue posible rechazar la solicitud.');
+          throw new Error('Respuesta no OK del servidor');
         }
 
-        alert('Solicitud rechazada');
-        const email = getEmailFromClient();
-        const backUrl = email ? `administrar.html?email=${encodeURIComponent(email)}` : 'administrar.html';
-        window.location.href = backUrl;
+        showNotice('ok', 'Solicitud rechazada');
+        setTimeout(()=>{
+          const email = getEmailFromClient();
+          const back = email ? `administrar.html?email=${encodeURIComponent(email)}` : 'administrar.html';
+          window.location.href = back;
+        }, 900);
       }catch(e){
+        showNotice('error', 'No fue posible rechazar la solicitud.');
         console.error(e);
-        showError('No fue posible rechazar la solicitud.');
-      }finally{
-        btn.disabled = false;
       }
     });
 
@@ -508,6 +535,7 @@
         }
 
         updatePrecioState();
+        hideNotice();
       } catch (e){
         console.error(e);
         showError('No fue posible cargar el detalle de la solicitud.');
