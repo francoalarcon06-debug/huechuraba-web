@@ -191,6 +191,7 @@
     // ===== Config =====
     const DETAIL_URL  = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/solicitud-detail";
     const CONFIRM_URL = "https://n8n.proyectosfranco.cl/webhook/huechuraba/admin/confirmar-solicitud";
+    const DONE_PAGE   = "solicitud-completada.html"; // <- nueva página de éxito
 
     // ===== Helpers =====
     const $ = (s, el=document)=> el.querySelector(s);
@@ -269,7 +270,6 @@
     function showError(t){ msgError.textContent = t; msgError.classList.add("show"); }
     function clearError(){ msgError.textContent = ""; msgError.classList.remove("show"); }
 
-    // Oculta el aviso si ya hay foto válida
     function hideHintIfHasFile(){
       const hasFile = inputFile.files && inputFile.files.length > 0;
       if (hasFile) confirmHint.classList.remove("show");
@@ -292,7 +292,7 @@
       reader.readAsDataURL(f);
     });
 
-    // ===== Envío al webhook al confirmar =====
+    // ===== Envío al webhook al confirmar + redirección a página de éxito =====
     confirmBtn.addEventListener("click", async ()=>{
       const f = inputFile.files?.[0];
       if (!f){
@@ -302,12 +302,10 @@
       }
 
       try{
-        // Construir URL con id y email como query (lo usa tu flujo)
         const url = new URL(CONFIRM_URL);
         if (id)    url.searchParams.set("id", id);
         if (email) url.searchParams.set("email", email);
 
-        // FormData con la foto (nombre de campo 'file')
         const fd = new FormData();
         fd.append("file", f, f.name || "foto.jpg");
 
@@ -315,13 +313,9 @@
         confirmBtn.textContent = "Enviando...";
         confirmBtn.style.opacity = "0.8";
 
-        const res = await fetch(url.toString(), {
-          method: "POST",
-          body: fd
-          // NO setear Content-Type manualmente: fetch lo hace por ser FormData
-        });
-
+        const res = await fetch(url.toString(), { method: "POST", body: fd });
         const data = await res.json().catch(()=> ({}));
+
         confirmBtn.textContent = originalText;
         confirmBtn.style.opacity = "1";
 
@@ -331,9 +325,11 @@
           return;
         }
 
-        alert("¡Solicitud confirmada y actualizada!");
-        // Aquí puedes redirigir si quieres, pero no lo pediste:
-        // location.href = "aprobadas.html" + (email ? `?email=${encodeURIComponent(email)}` : "");
+        // ✅ Redirigir a la página de éxito, preservando id/email
+        const done = new URL(DONE_PAGE, location.href);
+        if (id)    done.searchParams.set("id", id);
+        if (email) done.searchParams.set("email", email);
+        location.href = done.toString();
       }catch(err){
         confirmBtn.textContent = "Confirmar";
         confirmBtn.style.opacity = "1";
@@ -347,4 +343,5 @@
   </script>
 </body>
 </html>
+
 
